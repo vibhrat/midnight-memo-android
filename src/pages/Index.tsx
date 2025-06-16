@@ -1,12 +1,30 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from 'react';
+import Navigation from '@/components/Navigation';
+import CasualNotes from '@/components/CasualNotes';
+import ShoppingLists from '@/components/ShoppingLists';
+import Passwords from '@/components/Passwords';
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState('notes');
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'notes':
+        return <CasualNotes />;
+      case 'shopping':
+        return <ShoppingLists />;
+      case 'passwords':
+        return <Passwords />;
+      default:
+        return <CasualNotes />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-white">
+      {renderContent()}
+      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };
