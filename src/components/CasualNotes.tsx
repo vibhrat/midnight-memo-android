@@ -1,12 +1,15 @@
-
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
-const CasualNotes = () => {
+interface CasualNotesRef {
+  triggerCreate: () => void;
+}
+
+const CasualNotes = forwardRef<CasualNotesRef>((_, ref) => {
   const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -15,6 +18,12 @@ const CasualNotes = () => {
     tag: '',
     content: '',
   });
+
+  useImperativeHandle(ref, () => ({
+    triggerCreate: () => {
+      setIsCreating(true);
+    }
+  }));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,11 +76,6 @@ const CasualNotes = () => {
     <div className="max-w-2xl mx-auto p-4 pb-20">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold">Notes</h1>
-        {!isCreating && (
-          <Button onClick={() => setIsCreating(true)} className="bg-black text-white hover:bg-gray-800">
-            New Note
-          </Button>
-        )}
       </div>
 
       {isCreating && (
@@ -147,6 +151,8 @@ const CasualNotes = () => {
       </div>
     </div>
   );
-};
+});
+
+CasualNotes.displayName = 'CasualNotes';
 
 export default CasualNotes;

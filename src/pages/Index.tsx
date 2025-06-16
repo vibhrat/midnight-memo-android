@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Navigation from '@/components/Navigation';
 import CasualNotes from '@/components/CasualNotes';
 import ShoppingLists from '@/components/ShoppingLists';
@@ -8,23 +8,34 @@ import FloatingActionButton from '@/components/FloatingActionButton';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('notes');
+  const notesRef = useRef<{ triggerCreate: () => void }>(null);
+  const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
+  const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
 
   const handleFloatingButtonClick = () => {
-    // This will trigger the add action for the current active tab
-    // The logic will be handled by each component
-    console.log(`Add new ${activeTab}`);
+    switch (activeTab) {
+      case 'notes':
+        notesRef.current?.triggerCreate();
+        break;
+      case 'shopping':
+        shoppingRef.current?.triggerCreate();
+        break;
+      case 'passwords':
+        passwordsRef.current?.triggerCreate();
+        break;
+    }
   };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'notes':
-        return <CasualNotes />;
+        return <CasualNotes ref={notesRef} />;
       case 'shopping':
-        return <ShoppingLists />;
+        return <ShoppingLists ref={shoppingRef} />;
       case 'passwords':
-        return <Passwords />;
+        return <Passwords ref={passwordsRef} />;
       default:
-        return <CasualNotes />;
+        return <CasualNotes ref={notesRef} />;
     }
   };
 

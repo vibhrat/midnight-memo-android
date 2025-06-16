@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Password } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,11 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Copy } from 'lucide-react';
 
-const Passwords = () => {
+interface PasswordsRef {
+  triggerCreate: () => void;
+}
+
+const Passwords = forwardRef<PasswordsRef>((_, ref) => {
   const [passwords, setPasswords] = useLocalStorage<Password[]>('passwords', []);
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -16,6 +19,12 @@ const Passwords = () => {
     password: '',
   });
   const { toast } = useToast();
+
+  useImperativeHandle(ref, () => ({
+    triggerCreate: () => {
+      setIsCreating(true);
+    }
+  }));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,12 +91,7 @@ const Passwords = () => {
   return (
     <div className="max-w-2xl mx-auto p-4 pb-20">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">Passwords</h1>
-        {!isCreating && (
-          <Button onClick={() => setIsCreating(true)} className="bg-black text-white hover:bg-gray-800">
-            New Password
-          </Button>
-        )}
+        <h1 className="text-2xl font-semibold">Vault</h1>
       </div>
 
       {isCreating && (
@@ -170,6 +174,8 @@ const Passwords = () => {
       </div>
     </div>
   );
-};
+});
+
+Passwords.displayName = 'Passwords';
 
 export default Passwords;

@@ -1,17 +1,26 @@
-
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const ShoppingLists = () => {
+interface ShoppingListsRef {
+  triggerCreate: () => void;
+}
+
+const ShoppingLists = forwardRef<ShoppingListsRef>((_, ref) => {
   const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [items, setItems] = useState<ShoppingListItem[]>([]);
   const [newItem, setNewItem] = useState({ name: '', quantity: '' });
+
+  useImperativeHandle(ref, () => ({
+    triggerCreate: () => {
+      setIsCreating(true);
+    }
+  }));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,12 +90,7 @@ const ShoppingLists = () => {
   return (
     <div className="max-w-2xl mx-auto p-4 pb-20">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">Shopping Lists</h1>
-        {!isCreating && (
-          <Button onClick={() => setIsCreating(true)} className="bg-black text-white hover:bg-gray-800">
-            New List
-          </Button>
-        )}
+        <h1 className="text-2xl font-semibold">Lists</h1>
       </div>
 
       {isCreating && (
@@ -207,6 +211,8 @@ const ShoppingLists = () => {
       </div>
     </div>
   );
-};
+});
+
+ShoppingLists.displayName = 'ShoppingLists';
 
 export default ShoppingLists;
