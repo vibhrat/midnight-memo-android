@@ -5,7 +5,8 @@ import { ShoppingList, ShoppingListItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Pen, Trash2, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Pen, Trash2, X, ArrowLeft } from 'lucide-react';
 
 interface ListDetailProps {
   listId: string;
@@ -14,10 +15,14 @@ interface ListDetailProps {
 
 const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isTitleEditOpen, setIsTitleEditOpen] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [newItem, setNewItem] = useState({ name: '', quantity: '' });
   const [checkedItems, setCheckedItems] = useLocalStorage<Record<string, boolean>>(`list-${listId}-checked`, {});
+  const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null);
+  const [isItemEditOpen, setIsItemEditOpen] = useState(false);
+  const [editItemName, setEditItemName] = useState('');
+  const [editItemQuantity, setEditItemQuantity] = useState('');
 
   const list = lists.find(l => l.id === listId);
 
@@ -33,7 +38,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
 
   const handleEditTitle = () => {
     setEditTitle(list.title);
-    setIsEditing(true);
+    setIsTitleEditOpen(true);
   };
 
   const handleSaveTitle = () => {
@@ -44,7 +49,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         ? { ...l, title: editTitle, updatedAt: new Date() }
         : l
     ));
-    setIsEditing(false);
+    setIsTitleEditOpen(false);
   };
 
   const handleAddItem = () => {
@@ -88,9 +93,48 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     });
   };
 
+  const handleItemClick = (item: ShoppingListItem, e: React.MouseEvent) => {
+    // Don't open edit if clicking on checkbox or delete button
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-checkbox]') || target.closest('[data-delete-btn]')) {
+      return;
+    }
+    
+    setEditingItem(item);
+    setEditItemName(item.name);
+    setEditItemQuantity(item.quantity);
+    setIsItemEditOpen(true);
+  };
+
+  const handleSaveItem = () => {
+    if (!editingItem || !editItemName.trim()) return;
+    
+    setLists(lists.map(l => 
+      l.id === listId 
+        ? { 
+            ...l, 
+            items: l.items.map(item => 
+              item.id === editingItem.id 
+                ? { ...item, name: editItemName, quantity: editItemQuantity || '1' }
+                : item
+            ), 
+            updatedAt: new Date() 
+          }
+        : l
+    ));
+    setIsItemEditOpen(false);
+    setEditingItem(null);
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-4 pb-20">
-      <div className="flex justify-end items-center mb-6">
+      <div className="flex justify-between items-center mb-6">
+        <button
+          onClick={onBack}
+          className="p-2 border border-gray-300 rounded-md text-gray-600 hover:text-black hover:border-gray-400"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
         <div className="flex gap-2">
           <button
             onClick={handleEditTitle}
@@ -107,25 +151,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         </div>
       </div>
 
-      {isEditing ? (
-        <div className="mb-6">
-          <div className="flex gap-2">
-            <Input
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              className="border-gray-300"
-            />
-            <Button onClick={handleSaveTitle} className="bg-black text-white hover:bg-gray-800">
-              Save
-            </Button>
-            <Button onClick={() => setIsEditing(false)} variant="outline">
-              Cancel
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <h1 className="text-2xl font-semibold mb-6">{list.title}</h1>
-      )}
+      <h1 className="text-xl font-bold mb-6">{list.title}</h1>
 
       <div className="mb-6 p-4 border border-gray-200 rounded-lg">
         <div className="grid grid-cols-3 gap-2 mb-4">
@@ -149,18 +175,28 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
 
       <div className="space-y-3">
         {list.items.map((item) => (
-          <div key={item.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
-            <Checkbox
-              checked={checkedItems[item.id] || false}
-              onCheckedChange={(checked) => handleItemCheck(item.id, checked as boolean)}
-            />
+          <div 
+            key={item.id} 
+            className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50"
+            onClick={(e) => handleItemClick(item, e)}
+          >
+            <div data-checkbox>
+              <Checkbox
+                checked={checkedItems[item.id] || false}
+                onCheckedChange={(checked) => handleItemCheck(item.id, checked as boolean)}
+              />
+            </div>
             <div className={`flex-1 ${checkedItems[item.id] ? 'line-through text-gray-500' : ''}`}>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">{item.name}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">{item.quantity}</span>
                   <button
-                    onClick={() => handleDeleteItem(item.id)}
+                    data-delete-btn
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteItem(item.id);
+                    }}
                     className="text-red-600 hover:text-red-800 p-1"
                   >
                     <X className="w-3 h-3" />
@@ -176,6 +212,58 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
           </div>
         )}
       </div>
+
+      {/* Title Edit Dialog */}
+      <Dialog open={isTitleEditOpen} onOpenChange={setIsTitleEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit List Title</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              placeholder="List title"
+              className="w-full"
+            />
+            <Button 
+              onClick={handleSaveTitle} 
+              className="w-full bg-black text-white hover:bg-gray-800"
+            >
+              Save
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Item Edit Dialog */}
+      <Dialog open={isItemEditOpen} onOpenChange={setIsItemEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Item</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              value={editItemName}
+              onChange={(e) => setEditItemName(e.target.value)}
+              placeholder="Item name"
+              className="w-full"
+            />
+            <Input
+              value={editItemQuantity}
+              onChange={(e) => setEditItemQuantity(e.target.value)}
+              placeholder="Quantity"
+              className="w-full"
+            />
+            <Button 
+              onClick={handleSaveItem} 
+              className="w-full bg-black text-white hover:bg-gray-800"
+            >
+              Save
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
