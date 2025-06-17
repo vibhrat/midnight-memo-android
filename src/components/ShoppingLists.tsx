@@ -1,17 +1,22 @@
+
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface ShoppingListsRef {
   triggerCreate: () => void;
 }
 
-const ShoppingLists = forwardRef<ShoppingListsRef>((_, ref) => {
+interface ShoppingListsProps {
+  onListSelect?: (listId: string) => void;
+}
+
+const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onListSelect }, ref) => {
   const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
   const [isCreating, setIsCreating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [items, setItems] = useState<ShoppingListItem[]>([]);
   const [newItem, setNewItem] = useState({ name: '', quantity: '' });
@@ -27,24 +32,14 @@ const ShoppingLists = forwardRef<ShoppingListsRef>((_, ref) => {
     if (!title.trim()) return;
 
     const now = new Date();
-
-    if (editingId) {
-      setLists(lists.map(list => 
-        list.id === editingId 
-          ? { ...list, title, items, updatedAt: now }
-          : list
-      ));
-      setEditingId(null);
-    } else {
-      const newList: ShoppingList = {
-        id: Date.now().toString(),
-        title,
-        items,
-        createdAt: now,
-        updatedAt: now,
-      };
-      setLists([newList, ...lists]);
-    }
+    const newList: ShoppingList = {
+      id: Date.now().toString(),
+      title,
+      items,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setLists([newList, ...lists]);
 
     setTitle('');
     setItems([]);
@@ -68,14 +63,8 @@ const ShoppingLists = forwardRef<ShoppingListsRef>((_, ref) => {
     setItems(items.filter(item => item.id !== id));
   };
 
-  const handleEdit = (list: ShoppingList) => {
-    setTitle(list.title);
-    setItems(list.items);
-    setEditingId(list.id);
-    setIsCreating(true);
-  };
-
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     setLists(lists.filter(list => list.id !== id));
   };
 
@@ -84,7 +73,12 @@ const ShoppingLists = forwardRef<ShoppingListsRef>((_, ref) => {
     setItems([]);
     setNewItem({ name: '', quantity: '' });
     setIsCreating(false);
-    setEditingId(null);
+  };
+
+  const handleCardClick = (listId: string) => {
+    if (onListSelect) {
+      onListSelect(listId);
+    }
   };
 
   return (
@@ -150,7 +144,7 @@ const ShoppingLists = forwardRef<ShoppingListsRef>((_, ref) => {
 
             <div className="flex gap-2">
               <Button type="submit" className="bg-black text-white hover:bg-gray-800">
-                {editingId ? 'Update' : 'Save'}
+                Save
               </Button>
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
@@ -162,46 +156,31 @@ const ShoppingLists = forwardRef<ShoppingListsRef>((_, ref) => {
 
       <div className="space-y-4">
         {lists.map((list) => (
-          <div key={list.id} className="p-4 border border-gray-200 rounded-lg">
-            <div className="flex justify-between items-start mb-3">
-              <h3 className="text-lg font-medium">{list.title}</h3>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleEdit(list)}
-                  className="text-sm text-gray-600 hover:text-black"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(list.id)}
-                  className="text-sm text-gray-600 hover:text-red-600"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-            
-            {list.items.length > 0 ? (
-              <div className="space-y-2">
-                <div className="grid grid-cols-3 gap-2 text-xs font-medium text-gray-600 pb-1 border-b">
-                  <div className="col-span-2">Item</div>
-                  <div>Quantity</div>
-                </div>
-                {list.items.map((item) => (
-                  <div key={item.id} className="grid grid-cols-3 gap-2 text-sm">
-                    <div className="col-span-2">{item.name}</div>
-                    <div>{item.quantity}</div>
+          <Card 
+            key={list.id} 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => handleCardClick(list.id)}
+          >
+            <CardContent className="p-4">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <h3 className="text-lg font-medium mb-2">{list.title}</h3>
+                  <div className="flex justify-between items-center text-sm text-gray-600">
+                    <span>Created: {new Date(list.createdAt).toLocaleDateString()}</span>
+                    <span>{list.items.length} items</span>
                   </div>
-                ))}
+                </div>
+                <button
+                  onClick={(e) => handleDelete(list.id, e)}
+                  className="ml-4 text-red-600 hover:text-red-800 p-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
               </div>
-            ) : (
-              <p className="text-sm text-gray-500">No items in this list</p>
-            )}
-            
-            <p className="text-xs text-gray-500 mt-3">
-              {new Date(list.updatedAt).toLocaleDateString()}
-            </p>
-          </div>
+            </CardContent>
+          </Card>
         ))}
         {lists.length === 0 && !isCreating && (
           <div className="text-center py-12 text-gray-500">
