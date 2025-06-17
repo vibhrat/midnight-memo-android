@@ -89,106 +89,112 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 pb-20">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">Lists</h1>
-      </div>
+    <div className="min-h-screen bg-[#FBFAF5]">
+      <div className="max-w-2xl mx-auto p-4 pb-20">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold text-[#131010]" style={{ fontFamily: 'IBM Plex Mono', fontWeight: '600' }}>Lists</h1>
+        </div>
 
-      {isCreating && (
-        <form onSubmit={handleSubmit} className="mb-6 p-4 border border-gray-200 rounded-lg">
-          <div className="space-y-4">
-            <Input
-              placeholder="List title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="border-gray-300"
-            />
-            
-            <div className="space-y-2">
-              <h4 className="font-medium">Items</h4>
-              <div className="grid grid-cols-3 gap-2">
-                <Input
-                  placeholder="Item name"
-                  value={newItem.name}
-                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                  className="col-span-2 border-gray-300"
-                />
-                <Input
-                  placeholder="Qty"
-                  value={newItem.quantity}
-                  onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-                  className="border-gray-300"
-                />
-              </div>
-              <Button type="button" onClick={addItem} variant="outline" size="sm">
-                Add Item
-              </Button>
-            </div>
-
-            {items.length > 0 && (
+        {isCreating && (
+          <form onSubmit={handleSubmit} className="mb-6 p-4 border border-gray-200 rounded-lg bg-white">
+            <div className="space-y-4">
+              <Input
+                placeholder="List title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="border-gray-300"
+              />
+              
               <div className="space-y-2">
-                <div className="grid grid-cols-3 gap-2 text-sm font-medium text-gray-600 pb-2 border-b">
-                  <div className="col-span-2">Item</div>
-                  <div>Quantity</div>
+                <h4 className="font-medium">Items</h4>
+                <div className="grid grid-cols-3 gap-2">
+                  <Input
+                    placeholder="Item name"
+                    value={newItem.name}
+                    onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                    className="col-span-2 border-gray-300"
+                  />
+                  <Input
+                    placeholder="Qty"
+                    value={newItem.quantity}
+                    onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+                    className="border-gray-300"
+                  />
                 </div>
-                {items.map((item) => (
-                  <div key={item.id} className="grid grid-cols-3 gap-2 items-center">
-                    <div className="col-span-2 text-sm">{item.name}</div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">{item.quantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeItem(item.id)}
-                        className="text-xs text-red-600 hover:text-red-800"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                <Button type="button" onClick={addItem} variant="outline" size="sm">
+                  Add Item
+                </Button>
               </div>
-            )}
 
-            <div className="flex gap-2">
-              <Button type="submit" className="bg-black text-white hover:bg-gray-800">
-                Save
-              </Button>
-              <Button type="button" variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
+              {items.length > 0 && (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-3 gap-2 text-sm font-medium text-gray-600 pb-2 border-b">
+                    <div className="col-span-2">Item</div>
+                    <div>Quantity</div>
+                  </div>
+                  {items.map((item) => (
+                    <div key={item.id} className="grid grid-cols-3 gap-2 items-center">
+                      <div className="col-span-2 text-sm">{item.name}</div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">{item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.id)}
+                          className="text-xs text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Button type="submit" className="bg-black text-white hover:bg-gray-800">
+                  Save
+                </Button>
+                <Button type="button" variant="outline" onClick={handleCancel}>
+                  Cancel
+                </Button>
+              </div>
             </div>
-          </div>
-        </form>
-      )}
+          </form>
+        )}
 
-      <div className="space-y-4">
-        {lists.map((list) => (
-          <Card 
-            key={list.id} 
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => handleCardClick(list.id)}
-          >
-            <CardContent className="p-4">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium mb-2">{list.title}</h3>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <Clock className="w-3 h-3" />
-                      <span>{getDaysAgo(list.createdAt)}d</span>
+        <div className="space-y-4">
+          {lists.map((list) => (
+            <Card 
+              key={list.id} 
+              className="cursor-pointer hover:shadow-md transition-shadow bg-white border-0 rounded-lg"
+              style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
+              onClick={() => handleCardClick(list.id)}
+            >
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-[#F2CB2F]"></div>
+                      <h3 className="text-lg font-medium">{list.title}</h3>
                     </div>
-                    <span className="text-sm text-gray-600">{list.items.length} items</span>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-1 text-sm font-medium" style={{ color: '#818181' }}>
+                        <Clock className="w-3 h-3" />
+                        <span>({getDaysAgo(list.createdAt)})d</span>
+                      </div>
+                      <span className="text-sm font-medium" style={{ color: '#818181' }}>{list.items.length} items</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        {lists.length === 0 && !isCreating && (
-          <div className="text-center py-12 text-gray-500">
-            No shopping lists yet. Create your first list!
-          </div>
-        )}
+              </CardContent>
+            </Card>
+          ))}
+          {lists.length === 0 && !isCreating && (
+            <div className="text-center py-12 text-gray-500">
+              No shopping lists yet. Create your first list!
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

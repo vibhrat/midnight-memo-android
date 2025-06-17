@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
@@ -151,7 +150,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         </div>
       </div>
 
-      <h1 className="text-xl font-bold mb-6">{list.title}</h1>
+      <h1 className="text-lg font-bold mb-6">{list.title}</h1>
 
       <div className="mb-6 p-4 border border-gray-200 rounded-lg">
         <div className="grid grid-cols-3 gap-2 mb-4">
@@ -180,13 +179,14 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
             className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50"
             onClick={(e) => handleItemClick(item, e)}
           >
-            <div data-checkbox>
+            <div data-checkbox className="flex-shrink-0">
               <Checkbox
                 checked={checkedItems[item.id] || false}
                 onCheckedChange={(checked) => handleItemCheck(item.id, checked as boolean)}
+                className="transition-all duration-200 ease-in-out"
               />
             </div>
-            <div className={`flex-1 ${checkedItems[item.id] ? 'line-through text-gray-500' : ''}`}>
+            <div className={`flex-1 transition-all duration-200 ease-in-out ${checkedItems[item.id] ? 'line-through text-gray-500' : ''}`}>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">{item.name}</span>
                 <div className="flex items-center gap-2">
@@ -216,8 +216,15 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
       {/* Title Edit Dialog */}
       <Dialog open={isTitleEditOpen} onOpenChange={setIsTitleEditOpen}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+          <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <DialogTitle>Edit List Title</DialogTitle>
+            <button
+              onClick={() => setIsTitleEditOpen(false)}
+              className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </button>
           </DialogHeader>
           <div className="space-y-4">
             <Input
@@ -239,8 +246,15 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
       {/* Item Edit Dialog */}
       <Dialog open={isItemEditOpen} onOpenChange={setIsItemEditOpen}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+          <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <DialogTitle>Edit Item</DialogTitle>
+            <button
+              onClick={() => setIsItemEditOpen(false)}
+              className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </button>
           </DialogHeader>
           <div className="space-y-4">
             <Input

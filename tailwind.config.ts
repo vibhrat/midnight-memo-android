@@ -21,6 +21,7 @@ export default {
 		extend: {
 			fontFamily: {
 				'inter': ['Inter', 'sans-serif'],
+				'ibm-plex-mono': ['IBM Plex Mono', 'monospace'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
