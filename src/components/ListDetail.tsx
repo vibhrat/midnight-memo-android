@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
@@ -27,9 +28,11 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
 
   if (!list) {
     return (
-      <div className="max-w-2xl mx-auto p-4 pb-20">
-        <div className="text-center py-12 text-gray-500">
-          List not found
+      <div className="min-h-screen bg-[#FBFAF5]">
+        <div className="max-w-2xl mx-auto p-4 pb-20">
+          <div className="text-center py-12 text-gray-500">
+            List not found
+          </div>
         </div>
       </div>
     );
@@ -126,158 +129,161 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 pb-20">
-      <div className="flex justify-between items-center mb-6">
-        <button
-          onClick={onBack}
-          className="p-2 border border-gray-300 rounded-md text-gray-600 hover:text-black hover:border-gray-400"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div className="flex gap-2">
+    <div className="min-h-screen bg-[#FBFAF5]">
+      <div className="max-w-2xl mx-auto p-4 pb-20">
+        <div className="flex justify-between items-center mb-6">
           <button
-            onClick={handleEditTitle}
-            className="p-2 text-gray-600 hover:text-black"
+            onClick={onBack}
+            className="p-2 border border-gray-300 rounded-md text-gray-600 hover:text-black hover:border-gray-400"
           >
-            <Pen className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
-          <button
-            onClick={handleDeleteList}
-            className="p-2 text-gray-600 hover:text-red-600"
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleEditTitle}
+              className="p-2 text-gray-600 hover:text-black"
+            >
+              <Pen className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handleDeleteList}
+              className="p-2 text-gray-600 hover:text-red-600"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-      </div>
 
-      <h1 className="text-lg font-bold mb-6">{list.title}</h1>
+        <h1 className="text-sm font-bold mb-6">{list.title}</h1>
 
-      <div className="mb-6 p-4 border border-gray-200 rounded-lg">
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <Input
-            placeholder="Item name"
-            value={newItem.name}
-            onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-            className="col-span-2 border-gray-300"
-          />
-          <Input
-            placeholder="Qty"
-            value={newItem.quantity}
-            onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-            className="border-gray-300"
-          />
+        <div className="mb-6 p-4 rounded-lg bg-white" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <Input
+              placeholder="Item name"
+              value={newItem.name}
+              onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+              className="col-span-2 border-gray-300"
+            />
+            <Input
+              placeholder="Qty"
+              value={newItem.quantity}
+              onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+              className="border-gray-300"
+            />
+          </div>
+          <Button onClick={handleAddItem} className="w-full bg-black text-white hover:bg-gray-800">
+            Add Item
+          </Button>
         </div>
-        <Button onClick={handleAddItem} className="w-full bg-black text-white hover:bg-gray-800">
-          Add Item
-        </Button>
-      </div>
 
-      <div className="space-y-3">
-        {list.items.map((item) => (
-          <div 
-            key={item.id} 
-            className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50"
-            onClick={(e) => handleItemClick(item, e)}
-          >
-            <div data-checkbox className="flex-shrink-0">
-              <Checkbox
-                checked={checkedItems[item.id] || false}
-                onCheckedChange={(checked) => handleItemCheck(item.id, checked as boolean)}
-                className="transition-all duration-200 ease-in-out"
-              />
-            </div>
-            <div className={`flex-1 transition-all duration-200 ease-in-out ${checkedItems[item.id] ? 'line-through text-gray-500' : ''}`}>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">{item.name}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">{item.quantity}</span>
-                  <button
-                    data-delete-btn
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteItem(item.id);
-                    }}
-                    className="text-red-600 hover:text-red-800 p-1"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
+        <div className="space-y-3">
+          {list.items.map((item) => (
+            <div 
+              key={item.id} 
+              className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-gray-50 bg-white"
+              style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
+              onClick={(e) => handleItemClick(item, e)}
+            >
+              <div data-checkbox className="flex-shrink-0">
+                <Checkbox
+                  checked={checkedItems[item.id] || false}
+                  onCheckedChange={(checked) => handleItemCheck(item.id, checked as boolean)}
+                  className="transition-all duration-300 ease-out data-[state=checked]:animate-[bounce_0.3s_ease-out]"
+                />
+              </div>
+              <div className={`flex-1 transition-all duration-200 ease-in-out ${checkedItems[item.id] ? 'line-through text-gray-500' : ''}`}>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">{item.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">{item.quantity}</span>
+                    <button
+                      data-delete-btn
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteItem(item.id);
+                      }}
+                      className="text-red-600 hover:text-red-800 p-1"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-        {list.items.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No items in this list yet
-          </div>
-        )}
+          ))}
+          {list.items.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No items in this list yet
+            </div>
+          )}
+        </div>
+
+        {/* Title Edit Dialog */}
+        <Dialog open={isTitleEditOpen} onOpenChange={setIsTitleEditOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <DialogTitle>Edit List Title</DialogTitle>
+              <button
+                onClick={() => setIsTitleEditOpen(false)}
+                className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </button>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="List title"
+                className="w-full"
+              />
+              <Button 
+                onClick={handleSaveTitle} 
+                className="w-full bg-black text-white hover:bg-gray-800"
+              >
+                Save
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Item Edit Dialog */}
+        <Dialog open={isItemEditOpen} onOpenChange={setIsItemEditOpen}>
+          <DialogContent className="sm:max-w-md">
+            <div className="flex items-center justify-between pb-2">
+              <h2 className="text-lg font-semibold">Edit Item</h2>
+              <button
+                onClick={() => setIsItemEditOpen(false)}
+                className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </button>
+            </div>
+            <div className="space-y-4">
+              <Input
+                value={editItemName}
+                onChange={(e) => setEditItemName(e.target.value)}
+                placeholder="Item name"
+                className="w-full"
+              />
+              <Input
+                value={editItemQuantity}
+                onChange={(e) => setEditItemQuantity(e.target.value)}
+                placeholder="Quantity"
+                className="w-full"
+              />
+              <Button 
+                onClick={handleSaveItem} 
+                className="w-full bg-black text-white hover:bg-gray-800"
+              >
+                Save
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      {/* Title Edit Dialog */}
-      <Dialog open={isTitleEditOpen} onOpenChange={setIsTitleEditOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <DialogTitle>Edit List Title</DialogTitle>
-            <button
-              onClick={() => setIsTitleEditOpen(false)}
-              className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </button>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              placeholder="List title"
-              className="w-full"
-            />
-            <Button 
-              onClick={handleSaveTitle} 
-              className="w-full bg-black text-white hover:bg-gray-800"
-            >
-              Save
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Item Edit Dialog */}
-      <Dialog open={isItemEditOpen} onOpenChange={setIsItemEditOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <DialogTitle>Edit Item</DialogTitle>
-            <button
-              onClick={() => setIsItemEditOpen(false)}
-              className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </button>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              value={editItemName}
-              onChange={(e) => setEditItemName(e.target.value)}
-              placeholder="Item name"
-              className="w-full"
-            />
-            <Input
-              value={editItemQuantity}
-              onChange={(e) => setEditItemQuantity(e.target.value)}
-              placeholder="Quantity"
-              className="w-full"
-            />
-            <Button 
-              onClick={handleSaveItem} 
-              className="w-full bg-black text-white hover:bg-gray-800"
-            >
-              Save
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

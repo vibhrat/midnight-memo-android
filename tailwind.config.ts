@@ -89,11 +89,23 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'bounce': {
+					'0%, 20%, 53%, 80%, 100%': {
+						transform: 'scale(1)'
+					},
+					'40%, 43%': {
+						transform: 'scale(1.1)'
+					},
+					'70%': {
+						transform: 'scale(1.05)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'bounce': 'bounce 0.3s ease-out'
 			}
 		}
 	},

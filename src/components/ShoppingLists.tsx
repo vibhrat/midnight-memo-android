@@ -1,3 +1,4 @@
+
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
@@ -170,17 +171,17 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
               style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
               onClick={() => handleCardClick(list.id)}
             >
-              <CardContent className="p-4">
+              <CardContent className="p-4 py-3">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-2 h-2 rounded-full bg-[#F2CB2F]"></div>
-                      <h3 className="text-lg font-medium">{list.title}</h3>
+                      <h3 className="text-base font-bold">{list.title}</h3>
                     </div>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-1 text-sm font-medium" style={{ color: '#818181' }}>
                         <Clock className="w-3 h-3" />
-                        <span>({getDaysAgo(list.createdAt)})d</span>
+                        <span>{getDaysAgo(list.createdAt)}d</span>
                       </div>
                       <span className="text-sm font-medium" style={{ color: '#818181' }}>{list.items.length} items</span>
                     </div>
