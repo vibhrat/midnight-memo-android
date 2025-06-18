@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { Password } from '@/types';
+import { Password, PasswordField } from '@/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Eye, EyeOff, Copy, Edit3, Trash2 } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Copy, Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 
@@ -15,9 +15,9 @@ interface PasswordDetailProps {
 
 const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   const [passwords, setPasswords] = useLocalStorage<Password[]>('passwords', []);
-  const [showPassword, setShowPassword] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ title: '', password: '' });
+  const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
+  const [isAddingField, setIsAddingField] = useState(false);
+  const [newField, setNewField] = useState({ title: '', password: '' });
   const { toast } = useToast();
 
   const password = passwords.find(p => p.id === passwordId);
@@ -49,30 +49,95 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
     }
   };
 
-  const handleEdit = () => {
-    setFormData({
-      title: password.title,
-      password: password.password,
-    });
-    setIsEditing(true);
+  const togglePasswordVisibility = (fieldId: string) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [fieldId]: !prev[fieldId]
+    }));
   };
 
-  const handleSave = () => {
-    if (!formData.title.trim() || !formData.password.trim()) return;
+  const addPasswordField = () => {
+    if (!newField.title.trim() || !newField.password.trim()) return;
 
     const now = new Date();
+    const passwordField: PasswordField = {
+      id: Date.now().toString(),
+      title: newField.title,
+      password: newField.password,
+      createdAt: now,
+      updatedAt: now,
+    };
+
     setPasswords(passwords.map(p => 
       p.id === passwordId 
-        ? { ...p, ...formData, updatedAt: now }
+        ? { 
+            ...p, 
+            passwordFields: [...(p.passwordFields || []), passwordField],
+            updatedAt: now 
+          }
         : p
     ));
-    setIsEditing(false);
+
+    setNewField({ title: '', password: '' });
+    setIsAddingField(false);
   };
 
-  const handleDelete = () => {
-    setPasswords(passwords.filter(p => p.id !== passwordId));
-    onBack();
+  const deletePasswordField = (fieldId: string) => {
+    setPasswords(passwords.map(p => 
+      p.id === passwordId 
+        ? { 
+            ...p, 
+            passwordFields: (p.passwordFields || []).filter(f => f.id !== fieldId),
+            updatedAt: new Date()
+          }
+        : p
+    ));
   };
+
+  const renderPasswordField = (field: { id: string; title: string; password: string; createdAt: Date; updatedAt: Date }, isMain = false) => (
+    <div key={field.id} className="bg-white p-4 rounded-lg mb-4" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-lg font-semibold">{field.title}</h3>
+        {!isMain && (
+          <button
+            onClick={() => deletePasswordField(field.id)}
+            className="p-1 hover:bg-gray-100 rounded"
+          >
+            <Trash2 size={16} className="text-red-600" />
+          </button>
+        )}
+      </div>
+      
+      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-3">
+        <div className="flex-1 font-mono text-lg">
+          {showPasswords[field.id] ? field.password : '•'.repeat(field.password.length)}
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => togglePasswordVisibility(field.id)}
+            className="p-2 hover:bg-gray-200 rounded-lg"
+          >
+            {showPasswords[field.id] ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+          <button
+            onClick={() => copyToClipboard(field.password)}
+            className="p-2 hover:bg-gray-200 rounded-lg"
+          >
+            <Copy size={20} />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center">
+        <p className="text-xs text-gray-500">
+          Created: {new Date(field.createdAt).toLocaleDateString()}
+        </p>
+        <p className="text-xs text-gray-500">
+          Updated: {new Date(field.updatedAt).toLocaleDateString()}
+        </p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#FBFAF5]">
@@ -84,78 +149,48 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
           >
             <ArrowLeft size={16} />
           </button>
-          <div className="flex gap-2">
-            <button
-              onClick={handleEdit}
-              className="p-2 hover:bg-gray-100 rounded-lg"
-            >
-              <Edit3 size={16} className="text-gray-600" />
-            </button>
-            <button
-              onClick={handleDelete}
-              className="p-2 hover:bg-gray-100 rounded-lg"
-            >
-              <Trash2 size={16} className="text-red-600" />
-            </button>
-          </div>
+          <button
+            onClick={() => setIsAddingField(true)}
+            className="p-2 hover:bg-gray-100 rounded-lg"
+          >
+            <Plus size={16} className="text-gray-600" />
+          </button>
         </div>
 
-        <div className="bg-white p-6 rounded-lg" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
-          <h1 className="text-2xl font-bold mb-6">{password.title}</h1>
-          
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div className="flex-1 font-mono text-lg">
-                {showPassword ? password.password : '•'.repeat(password.password.length)}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="p-2 hover:bg-gray-200 rounded-lg"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-                <button
-                  onClick={() => copyToClipboard(password.password)}
-                  className="p-2 hover:bg-gray-200 rounded-lg"
-                >
-                  <Copy size={20} />
-                </button>
-              </div>
-            </div>
-          </div>
+        <h1 className="text-2xl font-bold mb-6">{password.title}</h1>
+        
+        {/* Main password field */}
+        {renderPasswordField(password, true)}
 
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <p className="text-sm text-gray-500">
-              Created: {new Date(password.createdAt).toLocaleDateString()}
-            </p>
-            <p className="text-sm text-gray-500">
-              Updated: {new Date(password.updatedAt).toLocaleDateString()}
-            </p>
-          </div>
-        </div>
+        {/* Additional password fields */}
+        {password.passwordFields?.map(field => renderPasswordField(field))}
       </div>
 
-      <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={isAddingField} onOpenChange={setIsAddingField}>
+        <DialogContent className="sm:max-w-md" hideCloseButton>
           <DialogHeader>
-            <DialogTitle>Edit Password</DialogTitle>
+            <DialogTitle>Add Password Field</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
-              placeholder="Password title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="Field title"
+              value={newField.title}
+              onChange={(e) => setNewField({ ...newField, title: e.target.value })}
             />
             <Input
               type="password"
               placeholder="Password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              value={newField.password}
+              onChange={(e) => setNewField({ ...newField, password: e.target.value })}
             />
-            <Button onClick={handleSave} className="w-full bg-black text-white hover:bg-gray-800">
-              Save Changes
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={addPasswordField} className="flex-1 bg-black text-white hover:bg-gray-800">
+                Add Field
+              </Button>
+              <Button variant="outline" onClick={() => setIsAddingField(false)} className="flex-1">
+                Cancel
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

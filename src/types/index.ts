@@ -23,10 +23,19 @@ export interface ShoppingList {
   updatedAt: Date;
 }
 
+export interface PasswordField {
+  id: string;
+  title: string;
+  password: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Password {
   id: string;
   title: string;
   password: string;
+  passwordFields?: PasswordField[];
   createdAt: Date;
   updatedAt: Date;
 }

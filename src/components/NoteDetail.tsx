@@ -1,17 +1,9 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Edit3 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 
 interface NoteDetailProps {
   noteId: string;
@@ -20,16 +12,17 @@ interface NoteDetailProps {
 
 const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    tag: '',
-    content: '',
-  });
+  const [editableNote, setEditableNote] = useState<CasualNote | null>(null);
 
   const note = notes.find(n => n.id === noteId);
 
-  if (!note) {
+  useEffect(() => {
+    if (note) {
+      setEditableNote(note);
+    }
+  }, [note]);
+
+  if (!note || !editableNote) {
     return (
       <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center">
         <div className="text-center">
@@ -40,23 +33,13 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
     );
   }
 
-  const handleEdit = () => {
-    setFormData({
-      title: note.title,
-      tag: note.tag,
-      content: note.content,
-    });
-    setIsEditing(true);
-  };
-
-  const handleSave = () => {
+  const autoSave = (updatedNote: Partial<CasualNote>) => {
     const now = new Date();
+    const newNote = { ...editableNote, ...updatedNote, updatedAt: now };
+    setEditableNote(newNote);
     setNotes(notes.map(n => 
-      n.id === noteId 
-        ? { ...n, ...formData, updatedAt: now }
-        : n
+      n.id === noteId ? newNote : n
     ));
-    setIsEditing(false);
   };
 
   const handleDelete = () => {
@@ -74,75 +57,51 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
           >
             <ArrowLeft size={16} />
           </button>
-          <div className="flex gap-2">
-            <button
-              onClick={handleEdit}
-              className="p-2 hover:bg-gray-100 rounded-lg"
-            >
-              <Edit3 size={16} className="text-gray-600" />
-            </button>
-          </div>
+          <button
+            onClick={handleDelete}
+            className="p-2 hover:bg-gray-100 rounded-lg"
+          >
+            <Trash2 size={16} className="text-red-600" />
+          </button>
         </div>
 
         <div className="bg-white p-6 rounded-lg" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
-          <h1 className="text-2xl font-bold mb-4">{note.title}</h1>
-          {note.tag && (
-            <span className="inline-block px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full mb-4">
-              {note.tag}
-            </span>
+          <input
+            value={editableNote.title}
+            onChange={(e) => autoSave({ title: e.target.value })}
+            className="text-2xl font-bold mb-4 w-full border-none outline-none bg-transparent"
+            placeholder="Note title"
+          />
+          
+          {editableNote.tag && (
+            <input
+              value={editableNote.tag}
+              onChange={(e) => autoSave({ tag: e.target.value })}
+              className="inline-block px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full mb-4 border-none outline-none"
+              placeholder="Tag"
+            />
           )}
-          <div className="prose max-w-none">
-            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{note.content}</p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <p className="text-sm text-gray-500">
-              Created: {new Date(note.createdAt).toLocaleDateString()}
-            </p>
-            <p className="text-sm text-gray-500">
-              Updated: {new Date(note.updatedAt).toLocaleDateString()}
-            </p>
-          </div>
-          <div className="mt-4 flex justify-end">
-            <Button
-              onClick={handleDelete}
-              variant="outline"
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              Delete Note
-            </Button>
+          
+          <div className="prose max-w-none mb-6">
+            <textarea
+              value={editableNote.content}
+              onChange={(e) => autoSave({ content: e.target.value })}
+              className="w-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none"
+              placeholder="Write your note here..."
+              rows={10}
+            />
           </div>
         </div>
-      </div>
 
-      <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Note</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              placeholder="Note title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            />
-            <Input
-              placeholder="Tag (optional)"
-              value={formData.tag}
-              onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
-            />
-            <Textarea
-              placeholder="Write your note here..."
-              value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              rows={8}
-              className="resize-none"
-            />
-            <Button onClick={handleSave} className="w-full bg-black text-white hover:bg-gray-800">
-              Save Changes
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        <div className="flex justify-between items-center mt-4 px-2">
+          <p className="text-xs text-gray-500">
+            Created: {new Date(editableNote.createdAt).toLocaleDateString()}
+          </p>
+          <p className="text-xs text-gray-500">
+            Updated: {new Date(editableNote.updatedAt).toLocaleDateString()}
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

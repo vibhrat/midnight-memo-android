@@ -25,7 +25,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 0 0% 0%;
+    --ring: 0 0% 85%;
     --radius: 0.5rem;
   }
 
@@ -37,4 +37,12 @@
     @apply text-foreground font-inter;
     background-color: #FBFAF5;
   }
+}
+
+/* Subtle focus styles for input fields */
+input:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: #d1d5db !important;
+  box-shadow: 0 0 0 1px #d1d5db !important;
 }
