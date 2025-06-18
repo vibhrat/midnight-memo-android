@@ -4,6 +4,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote } from '@/types';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Trash2 } from 'lucide-react';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 
 interface NoteDetailProps {
   noteId: string;
@@ -13,6 +14,7 @@ interface NoteDetailProps {
 const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
   const [editableNote, setEditableNote] = useState<CasualNote | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const note = notes.find(n => n.id === noteId);
 
@@ -44,7 +46,10 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
 
   const handleDelete = () => {
     setNotes(notes.filter(n => n.id !== noteId));
-    onBack();
+    // Add smooth transition
+    setTimeout(() => {
+      onBack();
+    }, 200);
   };
 
   return (
@@ -58,10 +63,10 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
             <ArrowLeft size={16} />
           </button>
           <button
-            onClick={handleDelete}
+            onClick={() => setShowDeleteDialog(true)}
             className="p-2 hover:bg-gray-100 rounded-lg"
           >
-            <Trash2 size={16} className="text-red-600" />
+            <Trash2 size={16} className="text-black" />
           </button>
         </div>
 
@@ -69,15 +74,16 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
           <input
             value={editableNote.title}
             onChange={(e) => autoSave({ title: e.target.value })}
-            className="text-2xl font-bold mb-4 w-full border-none outline-none bg-transparent"
+            className="text-xl font-bold mb-4 w-full border-none outline-none bg-transparent focus:outline-none focus:border-none focus:ring-0 focus:shadow-none"
             placeholder="Note title"
+            style={{ fontSize: '20px' }}
           />
           
           {editableNote.tag && (
             <input
               value={editableNote.tag}
               onChange={(e) => autoSave({ tag: e.target.value })}
-              className="inline-block px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full mb-4 border-none outline-none"
+              className="inline-block px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full mb-4 border-none outline-none focus:outline-none focus:border-none focus:ring-0 focus:shadow-none"
               placeholder="Tag"
             />
           )}
@@ -86,22 +92,29 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
             <textarea
               value={editableNote.content}
               onChange={(e) => autoSave({ content: e.target.value })}
-              className="w-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none"
+              className="w-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none focus:outline-none focus:border-none focus:ring-0 focus:shadow-none"
               placeholder="Write your note here..."
               rows={10}
+              style={{ fontSize: '16px' }}
             />
           </div>
         </div>
 
         <div className="flex justify-between items-center mt-4 px-2">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500" style={{ fontSize: '12px' }}>
             Created: {new Date(editableNote.createdAt).toLocaleDateString()}
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500" style={{ fontSize: '12px' }}>
             Updated: {new Date(editableNote.updatedAt).toLocaleDateString()}
           </p>
         </div>
       </div>
+
+      <DeleteConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

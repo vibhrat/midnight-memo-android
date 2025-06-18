@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pen, Trash2, X, ArrowLeft } from 'lucide-react';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 
 interface ListDetailProps {
   listId: string;
@@ -24,6 +25,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [editItemName, setEditItemName] = useState('');
   const [editItemQuantity, setEditItemQuantity] = useState('');
   const [showAddButton, setShowAddButton] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const list = lists.find(l => l.id === listId);
 
@@ -87,7 +89,9 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
 
   const handleDeleteList = () => {
     setLists(lists.filter(l => l.id !== listId));
-    onBack();
+    setTimeout(() => {
+      onBack();
+    }, 200);
   };
 
   const handleItemCheck = (itemId: string, checked: boolean) => {
@@ -179,7 +183,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
               <Pen className="w-5 h-5" />
             </button>
             <button
-              onClick={handleDeleteList}
+              onClick={() => setShowDeleteDialog(true)}
               className="p-2 text-gray-600 hover:text-red-600"
             >
               <Trash2 className="w-5 h-5" />
@@ -197,30 +201,30 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
               style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
               onClick={(e) => handleItemClick(item, e)}
             >
-              <div data-checkbox className="flex-shrink-0">
-                <Checkbox
-                  checked={checkedItems[item.id] || false}
-                  onCheckedChange={(checked) => handleItemCheck(item.id, checked as boolean)}
-                  className="transition-all duration-300 ease-out data-[state=checked]:animate-[bounce_0.3s_ease-out]"
-                />
-              </div>
+              <button
+                data-delete-btn
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteItem(item.id);
+                }}
+                className="text-red-600 hover:text-red-800 p-1"
+              >
+                <X className="w-3 h-3" />
+              </button>
               <div className={`flex-1 transition-all duration-200 ease-in-out ${checkedItems[item.id] ? 'line-through text-gray-500' : ''}`}>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">{item.name}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">{item.quantity}</span>
-                    <button
-                      data-delete-btn
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteItem(item.id);
-                      }}
-                      className="text-red-600 hover:text-red-800 p-1"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
                   </div>
                 </div>
+              </div>
+              <div data-checkbox className="flex-shrink-0">
+                <Checkbox
+                  checked={checkedItems[item.id] || false}
+                  onCheckedChange={(checked) => handleItemCheck(item.id, checked as boolean)}
+                  className="transition-none"
+                />
               </div>
             </div>
           ))}
@@ -233,7 +237,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
 
         {/* Title Edit Dialog */}
         <Dialog open={isTitleEditOpen} onOpenChange={setIsTitleEditOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md" hideCloseButton>
             <DialogHeader>
               <DialogTitle>Edit List Title</DialogTitle>
             </DialogHeader>
@@ -256,7 +260,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
 
         {/* Item Edit Dialog */}
         <Dialog open={isItemEditOpen} onOpenChange={setIsItemEditOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md" hideCloseButton>
             <div className="pb-2">
               <h2 className="text-lg font-semibold">Edit Item</h2>
             </div>
@@ -282,6 +286,12 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
             </div>
           </DialogContent>
         </Dialog>
+
+        <DeleteConfirmDialog
+          isOpen={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          onConfirm={handleDeleteList}
+        />
       </div>
     </div>
   );

@@ -7,6 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Eye, EyeOff, Copy, Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
+import FloatingActionButton from '@/components/FloatingActionButton';
 
 interface PasswordDetailProps {
   passwordId: string;
@@ -18,6 +20,7 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
   const [isAddingField, setIsAddingField] = useState(false);
   const [newField, setNewField] = useState({ title: '', password: '' });
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
 
   const password = passwords.find(p => p.id === passwordId);
@@ -94,6 +97,13 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
     ));
   };
 
+  const handleDeletePassword = () => {
+    setPasswords(passwords.filter(p => p.id !== passwordId));
+    setTimeout(() => {
+      onBack();
+    }, 200);
+  };
+
   const renderPasswordField = (field: { id: string; title: string; password: string; createdAt: Date; updatedAt: Date }, isMain = false) => (
     <div key={field.id} className="bg-white p-4 rounded-lg mb-4" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
       <div className="flex justify-between items-center mb-3">
@@ -129,10 +139,10 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
       </div>
 
       <div className="flex justify-between items-center">
-        <p className="text-xs text-gray-500">
+        <p className="text-gray-500" style={{ fontSize: '12px' }}>
           Created: {new Date(field.createdAt).toLocaleDateString()}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-gray-500" style={{ fontSize: '12px' }}>
           Updated: {new Date(field.updatedAt).toLocaleDateString()}
         </p>
       </div>
@@ -150,10 +160,10 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
             <ArrowLeft size={16} />
           </button>
           <button
-            onClick={() => setIsAddingField(true)}
+            onClick={() => setShowDeleteDialog(true)}
             className="p-2 hover:bg-gray-100 rounded-lg"
           >
-            <Plus size={16} className="text-gray-600" />
+            <Trash2 size={16} className="text-black" />
           </button>
         </div>
 
@@ -165,6 +175,8 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
         {/* Additional password fields */}
         {password.passwordFields?.map(field => renderPasswordField(field))}
       </div>
+
+      <FloatingActionButton onClick={() => setIsAddingField(true)} />
 
       <Dialog open={isAddingField} onOpenChange={setIsAddingField}>
         <DialogContent className="sm:max-w-md" hideCloseButton>
@@ -194,6 +206,12 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <DeleteConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleDeletePassword}
+      />
     </div>
   );
 };

@@ -127,23 +127,23 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
           </form>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {notes.map((note) => (
             <div 
               key={note.id} 
-              className="p-4 bg-white rounded-lg cursor-pointer hover:shadow-md transition-shadow"
+              className="p-3 bg-white rounded-lg cursor-pointer hover:shadow-md transition-shadow"
               style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
               onClick={() => handleCardClick(note.id)}
             >
               <div className="mb-2">
-                <h3 className="text-lg font-medium">{note.title}</h3>
+                <h3 className="font-semibold" style={{ fontSize: '16px' }}>{note.title}</h3>
               </div>
               {note.tag && (
-                <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded mb-2">
+                <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded mb-2" style={{ fontSize: '12px' }}>
                   {note.tag}
                 </span>
               )}
-              <p className="text-gray-700 whitespace-pre-wrap mb-2">{truncateContent(note.content)}</p>
+              <p className="text-gray-700 whitespace-pre-wrap mb-2" style={{ fontSize: '14px' }}>{truncateContent(note.content)}</p>
               <div className="flex items-center gap-1 text-sm font-medium" style={{ color: '#818181' }}>
                 <Clock className="w-3 h-3" />
                 <span>{getDaysAgo(note.updatedAt)}d</span>
