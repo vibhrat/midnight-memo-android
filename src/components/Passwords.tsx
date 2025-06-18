@@ -5,7 +5,7 @@ import { Password } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Copy, Search } from 'lucide-react';
+import { Clock, Search } from 'lucide-react';
 
 interface PasswordsRef {
   triggerCreate: () => void;
@@ -13,17 +13,16 @@ interface PasswordsRef {
 
 interface PasswordsProps {
   onSearchClick?: () => void;
+  onPasswordSelect?: (passwordId: string) => void;
 }
 
-const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick }, ref) => {
+const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onPasswordSelect }, ref) => {
   const [passwords, setPasswords] = useLocalStorage<Password[]>('passwords', []);
   const [isCreating, setIsCreating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     password: '',
   });
-  const { toast } = useToast();
 
   useImperativeHandle(ref, () => ({
     triggerCreate: () => {
@@ -31,65 +30,38 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick }, r
     }
   }));
 
+  const getDaysAgo = (date: Date) => {
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - new Date(date).getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim() || !formData.password.trim()) return;
 
     const now = new Date();
-
-    if (editingId) {
-      setPasswords(passwords.map(pwd => 
-        pwd.id === editingId 
-          ? { ...pwd, ...formData, updatedAt: now }
-          : pwd
-      ));
-      setEditingId(null);
-    } else {
-      const newPassword: Password = {
-        id: Date.now().toString(),
-        ...formData,
-        createdAt: now,
-        updatedAt: now,
-      };
-      setPasswords([newPassword, ...passwords]);
-    }
+    const newPassword: Password = {
+      id: Date.now().toString(),
+      ...formData,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setPasswords([newPassword, ...passwords]);
 
     setFormData({ title: '', password: '' });
     setIsCreating(false);
-  };
-
-  const handleEdit = (password: Password) => {
-    setFormData({
-      title: password.title,
-      password: password.password,
-    });
-    setEditingId(password.id);
-    setIsCreating(true);
-  };
-
-  const handleDelete = (id: string) => {
-    setPasswords(passwords.filter(pwd => pwd.id !== id));
   };
 
   const handleCancel = () => {
     setFormData({ title: '', password: '' });
     setIsCreating(false);
-    setEditingId(null);
   };
 
-  const copyToClipboard = async (password: string, title: string) => {
-    try {
-      await navigator.clipboard.writeText(password);
-      toast({
-        title: "Copied!",
-        description: `Password for ${title} copied to clipboard`,
-      });
-    } catch (err) {
-      toast({
-        title: "Failed to copy",
-        description: "Could not copy password to clipboard",
-        variant: "destructive",
-      });
+  const handleCardClick = (passwordId: string) => {
+    if (onPasswordSelect) {
+      onPasswordSelect(passwordId);
     }
   };
 
@@ -121,7 +93,7 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick }, r
               />
               <div className="flex gap-2">
                 <Button type="submit" className="bg-black text-white hover:bg-gray-800">
-                  {editingId ? 'Update' : 'Save'}
+                  Save
                 </Button>
                 <Button type="button" variant="outline" onClick={handleCancel}>
                   Cancel
@@ -133,46 +105,19 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick }, r
 
         <div className="space-y-4">
           {passwords.map((password) => (
-            <div key={password.id} className="p-4 bg-white rounded-lg" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="text-lg font-medium">{password.title}</h3>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(password)}
-                    className="text-sm text-gray-600 hover:text-black"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(password.id)}
-                    className="text-sm text-gray-600 hover:text-red-600"
-                  >
-                    Delete
-                  </button>
+            <div 
+              key={password.id} 
+              className="p-4 bg-white rounded-lg cursor-pointer hover:shadow-md transition-shadow" 
+              style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
+              onClick={() => handleCardClick(password.id)}
+            >
+              <div className="flex justify-between items-center">
+                <h3 className="text-base font-bold">{password.title}</h3>
+                <div className="flex items-center gap-1 text-sm font-medium" style={{ color: '#818181' }}>
+                  <Clock className="w-3 h-3" />
+                  <span>{getDaysAgo(password.createdAt)}d</span>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Password:</span>
-                    <span className="font-mono text-sm">{'•'.repeat(password.password.length)}</span>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => copyToClipboard(password.password, password.title)}
-                  size="sm"
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <Copy size={14} />
-                  Copy
-                </Button>
-              </div>
-              
-              <p className="text-xs text-gray-500 mt-3">
-                {new Date(password.updatedAt).toLocaleDateString()}
-              </p>
             </div>
           ))}
           {passwords.length === 0 && !isCreating && (

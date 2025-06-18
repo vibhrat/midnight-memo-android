@@ -23,6 +23,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [isItemEditOpen, setIsItemEditOpen] = useState(false);
   const [editItemName, setEditItemName] = useState('');
   const [editItemQuantity, setEditItemQuantity] = useState('');
+  const [showAddButton, setShowAddButton] = useState(false);
 
   const list = lists.find(l => l.id === listId);
 
@@ -69,6 +70,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         : l
     ));
     setNewItem({ name: '', quantity: '' });
+    setShowAddButton(false);
   };
 
   const handleDeleteItem = (itemId: string) => {
@@ -128,9 +130,40 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     setEditingItem(null);
   };
 
+  const handleInputFocus = () => {
+    setShowAddButton(true);
+  };
+
   return (
-    <div className="min-h-screen bg-[#FBFAF5]">
-      <div className="max-w-2xl mx-auto p-4 pb-20">
+    <div className="min-h-screen bg-[#FBFAF5] pb-32">
+      {/* Sticky Add Item Section */}
+      <div className="fixed bottom-16 left-0 right-0 bg-white p-3 z-10" style={{ boxShadow: '0px -1px 4px 0px #E8E7E3' }}>
+        <div className="max-w-2xl mx-auto">
+          <div className="grid grid-cols-3 gap-2 mb-2">
+            <Input
+              placeholder="Item name"
+              value={newItem.name}
+              onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+              onFocus={handleInputFocus}
+              className="col-span-2 border-gray-300 h-8 text-sm"
+            />
+            <Input
+              placeholder="Qty"
+              value={newItem.quantity}
+              onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+              onFocus={handleInputFocus}
+              className="border-gray-300 h-8 text-sm"
+            />
+          </div>
+          {showAddButton && (
+            <Button onClick={handleAddItem} className="w-full bg-black text-white hover:bg-gray-800 h-8 text-sm">
+              Add Item
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-2xl mx-auto p-4">
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={onBack}
@@ -155,26 +188,6 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         </div>
 
         <h1 className="text-sm font-bold mb-6">{list.title}</h1>
-
-        <div className="mb-6 p-4 rounded-lg bg-white" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            <Input
-              placeholder="Item name"
-              value={newItem.name}
-              onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-              className="col-span-2 border-gray-300"
-            />
-            <Input
-              placeholder="Qty"
-              value={newItem.quantity}
-              onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-              className="border-gray-300"
-            />
-          </div>
-          <Button onClick={handleAddItem} className="w-full bg-black text-white hover:bg-gray-800">
-            Add Item
-          </Button>
-        </div>
 
         <div className="space-y-3">
           {list.items.map((item) => (
@@ -221,15 +234,8 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         {/* Title Edit Dialog */}
         <Dialog open={isTitleEditOpen} onOpenChange={setIsTitleEditOpen}>
           <DialogContent className="sm:max-w-md">
-            <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <DialogHeader>
               <DialogTitle>Edit List Title</DialogTitle>
-              <button
-                onClick={() => setIsTitleEditOpen(false)}
-                className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-              </button>
             </DialogHeader>
             <div className="space-y-4">
               <Input
@@ -251,15 +257,8 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         {/* Item Edit Dialog */}
         <Dialog open={isItemEditOpen} onOpenChange={setIsItemEditOpen}>
           <DialogContent className="sm:max-w-md">
-            <div className="flex items-center justify-between pb-2">
+            <div className="pb-2">
               <h2 className="text-lg font-semibold">Edit Item</h2>
-              <button
-                onClick={() => setIsItemEditOpen(false)}
-                className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-              </button>
             </div>
             <div className="space-y-4">
               <Input
