@@ -1,4 +1,3 @@
-
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface ShoppingListsRef {
   triggerCreate: () => void;
@@ -13,9 +13,10 @@ interface ShoppingListsRef {
 
 interface ShoppingListsProps {
   onListSelect?: (listId: string) => void;
+  onSearchClick?: () => void;
 }
 
-const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onListSelect }, ref) => {
+const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onListSelect, onSearchClick }, ref) => {
   const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
   const [isCreating, setIsCreating] = useState(false);
   const [title, setTitle] = useState('');
@@ -94,6 +95,9 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
       <div className="max-w-2xl mx-auto p-4 pb-20">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-[#131010]" style={{ fontFamily: 'IBM Plex Mono', fontWeight: '600' }}>Lists</h1>
+          <button onClick={onSearchClick} className="p-2 hover:bg-gray-100 rounded-lg">
+            <Search size={20} className="text-gray-600" />
+          </button>
         </div>
 
         {isCreating && (
