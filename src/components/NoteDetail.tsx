@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote } from '@/types';
@@ -63,8 +62,8 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5] pb-8">
-      <div className="max-w-4xl mx-auto p-4">
+    <div className="min-h-screen bg-[#FBFAF5]">
+      <div className="max-w-4xl mx-auto p-4 pb-8">
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={onBack}
@@ -88,65 +87,64 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
-          <textarea
-            value={editableNote.title}
-            onChange={(e) => autoSave({ title: e.target.value })}
-            className="text-xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none focus:border-b focus:border-gray-300 focus:pb-1"
-            placeholder="Untitled"
-            rows={1}
-            style={{ 
-              fontSize: '20px',
-              minHeight: '28px',
-              height: 'auto'
-            }}
-            onInput={(e) => {
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = 'auto';
-              target.style.height = target.scrollHeight + 'px';
-            }}
-          />
-          
-          {editableNote.tag && (
-            <button
-              onClick={() => setShowTagSelector(true)}
-              className="inline-block px-3 py-1 text-sm rounded-full mb-4 border-none outline-none"
-              style={{
-                backgroundColor: getTagColor(editableNote.tag),
-                color: getTagTextColor(editableNote.tag)
-              }}
-            >
-              {editableNote.tag}
-            </button>
-          )}
-
-          {!editableNote.tag && (
-            <button
-              onClick={() => setShowTagSelector(true)}
-              className="inline-block px-3 py-1 text-sm bg-gray-100 text-gray-500 rounded-full mb-4 hover:bg-gray-200"
-            >
-              + Add tag
-            </button>
-          )}
-          
-          <div className="w-full">
+        <div className="bg-white rounded-lg flex flex-col min-h-fit" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
+          <div className="p-6 flex flex-col flex-grow">
             <textarea
-              value={editableNote.content}
-              onChange={(e) => autoSave({ content: e.target.value })}
-              className="w-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none focus:border-b focus:border-gray-300 focus:pb-1"
-              placeholder="Start writing..."
+              value={editableNote.title}
+              onChange={(e) => autoSave({ title: e.target.value })}
+              className="text-xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none"
+              placeholder="Untitled"
+              rows={1}
               style={{ 
-                fontSize: '16px',
-                minHeight: '300px',
-                height: 'auto',
-                overflow: 'visible'
+                fontSize: '20px',
+                minHeight: '28px'
               }}
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement;
                 target.style.height = 'auto';
-                target.style.height = Math.max(target.scrollHeight, 300) + 'px';
+                target.style.height = target.scrollHeight + 'px';
               }}
             />
+            
+            {editableNote.tag && (
+              <button
+                onClick={() => setShowTagSelector(true)}
+                className="inline-block px-3 py-1 text-sm rounded-full mb-4 border-none outline-none self-start"
+                style={{
+                  backgroundColor: getTagColor(editableNote.tag),
+                  color: getTagTextColor(editableNote.tag)
+                }}
+              >
+                {editableNote.tag}
+              </button>
+            )}
+
+            {!editableNote.tag && (
+              <button
+                onClick={() => setShowTagSelector(true)}
+                className="inline-block px-3 py-1 text-sm bg-gray-100 text-gray-500 rounded-full mb-4 hover:bg-gray-200 self-start"
+              >
+                + Add tag
+              </button>
+            )}
+            
+            <div className="flex-grow">
+              <textarea
+                value={editableNote.content}
+                onChange={(e) => autoSave({ content: e.target.value })}
+                className="w-full h-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none"
+                placeholder="Start writing..."
+                style={{ 
+                  fontSize: '16px',
+                  minHeight: '300px'
+                }}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = Math.max(target.scrollHeight, 300) + 'px';
+                }}
+              />
+            </div>
           </div>
         </div>
 

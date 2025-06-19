@@ -8,6 +8,7 @@ import ListDetail from '@/components/ListDetail';
 import Passwords from '@/components/Passwords';
 import PasswordDetail from '@/components/PasswordDetail';
 import Search from '@/components/Search';
+import Settings from '@/components/Settings';
 import FloatingActionButton from '@/components/FloatingActionButton';
 
 const Index = () => {
@@ -16,6 +17,7 @@ const Index = () => {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [selectedPasswordId, setSelectedPasswordId] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const notesRef = useRef<{ triggerCreate: () => void }>(null);
   const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
   const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
@@ -72,6 +74,14 @@ const Index = () => {
     setShowSearch(false);
   };
 
+  const handleSettingsClick = () => {
+    setShowSettings(true);
+  };
+
+  const handleBackFromSettings = () => {
+    setShowSettings(false);
+  };
+
   const handleSearchNoteSelect = (noteId: string) => {
     setShowSearch(false);
     setActiveTab('notes');
@@ -85,6 +95,10 @@ const Index = () => {
   };
 
   const renderContent = () => {
+    if (showSettings) {
+      return <Settings onBack={handleBackFromSettings} />;
+    }
+
     if (showSearch) {
       return (
         <Search 
@@ -100,7 +114,7 @@ const Index = () => {
         if (selectedNoteId) {
           return <NoteDetail noteId={selectedNoteId} onBack={handleBackToNotes} />;
         }
-        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} />;
+        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} onSettingsClick={handleSettingsClick} />;
       case 'shopping':
         if (selectedListId) {
           return <ListDetail listId={selectedListId} onBack={handleBackToLists} />;
@@ -112,18 +126,18 @@ const Index = () => {
         }
         return <Passwords ref={passwordsRef} onPasswordSelect={handlePasswordSelect} onSearchClick={handleSearchClick} />;
       default:
-        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} />;
+        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} onSettingsClick={handleSettingsClick} />;
     }
   };
 
-  // Don't show FAB when viewing details or search
-  const showFAB = !showSearch && 
+  // Don't show FAB when viewing details, search, or settings
+  const showFAB = !showSearch && !showSettings &&
     !(activeTab === 'shopping' && selectedListId) && 
     !(activeTab === 'notes' && selectedNoteId) &&
     !(activeTab === 'passwords' && selectedPasswordId);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {renderContent()}
       {showFAB && <FloatingActionButton onClick={handleFloatingButtonClick} />}
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
