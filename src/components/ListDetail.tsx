@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
@@ -5,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Pen, Trash2, X, ArrowLeft } from 'lucide-react';
+import { Pen, Trash2, X, ArrowLeft, Plus } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
+import FloatingActionButton from '@/components/FloatingActionButton';
 
 interface ListDetailProps {
   listId: string;
@@ -17,13 +19,11 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
   const [isTitleEditOpen, setIsTitleEditOpen] = useState(false);
   const [editTitle, setEditTitle] = useState('');
-  const [newItem, setNewItem] = useState({ name: '', quantity: '' });
   const [checkedItems, setCheckedItems] = useLocalStorage<Record<string, boolean>>(`list-${listId}-checked`, {});
   const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null);
   const [isItemEditOpen, setIsItemEditOpen] = useState(false);
   const [editItemName, setEditItemName] = useState('');
   const [editItemQuantity, setEditItemQuantity] = useState('');
-  const [showAddButton, setShowAddButton] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const list = lists.find(l => l.id === listId);
@@ -66,12 +66,10 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   };
 
   const handleAddItem = () => {
-    if (!newItem.name.trim()) return;
-    
     const item: ShoppingListItem = {
       id: Date.now().toString(),
-      name: newItem.name,
-      quantity: newItem.quantity || '1',
+      name: '',
+      quantity: '1',
     };
     
     setLists(lists.map(l => 
@@ -79,8 +77,6 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         ? { ...l, items: [...l.items, item], updatedAt: new Date() }
         : l
     ));
-    setNewItem({ name: '', quantity: '' });
-    setShowAddButton(false);
   };
 
   const handleDeleteItem = (itemId: string) => {
@@ -123,7 +119,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   };
 
   const handleSaveItem = () => {
-    if (!editingItem || !editItemName.trim()) return;
+    if (!editingItem) return;
     
     setLists(lists.map(l => 
       l.id === listId 
@@ -142,39 +138,40 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     setEditingItem(null);
   };
 
-  const handleInputFocus = () => {
-    setShowAddButton(true);
+  const handleItemNameChange = (itemId: string, newName: string) => {
+    setLists(lists.map(l => 
+      l.id === listId 
+        ? { 
+            ...l, 
+            items: l.items.map(item => 
+              item.id === itemId 
+                ? { ...item, name: newName }
+                : item
+            ), 
+            updatedAt: new Date() 
+          }
+        : l
+    ));
+  };
+
+  const handleItemQuantityChange = (itemId: string, newQuantity: string) => {
+    setLists(lists.map(l => 
+      l.id === listId 
+        ? { 
+            ...l, 
+            items: l.items.map(item => 
+              item.id === itemId 
+                ? { ...item, quantity: newQuantity }
+                : item
+            ), 
+            updatedAt: new Date() 
+          }
+        : l
+    ));
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5] pb-32">
-      {/* Sticky Add Item Section */}
-      <div className="fixed bottom-16 left-0 right-0 bg-white p-3 z-10" style={{ boxShadow: '0px -1px 4px 0px #E8E7E3' }}>
-        <div className="max-w-2xl mx-auto">
-          <div className="grid grid-cols-3 gap-2 mb-2">
-            <Input
-              placeholder="Item name"
-              value={newItem.name}
-              onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-              onFocus={handleInputFocus}
-              className="col-span-2 border-gray-300 h-8 text-sm"
-            />
-            <Input
-              placeholder="Qty"
-              value={newItem.quantity}
-              onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-              onFocus={handleInputFocus}
-              className="border-gray-300 h-8 text-sm"
-            />
-          </div>
-          {showAddButton && (
-            <Button onClick={handleAddItem} className="w-full bg-black text-white hover:bg-gray-800 h-8 text-sm">
-              Add Item
-            </Button>
-          )}
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-[#FBFAF5] pb-20">
       <div className="max-w-2xl mx-auto p-4">
         <div className="flex justify-between items-center mb-6">
           <button
@@ -212,9 +209,8 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
           {list.items.map((item) => (
             <div 
               key={item.id} 
-              className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-gray-50 bg-white"
+              className="flex items-center gap-3 p-3 rounded-lg bg-white"
               style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
-              onClick={(e) => handleItemClick(item, e)}
             >
               <button
                 data-delete-btn
@@ -226,19 +222,26 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
               >
                 <X className="w-3 h-3" />
               </button>
-              <div className={`flex-1 transition-all duration-200 ease-in-out ${checkedItems[item.id] ? 'line-through text-gray-500' : ''}`}>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">{item.name}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">{item.quantity}</span>
-                  </div>
-                </div>
+              <div className="flex-1 grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={item.name}
+                  onChange={(e) => handleItemNameChange(item.id, e.target.value)}
+                  placeholder="Item name"
+                  className="text-sm font-medium border-none outline-none bg-transparent"
+                />
+                <input
+                  type="text"
+                  value={item.quantity}
+                  onChange={(e) => handleItemQuantityChange(item.id, e.target.value)}
+                  placeholder="Qty"
+                  className="text-sm text-gray-600 border-none outline-none bg-transparent"
+                />
               </div>
               <div data-checkbox className="flex-shrink-0">
                 <Checkbox
                   checked={checkedItems[item.id] || false}
                   onCheckedChange={(checked) => handleItemCheck(item.id, checked as boolean)}
-                  className="transition-none"
                 />
               </div>
             </div>
@@ -249,6 +252,8 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
             </div>
           )}
         </div>
+
+        <FloatingActionButton onClick={handleAddItem} />
 
         {/* Title Edit Dialog */}
         <Dialog open={isTitleEditOpen} onOpenChange={setIsTitleEditOpen}>

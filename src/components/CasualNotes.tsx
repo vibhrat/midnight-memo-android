@@ -18,12 +18,6 @@ interface CasualNotesProps {
 
 const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick }, ref) => {
   const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
-  const [isCreating, setIsCreating] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    tag: '',
-    content: '',
-  });
 
   useImperativeHandle(ref, () => ({
     triggerCreate: () => {
@@ -102,9 +96,16 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
             <div 
               key={note.id} 
               className={`p-3 bg-white rounded-lg cursor-pointer hover:shadow-md transition-shadow ${
-                note.isBlurred ? 'blur-[2px]' : ''
+                note.isBlurred 
+                  ? 'backdrop-blur-sm' 
+                  : ''
               }`}
-              style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
+              style={{ 
+                boxShadow: '0px 1px 4px 0px #E8E7E3',
+                filter: note.isBlurred 
+                  ? 'blur(4px) saturate(180%) hue-rotate(90deg) contrast(120%)' 
+                  : 'none'
+              }}
               onClick={() => handleCardClick(note.id)}
             >
               <div className="mb-2">
