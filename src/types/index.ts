@@ -1,4 +1,3 @@
-
 export interface CasualNote {
   id: string;
   title: string;
@@ -6,6 +5,7 @@ export interface CasualNote {
   content: string;
   createdAt: Date;
   updatedAt: Date;
+  isBlurred?: boolean;
 }
 
 export interface ShoppingListItem {

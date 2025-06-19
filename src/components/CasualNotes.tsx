@@ -19,7 +19,6 @@ interface CasualNotesProps {
 const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick }, ref) => {
   const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
   const [isCreating, setIsCreating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     tag: '',
@@ -28,7 +27,21 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
 
   useImperativeHandle(ref, () => ({
     triggerCreate: () => {
-      setIsCreating(true);
+      // Create a new blank note and navigate to it
+      const now = new Date();
+      const newNote: CasualNote = {
+        id: Date.now().toString(),
+        title: '',
+        tag: '',
+        content: '',
+        createdAt: now,
+        updatedAt: now,
+        isBlurred: false
+      };
+      setNotes([newNote, ...notes]);
+      if (onNoteSelect) {
+        onNoteSelect(newNote.id);
+      }
     }
   }));
 
@@ -44,37 +57,28 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
     return content.substring(0, maxLength) + '...';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title.trim()) return;
-
-    const now = new Date();
-
-    if (editingId) {
-      setNotes(notes.map(note => 
-        note.id === editingId 
-          ? { ...note, ...formData, updatedAt: now }
-          : note
-      ));
-      setEditingId(null);
-    } else {
-      const newNote: CasualNote = {
-        id: Date.now().toString(),
-        ...formData,
-        createdAt: now,
-        updatedAt: now,
-      };
-      setNotes([newNote, ...notes]);
-    }
-
-    setFormData({ title: '', tag: '', content: '' });
-    setIsCreating(false);
+  const getTagColor = (tag: string) => {
+    const colors = {
+      'Note': '#E3F2FD',
+      'Medicine': '#FFE8E8', 
+      'Travel': '#E8F5E8',
+      'Tech': '#F3E5F5',
+      'Links': '#FFF3E0',
+      'Contact': '#E0F2F1'
+    };
+    return colors[tag as keyof typeof colors] || '#F5F5F5';
   };
 
-  const handleCancel = () => {
-    setFormData({ title: '', tag: '', content: '' });
-    setIsCreating(false);
-    setEditingId(null);
+  const getTagTextColor = (tag: string) => {
+    const colors = {
+      'Note': '#1976D2',
+      'Medicine': '#D32F2F',
+      'Travel': '#388E3C',
+      'Tech': '#7B1FA2',
+      'Links': '#F57C00',
+      'Contact': '#00796B'
+    };
+    return colors[tag as keyof typeof colors] || '#666666';
   };
 
   const handleCardClick = (noteId: string) => {
@@ -93,64 +97,43 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
           </button>
         </div>
 
-        {isCreating && (
-          <form onSubmit={handleSubmit} className="mb-6 p-4 bg-white rounded-lg" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
-            <div className="space-y-4">
-              <Input
-                placeholder="Note title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="border-gray-300"
-              />
-              <Input
-                placeholder="Tag (optional)"
-                value={formData.tag}
-                onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
-                className="border-gray-300"
-              />
-              <Textarea
-                placeholder="Write your note here..."
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                rows={6}
-                className="border-gray-300 resize-none"
-              />
-              <div className="flex gap-2">
-                <Button type="submit" className="bg-black text-white hover:bg-gray-800">
-                  {editingId ? 'Update' : 'Save'}
-                </Button>
-                <Button type="button" variant="outline" onClick={handleCancel}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </form>
-        )}
-
         <div className="space-y-3">
           {notes.map((note) => (
             <div 
               key={note.id} 
-              className="p-3 bg-white rounded-lg cursor-pointer hover:shadow-md transition-shadow"
+              className={`p-3 bg-white rounded-lg cursor-pointer hover:shadow-md transition-shadow ${
+                note.isBlurred ? 'blur-sm' : ''
+              }`}
               style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
               onClick={() => handleCardClick(note.id)}
             >
               <div className="mb-2">
-                <h3 className="font-semibold" style={{ fontSize: '16px' }}>{note.title}</h3>
+                <h3 className="font-semibold" style={{ fontSize: '16px' }}>
+                  {note.title || 'Untitled'}
+                </h3>
               </div>
               {note.tag && (
-                <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded mb-2" style={{ fontSize: '12px' }}>
+                <span 
+                  className="inline-block px-2 py-1 rounded mb-2" 
+                  style={{ 
+                    fontSize: '12px',
+                    backgroundColor: getTagColor(note.tag),
+                    color: getTagTextColor(note.tag)
+                  }}
+                >
                   {note.tag}
                 </span>
               )}
-              <p className="text-gray-700 whitespace-pre-wrap mb-2" style={{ fontSize: '14px' }}>{truncateContent(note.content)}</p>
+              <p className="text-gray-700 whitespace-pre-wrap mb-2" style={{ fontSize: '14px' }}>
+                {truncateContent(note.content)}
+              </p>
               <div className="flex items-center gap-1 text-sm font-medium" style={{ color: '#818181' }}>
                 <Clock className="w-3 h-3" />
                 <span>{getDaysAgo(note.updatedAt)}d</span>
               </div>
             </div>
           ))}
-          {notes.length === 0 && !isCreating && (
+          {notes.length === 0 && (
             <div className="text-center py-12 text-gray-500">
               No notes yet. Create your first note!
             </div>
