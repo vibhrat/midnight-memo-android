@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Password, PasswordField } from '@/types';
@@ -24,6 +23,23 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   const { toast } = useToast();
 
   const password = passwords.find(p => p.id === passwordId);
+
+  // Auto-save title and password changes
+  const handleTitleChange = (newTitle: string) => {
+    setPasswords(passwords.map(p => 
+      p.id === passwordId 
+        ? { ...p, title: newTitle, updatedAt: new Date() }
+        : p
+    ));
+  };
+
+  const handlePasswordChange = (newPassword: string) => {
+    setPasswords(passwords.map(p => 
+      p.id === passwordId 
+        ? { ...p, password: newPassword, updatedAt: new Date() }
+        : p
+    ));
+  };
 
   if (!password) {
     return (
@@ -107,7 +123,18 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   const renderPasswordField = (field: { id: string; title: string; password: string; createdAt: Date; updatedAt: Date }, isMain = false) => (
     <div key={field.id} className="bg-white p-4 rounded-lg mb-4" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
       <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-semibold">{field.title}</h3>
+        {isMain ? (
+          <input
+            type="text"
+            value={field.title}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            className="text-lg font-extrabold bg-transparent border-none outline-none flex-1"
+            placeholder="Password Title"
+            style={{ fontSize: '20px' }}
+          />
+        ) : (
+          <h3 className="text-lg font-semibold">{field.title}</h3>
+        )}
         {!isMain && (
           <button
             onClick={() => deletePasswordField(field.id)}
@@ -120,7 +147,17 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
       
       <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-3">
         <div className="flex-1 font-mono text-lg">
-          {showPasswords[field.id] ? field.password : '•'.repeat(field.password.length)}
+          {isMain ? (
+            <input
+              type={showPasswords[field.id] ? 'text' : 'password'}
+              value={field.password}
+              onChange={(e) => handlePasswordChange(e.target.value)}
+              className="bg-transparent border-none outline-none w-full font-mono text-lg"
+              placeholder="Enter password"
+            />
+          ) : (
+            showPasswords[field.id] ? field.password : '•'.repeat(field.password.length)
+          )}
         </div>
         <div className="flex gap-2">
           <button
@@ -157,17 +194,15 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
             onClick={onBack}
             className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={20} />
           </button>
           <button
             onClick={() => setShowDeleteDialog(true)}
             className="p-2 hover:bg-gray-100 rounded-lg"
           >
-            <Trash2 size={16} className="text-black" />
+            <Trash2 size={20} className="text-black" />
           </button>
         </div>
-
-        <h1 className="text-2xl font-bold mb-6">{password.title}</h1>
         
         {/* Main password field */}
         {renderPasswordField(password, true)}

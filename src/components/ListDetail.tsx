@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
@@ -28,6 +27,15 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const list = lists.find(l => l.id === listId);
+
+  // Auto-save title changes
+  const handleTitleChange = (newTitle: string) => {
+    setLists(lists.map(l => 
+      l.id === listId 
+        ? { ...l, title: newTitle, updatedAt: new Date() }
+        : l
+    ));
+  };
 
   if (!list) {
     return (
@@ -191,7 +199,14 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
           </div>
         </div>
 
-        <h1 className="text-sm font-bold mb-6">{list.title}</h1>
+        <input
+          type="text"
+          value={list.title}
+          onChange={(e) => handleTitleChange(e.target.value)}
+          className="text-xl font-extrabold mb-6 w-full border-none outline-none bg-transparent"
+          placeholder="Untitled List"
+          style={{ fontSize: '20px' }}
+        />
 
         <div className="space-y-3">
           {list.items.map((item) => (

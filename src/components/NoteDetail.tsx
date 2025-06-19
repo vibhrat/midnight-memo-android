@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote } from '@/types';
@@ -70,35 +69,34 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
             onClick={onBack}
             className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={20} />
           </button>
           <div className="flex gap-2">
             <button
               onClick={toggleBlur}
-              className="p-2 hover:bg-gray-100 rounded-lg"
+              className={`p-2 hover:bg-gray-100 rounded-lg ${editableNote.isBlurred ? 'bg-gray-200' : ''}`}
             >
-              <Grid3x3 size={18} className="text-black" />
+              <Grid3x3 size={20} className={editableNote.isBlurred ? "text-blue-600" : "text-black"} />
             </button>
             <button
               onClick={() => setShowDeleteDialog(true)}
               className="p-2 hover:bg-gray-100 rounded-lg"
             >
-              <Trash2 size={18} className="text-black" />
+              <Trash2 size={20} className="text-black" />
             </button>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg min-h-[80vh]" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
+        <div className="bg-white p-6 rounded-lg" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
           <textarea
             value={editableNote.title}
             onChange={(e) => autoSave({ title: e.target.value })}
-            className="text-xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none"
+            className="text-xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none overflow-hidden"
             placeholder="Untitled"
             rows={1}
             style={{ 
               fontSize: '20px',
-              minHeight: '28px',
-              height: 'auto'
+              minHeight: '28px'
             }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
@@ -133,12 +131,11 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
             <textarea
               value={editableNote.content}
               onChange={(e) => autoSave({ content: e.target.value })}
-              className="w-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none"
+              className="w-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none overflow-hidden"
               placeholder="Start writing..."
               style={{ 
                 fontSize: '16px',
-                minHeight: '400px',
-                height: 'auto'
+                minHeight: '400px'
               }}
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement;
