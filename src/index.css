@@ -39,10 +39,19 @@
   }
 }
 
-/* Subtle focus styles for input fields */
+/* Remove default input focus styles and add bottom border */
 input:focus,
 textarea:focus {
   outline: none !important;
-  border-color: #d1d5db !important;
-  box-shadow: 0 0 0 1px #d1d5db !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-bottom: 1px solid #d1d5db !important;
+  padding-bottom: 2px !important;
+}
+
+/* Ensure inputs don't have default borders */
+input,
+textarea {
+  border: none !important;
+  box-shadow: none !important;
 }

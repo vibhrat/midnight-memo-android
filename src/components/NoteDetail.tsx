@@ -77,13 +77,13 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
               onClick={toggleBlur}
               className={`p-2 hover:bg-gray-100 rounded-lg ${editableNote.isBlurred ? 'bg-gray-200' : ''}`}
             >
-              <Grid3x3 size={22} className={editableNote.isBlurred ? "text-blue-600" : "text-black"} />
+              <Grid3x3 size={22} className={editableNote.isBlurred ? "text-blue-600" : "text-gray-600"} />
             </button>
             <button
               onClick={() => setShowDeleteDialog(true)}
               className="p-2 hover:bg-gray-100 rounded-lg"
             >
-              <Trash2 size={22} className="text-black" />
+              <Trash2 size={22} className="text-gray-600" />
             </button>
           </div>
         </div>
@@ -92,7 +92,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
           <textarea
             value={editableNote.title}
             onChange={(e) => autoSave({ title: e.target.value })}
-            className="text-xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none"
+            className="text-xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none focus:border-b focus:border-gray-300 focus:pb-1"
             placeholder="Untitled"
             rows={1}
             style={{ 
@@ -133,18 +133,18 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
             <textarea
               value={editableNote.content}
               onChange={(e) => autoSave({ content: e.target.value })}
-              className="w-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none"
+              className="w-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none focus:border-b focus:border-gray-300 focus:pb-1"
               placeholder="Start writing..."
               style={{ 
                 fontSize: '16px',
-                minHeight: '400px',
+                minHeight: '300px',
                 height: 'auto',
-                overflow: 'hidden'
+                overflow: 'visible'
               }}
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement;
                 target.style.height = 'auto';
-                target.style.height = target.scrollHeight + 'px';
+                target.style.height = Math.max(target.scrollHeight, 300) + 'px';
               }}
             />
           </div>

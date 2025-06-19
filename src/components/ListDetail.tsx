@@ -4,7 +4,6 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pen, Trash2, X, ArrowLeft, Plus } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
@@ -25,6 +24,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [editItemName, setEditItemName] = useState('');
   const [editItemQuantity, setEditItemQuantity] = useState('');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
 
   const list = lists.find(l => l.id === listId);
 
@@ -105,10 +105,25 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     });
   };
 
+  const handleItemMouseDown = (item: ShoppingListItem, e: React.MouseEvent) => {
+    const timer = setTimeout(() => {
+      // Long press - toggle strike through
+      handleItemCheck(item.id, !checkedItems[item.id]);
+    }, 500);
+    setLongPressTimer(timer);
+  };
+
+  const handleItemMouseUp = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
   const handleItemClick = (item: ShoppingListItem, e: React.MouseEvent) => {
-    // Don't open edit if clicking on checkbox or delete button
+    // Don't open edit if clicking on delete button or during long press
     const target = e.target as HTMLElement;
-    if (target.closest('[data-checkbox]') || target.closest('[data-delete-btn]')) {
+    if (target.closest('[data-delete-btn]') || longPressTimer) {
       return;
     }
     
@@ -200,7 +215,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
           type="text"
           value={list.title}
           onChange={(e) => handleTitleChange(e.target.value)}
-          className="text-xl font-extrabold mb-6 w-full border-none outline-none bg-transparent"
+          className="text-xl font-extrabold mb-6 w-full border-none outline-none bg-transparent focus:border-b focus:border-gray-300 focus:pb-1"
           placeholder="Untitled List"
           style={{ fontSize: '20px' }}
         />
@@ -209,8 +224,14 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
           {list.items.map((item) => (
             <div 
               key={item.id} 
-              className="flex items-center gap-3 p-3 rounded-lg bg-white"
+              className={`flex items-center gap-3 p-3 rounded-lg bg-white cursor-pointer ${
+                checkedItems[item.id] ? 'line-through opacity-60' : ''
+              }`}
               style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
+              onMouseDown={(e) => handleItemMouseDown(item, e)}
+              onMouseUp={handleItemMouseUp}
+              onMouseLeave={handleItemMouseUp}
+              onClick={(e) => handleItemClick(item, e)}
             >
               <button
                 data-delete-btn
@@ -222,26 +243,25 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
               >
                 <X className="w-3 h-3" />
               </button>
-              <div className="flex-1 grid grid-cols-2 gap-2">
+              <div className="flex-1 flex items-center">
                 <input
                   type="text"
                   value={item.name}
                   onChange={(e) => handleItemNameChange(item.id, e.target.value)}
                   placeholder="Item name"
-                  className="text-sm font-medium border-none outline-none bg-transparent"
+                  className="text-sm font-medium border-none outline-none bg-transparent focus:border-b focus:border-gray-300 focus:pb-1"
+                  style={{ width: '80%' }}
+                  onClick={(e) => e.stopPropagation()}
                 />
+                <div className="w-px h-4 bg-gray-300 mx-2"></div>
                 <input
                   type="text"
                   value={item.quantity}
                   onChange={(e) => handleItemQuantityChange(item.id, e.target.value)}
                   placeholder="Qty"
-                  className="text-sm text-gray-600 border-none outline-none bg-transparent"
-                />
-              </div>
-              <div data-checkbox className="flex-shrink-0">
-                <Checkbox
-                  checked={checkedItems[item.id] || false}
-                  onCheckedChange={(checked) => handleItemCheck(item.id, checked as boolean)}
+                  className="text-sm text-gray-600 border-none outline-none bg-transparent focus:border-b focus:border-gray-300 focus:pb-1"
+                  style={{ width: '20%' }}
+                  onClick={(e) => e.stopPropagation()}
                 />
               </div>
             </div>
@@ -266,7 +286,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
                 placeholder="List title"
-                className="w-full"
+                className="w-full focus:border-b focus:border-gray-300"
               />
               <Button 
                 onClick={handleSaveTitle} 
@@ -289,13 +309,13 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
                 value={editItemName}
                 onChange={(e) => setEditItemName(e.target.value)}
                 placeholder="Item name"
-                className="w-full"
+                className="w-full focus:border-b focus:border-gray-300"
               />
               <Input
                 value={editItemQuantity}
                 onChange={(e) => setEditItemQuantity(e.target.value)}
                 placeholder="Quantity"
-                className="w-full"
+                className="w-full focus:border-b focus:border-gray-300"
               />
               <Button 
                 onClick={handleSaveItem} 
