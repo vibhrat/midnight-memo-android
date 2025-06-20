@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Trash2, Grid3x3 } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import TagSelector from '@/components/TagSelector';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface NoteDetailProps {
   noteId: string;
@@ -16,6 +17,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   const [editableNote, setEditableNote] = useState<CasualNote | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTagSelector, setShowTagSelector] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const note = notes.find(n => n.id === noteId);
 
@@ -46,10 +48,11 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   };
 
   const handleDelete = () => {
+    setIsDeleting(true);
     setNotes(notes.filter(n => n.id !== noteId));
     setTimeout(() => {
       onBack();
-    }, 200);
+    }, 1000);
   };
 
   const toggleBlur = () => {
@@ -61,9 +64,26 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
     setShowTagSelector(false);
   };
 
+  if (isDeleting) {
+    return (
+      <div className="min-h-screen bg-[#FBFAF5] flex flex-col justify-center items-center p-4">
+        <div className="space-y-4 w-full max-w-4xl">
+          <div className="flex justify-between items-center mb-6">
+            <Skeleton className="h-12 w-12 rounded-lg" />
+            <div className="flex gap-2">
+              <Skeleton className="h-12 w-12 rounded-lg" />
+              <Skeleton className="h-12 w-12 rounded-lg" />
+            </div>
+          </div>
+          <Skeleton className="h-96 w-full rounded-lg" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#FBFAF5]">
-      <div className="max-w-4xl mx-auto p-4 pb-8">
+    <div className="min-h-screen bg-[#FBFAF5] flex flex-col">
+      <div className="max-w-4xl mx-auto p-4 pb-8 flex-1 flex flex-col">
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={onBack}
@@ -87,8 +107,8 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg flex flex-col min-h-fit" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
-          <div className="p-6 flex flex-col flex-grow">
+        <div className="bg-white rounded-lg flex flex-col flex-1" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
+          <div className="p-6 flex flex-col flex-1">
             <textarea
               value={editableNote.title}
               onChange={(e) => autoSave({ title: e.target.value })}
@@ -128,20 +148,15 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
               </button>
             )}
             
-            <div className="flex-grow">
+            <div className="flex-1 flex">
               <textarea
                 value={editableNote.content}
                 onChange={(e) => autoSave({ content: e.target.value })}
-                className="w-full h-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none"
+                className="w-full h-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none flex-1"
                 placeholder="Start writing..."
                 style={{ 
                   fontSize: '16px',
-                  minHeight: '300px'
-                }}
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = 'auto';
-                  target.style.height = Math.max(target.scrollHeight, 300) + 'px';
+                  minHeight: '100%'
                 }}
               />
             </div>

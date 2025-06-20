@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Password, PasswordField } from '@/types';
@@ -8,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import FloatingActionButton from '@/components/FloatingActionButton';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface PasswordDetailProps {
   passwordId: string;
@@ -20,6 +22,8 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   const [isAddingField, setIsAddingField] = useState(false);
   const [newField, setNewField] = useState({ title: '', password: '' });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'main' | 'field', id?: string }>({ type: 'main' });
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
   const password = passwords.find(p => p.id === passwordId);
@@ -37,6 +41,20 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
     setPasswords(passwords.map(p => 
       p.id === passwordId 
         ? { ...p, password: newPassword, updatedAt: new Date() }
+        : p
+    ));
+  };
+
+  const handleFieldChange = (fieldId: string, key: 'title' | 'password', value: string) => {
+    setPasswords(passwords.map(p => 
+      p.id === passwordId 
+        ? { 
+            ...p, 
+            passwordFields: (p.passwordFields || []).map(f => 
+              f.id === fieldId ? { ...f, [key]: value, updatedAt: new Date() } : f
+            ),
+            updatedAt: new Date()
+          }
         : p
     ));
   };
@@ -101,43 +119,49 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
     setIsAddingField(false);
   };
 
-  const deletePasswordField = (fieldId: string) => {
-    setPasswords(passwords.map(p => 
-      p.id === passwordId 
-        ? { 
-            ...p, 
-            passwordFields: (p.passwordFields || []).filter(f => f.id !== fieldId),
-            updatedAt: new Date()
-          }
-        : p
-    ));
+  const handleDelete = () => {
+    setIsDeleting(true);
+    
+    if (deleteTarget.type === 'main') {
+      setPasswords(passwords.filter(p => p.id !== passwordId));
+      setTimeout(() => {
+        onBack();
+      }, 1000);
+    } else if (deleteTarget.id) {
+      setPasswords(passwords.map(p => 
+        p.id === passwordId 
+          ? { 
+              ...p, 
+              passwordFields: (p.passwordFields || []).filter(f => f.id !== deleteTarget.id),
+              updatedAt: new Date()
+            }
+          : p
+      ));
+      setTimeout(() => {
+        setIsDeleting(false);
+      }, 500);
+    }
   };
 
-  const handleDeletePassword = () => {
-    setPasswords(passwords.filter(p => p.id !== passwordId));
-    setTimeout(() => {
-      onBack();
-    }, 200);
+  const openDeleteDialog = (type: 'main' | 'field', id?: string) => {
+    setDeleteTarget({ type, id });
+    setShowDeleteDialog(true);
   };
 
   const renderPasswordField = (field: { id: string; title: string; password: string; createdAt: Date; updatedAt: Date }, isMain = false) => (
     <div key={field.id} className="bg-white p-4 rounded-lg mb-4" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
       <div className="flex justify-between items-center mb-3">
-        {isMain ? (
-          <input
-            type="text"
-            value={field.title}
-            onChange={(e) => handleTitleChange(e.target.value)}
-            className="text-lg font-extrabold bg-transparent border-none outline-none flex-1"
-            placeholder="Password Title"
-            style={{ fontSize: '20px' }}
-          />
-        ) : (
-          <h3 className="text-lg font-semibold">{field.title}</h3>
-        )}
+        <input
+          type="text"
+          value={field.title}
+          onChange={(e) => isMain ? handleTitleChange(e.target.value) : handleFieldChange(field.id, 'title', e.target.value)}
+          className="text-lg font-extrabold bg-transparent border-none outline-none flex-1"
+          placeholder="Password Title"
+          style={{ fontSize: '20px' }}
+        />
         {!isMain && (
           <button
-            onClick={() => deletePasswordField(field.id)}
+            onClick={() => openDeleteDialog('field', field.id)}
             className="p-1 hover:bg-gray-100 rounded"
           >
             <Trash2 size={16} className="text-red-600" />
@@ -147,17 +171,13 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
       
       <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-3">
         <div className="flex-1 font-mono text-lg">
-          {isMain ? (
-            <input
-              type={showPasswords[field.id] ? 'text' : 'password'}
-              value={field.password}
-              onChange={(e) => handlePasswordChange(e.target.value)}
-              className="bg-transparent border-none outline-none w-full font-mono text-lg"
-              placeholder="Enter password"
-            />
-          ) : (
-            showPasswords[field.id] ? field.password : '•'.repeat(field.password.length)
-          )}
+          <input
+            type={showPasswords[field.id] ? 'text' : 'password'}
+            value={field.password}
+            onChange={(e) => isMain ? handlePasswordChange(e.target.value) : handleFieldChange(field.id, 'password', e.target.value)}
+            className="bg-transparent border-none outline-none w-full font-mono text-lg"
+            placeholder="Enter password"
+          />
         </div>
         <div className="flex gap-2">
           <button
@@ -186,6 +206,18 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
     </div>
   );
 
+  if (isDeleting) {
+    return (
+      <div className="min-h-screen bg-[#FBFAF5] flex flex-col justify-center items-center p-4">
+        <div className="space-y-4 w-full max-w-2xl">
+          <Skeleton className="h-20 w-full rounded-lg" />
+          <Skeleton className="h-32 w-full rounded-lg" />
+          <Skeleton className="h-32 w-full rounded-lg" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FBFAF5]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
@@ -197,7 +229,7 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
             <ArrowLeft size={20} />
           </button>
           <button
-            onClick={() => setShowDeleteDialog(true)}
+            onClick={() => openDeleteDialog('main')}
             className="p-2 hover:bg-gray-100 rounded-lg"
           >
             <Trash2 size={20} className="text-black" />
@@ -214,7 +246,7 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
       <FloatingActionButton onClick={() => setIsAddingField(true)} />
 
       <Dialog open={isAddingField} onOpenChange={setIsAddingField}>
-        <DialogContent className="sm:max-w-md" hideCloseButton>
+        <DialogContent className="sm:max-w-md mx-4 rounded-lg" hideCloseButton>
           <DialogHeader>
             <DialogTitle>Add Password Field</DialogTitle>
           </DialogHeader>
@@ -245,7 +277,7 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
       <DeleteConfirmDialog
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
-        onConfirm={handleDeletePassword}
+        onConfirm={handleDelete}
       />
     </div>
   );

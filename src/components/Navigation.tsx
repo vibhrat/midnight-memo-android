@@ -13,6 +13,12 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
     { id: 'passwords', icon: Lock },
   ];
 
+  const handleTabClick = (tabId: string) => {
+    onTabChange(tabId);
+    // Reset any detail views by triggering a full navigation
+    window.dispatchEvent(new CustomEvent('navigate-to-tab', { detail: tabId }));
+  };
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2">
       <div className="flex justify-around">
@@ -21,7 +27,7 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
           return (
             <button
               key={tab.id}
-              onClick={() => onTabChange(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
               className={`px-4 py-3 transition-colors ${
                 activeTab === tab.id
                   ? 'text-black border-b-2 border-black'

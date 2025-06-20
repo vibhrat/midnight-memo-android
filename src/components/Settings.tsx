@@ -1,5 +1,5 @@
 
-import { ArrowLeft, Moon, Download, Upload } from 'lucide-react';
+import { ArrowLeft, Download, Upload } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 interface SettingsProps {
@@ -7,21 +7,9 @@ interface SettingsProps {
 }
 
 const Settings = ({ onBack }: SettingsProps) => {
-  const [darkMode, setDarkMode] = useLocalStorage<boolean>('dark-mode', false);
   const [notes] = useLocalStorage('casual-notes', []);
   const [lists] = useLocalStorage('shopping-lists', []);
   const [passwords] = useLocalStorage('passwords', []);
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
 
   const handleBackup = () => {
     const appData = {
@@ -80,7 +68,7 @@ const Settings = ({ onBack }: SettingsProps) => {
   return (
     <div className="min-h-screen bg-[#FBFAF5] dark:bg-gray-900">
       <div className="max-w-2xl mx-auto p-4">
-        <div className="flex items-center mb-6">
+        <div className="flex items-center mb-8">
           <button
             onClick={onBack}
             className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -89,61 +77,31 @@ const Settings = ({ onBack }: SettingsProps) => {
           </button>
         </div>
 
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-64 h-64 mb-6 bg-black dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center relative overflow-hidden">
-            {/* Barcode-like design */}
-            <div className="absolute top-8 left-8 right-8 flex justify-between items-start">
-              {[...Array(12)].map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-gray-300"
-                  style={{
-                    width: i < 5 ? '20px' : i < 8 ? '12px' : '8px',
-                    height: '120px'
-                  }}
-                />
-              ))}
-            </div>
-            
-            <div className="absolute bottom-16 text-white text-2xl font-mono tracking-widest">
-              Vibhrat
-            </div>
-            
-            {/* Deer/antler icon */}
-            <div className="absolute bottom-8 right-8">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
-                <path d="M12 2L8 6L12 10L16 6L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
-                <path d="M8 6L4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M16 6L20 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M12 10V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <button
-            onClick={toggleDarkMode}
-            className="w-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow flex items-center gap-4"
-          >
-            <Moon size={24} className="text-gray-600 dark:text-gray-300" />
-            <span className="text-lg font-medium dark:text-white">Toggle Dark Mode</span>
-          </button>
-
+        <div className="space-y-6">
           <button
             onClick={handleBackup}
-            className="w-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow flex items-center gap-4"
+            className="w-full p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all flex items-center gap-6"
           >
-            <Download size={24} className="text-gray-600 dark:text-gray-300" />
-            <span className="text-lg font-medium dark:text-white">Backup</span>
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full">
+              <Download size={28} className="text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="flex-1 text-left">
+              <h3 className="text-xl font-semibold dark:text-white mb-1">Export Data</h3>
+              <p className="text-gray-600 dark:text-gray-400">Download all your data as a JSON file</p>
+            </div>
           </button>
 
           <button
             onClick={handleImport}
-            className="w-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow flex items-center gap-4"
+            className="w-full p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all flex items-center gap-6"
           >
-            <Upload size={24} className="text-gray-600 dark:text-gray-300" />
-            <span className="text-lg font-medium dark:text-white">Import</span>
+            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-full">
+              <Upload size={28} className="text-green-600 dark:text-green-400" />
+            </div>
+            <div className="flex-1 text-left">
+              <h3 className="text-xl font-semibold dark:text-white mb-1">Import Data</h3>
+              <p className="text-gray-600 dark:text-gray-400">Restore your data from a backup file</p>
+            </div>
           </button>
         </div>
       </div>

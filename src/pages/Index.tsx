@@ -1,5 +1,4 @@
-
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import CasualNotes from '@/components/CasualNotes';
 import NoteDetail from '@/components/NoteDetail';
@@ -21,6 +20,21 @@ const Index = () => {
   const notesRef = useRef<{ triggerCreate: () => void }>(null);
   const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
   const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
+
+  useEffect(() => {
+    const handleNavigateToTab = (event: CustomEvent) => {
+      const tabId = event.detail;
+      // Reset all detail views when navigating to a tab
+      setSelectedListId(null);
+      setSelectedNoteId(null);
+      setSelectedPasswordId(null);
+      setShowSearch(false);
+      setShowSettings(false);
+    };
+
+    window.addEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
+    return () => window.removeEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
+  }, []);
 
   const handleFloatingButtonClick = () => {
     switch (activeTab) {
