@@ -87,15 +87,65 @@ textarea {
   box-shadow: none !important;
 }
 
-/* Custom dialog styles */
+/* Custom dialog styles with improved spacing and animations */
 [data-radix-dialog-content] {
-  margin: 0 16px !important;
-  border-radius: 12px !important;
-  max-width: calc(100vw - 32px) !important;
+  margin: 0 20px !important;
+  border-radius: 16px !important;
+  max-width: calc(100vw - 40px) !important;
+  animation: dialog-in 0.2s ease-out !important;
 }
 
 [data-radix-alert-dialog-content] {
-  margin: 0 16px !important;
-  border-radius: 12px !important;
-  max-width: calc(100vw - 32px) !important;
+  margin: 0 20px !important;
+  border-radius: 16px !important;
+  max-width: calc(100vw - 40px) !important;
+  animation: dialog-in 0.2s ease-out !important;
+}
+
+/* Improved button sizes in dialogs */
+[data-radix-alert-dialog-content] button {
+  padding: 12px 24px !important;
+  font-size: 16px !important;
+  min-height: 48px !important;
+}
+
+[data-radix-dialog-content] button {
+  padding: 12px 24px !important;
+  font-size: 16px !important;
+  min-height: 48px !important;
+}
+
+/* Dialog animations */
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translate(-50%, -48%);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translate(-50%, -50%);
+  }
+}
+
+[data-radix-dialog-overlay] {
+  animation: fade-in 0.2s ease-out !important;
+}
+
+[data-radix-alert-dialog-overlay] {
+  animation: fade-in 0.2s ease-out !important;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Search icon size */
+.search-icon {
+  width: 26px !important;
+  height: 26px !important;
 }

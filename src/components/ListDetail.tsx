@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { ShoppingList, ShoppingItem } from '@/types';
+import { ShoppingList, ShoppingListItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
@@ -71,7 +71,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   };
 
   const addNewItem = () => {
-    const newItem: ShoppingItem = {
+    const newItem: ShoppingListItem = {
       id: Date.now().toString(),
       name: '',
       quantity: '',
@@ -140,14 +140,14 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
           </button>
         </div>
 
-        <div className="bg-white p-4 rounded-lg mb-6" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
+        <div className="mb-6">
           <input
             type="text"
             value={list.title}
             onChange={(e) => handleTitleChange(e.target.value)}
             className="text-2xl font-bold w-full bg-transparent border-none outline-none"
             placeholder="List Title"
-            style={{ fontSize: '24px' }}
+            style={{ fontSize: '26px' }}
           />
         </div>
 
@@ -163,20 +163,21 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
               onTouchStart={() => handleLongPressStart(item.id)}
               onTouchEnd={handleLongPressEnd}
             >
-              <div className="flex items-center gap-3">
-                <div className="flex-1 flex items-center gap-3" style={{ width: '80%' }}>
+              <div className="flex items-start gap-3">
+                <div className="flex-1 flex items-start gap-3" style={{ width: '80%' }}>
+                  <div className="w-3 h-3 bg-blue-200 rounded-full mt-2 flex-shrink-0"></div>
                   <input
                     type="text"
                     value={item.name}
                     onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
-                    className={`flex-1 bg-transparent border-none outline-none font-medium ${item.completed ? 'line-through' : ''}`}
+                    className={`flex-1 bg-transparent border-none outline-none font-medium ${item.completed ? 'line-through' : ''} leading-relaxed`}
                     placeholder="Item name"
-                    style={{ fontSize: '18px' }}
+                    style={{ fontSize: '20px', lineHeight: '1.4' }}
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
                 
-                <div className="w-px h-8 bg-gray-300 mx-2"></div>
+                <div className="w-px h-8 bg-gray-300 mx-2 flex-shrink-0"></div>
                 
                 <div className="flex items-center" style={{ width: '20%' }}>
                   <input
@@ -185,7 +186,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
                     onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
                     className={`w-full bg-transparent border-none outline-none text-center ${item.completed ? 'line-through' : ''}`}
                     placeholder="Qty"
-                    style={{ fontSize: '16px' }}
+                    style={{ fontSize: '18px' }}
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
@@ -195,7 +196,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
                     e.stopPropagation();
                     deleteItem(item.id);
                   }}
-                  className="p-1 hover:bg-gray-100 rounded opacity-40 hover:opacity-100"
+                  className="p-1 hover:bg-gray-100 rounded opacity-40 hover:opacity-100 flex-shrink-0"
                 >
                   <Trash2 size={16} className="text-red-600" />
                 </button>

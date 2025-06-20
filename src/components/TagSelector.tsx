@@ -25,16 +25,16 @@ const TagSelector = ({ isOpen, onClose, onSelect, currentTag }: TagSelectorProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md mx-4">
         <DialogHeader>
-          <DialogTitle className="text-center">Select a tag</DialogTitle>
+          <DialogTitle className="text-center text-lg">Select a tag</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-2 gap-3 p-4">
+        <div className="grid grid-cols-2 gap-4 p-4">
           {tags.map((tag) => (
             <button
               key={tag.name}
               onClick={() => onSelect(tag.name)}
-              className={`p-3 rounded-lg text-sm font-medium transition-all hover:scale-105 ${
+              className={`p-4 rounded-xl text-base font-medium transition-all hover:scale-105 duration-200 ${
                 currentTag === tag.name ? 'ring-2 ring-gray-400' : ''
               }`}
               style={{
@@ -50,7 +50,7 @@ const TagSelector = ({ isOpen, onClose, onSelect, currentTag }: TagSelectorProps
           <div className="px-4 pb-4">
             <button
               onClick={() => onSelect('')}
-              className="w-full p-2 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200"
+              className="w-full p-3 bg-gray-100 text-gray-600 rounded-xl text-base hover:bg-gray-200 transition-colors"
             >
               Remove tag
             </button>

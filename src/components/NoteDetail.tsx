@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote } from '@/types';
@@ -107,8 +108,8 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg flex flex-col flex-1" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
-          <div className="p-6 flex flex-col flex-1">
+        <div className="bg-white rounded-lg flex flex-col flex-1 min-h-0" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
+          <div className="p-6 flex flex-col flex-1 min-h-0">
             <textarea
               value={editableNote.title}
               onChange={(e) => autoSave({ title: e.target.value })}
@@ -148,11 +149,11 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
               </button>
             )}
             
-            <div className="flex-1 flex">
+            <div className="flex-1 min-h-0">
               <textarea
                 value={editableNote.content}
                 onChange={(e) => autoSave({ content: e.target.value })}
-                className="w-full h-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none flex-1"
+                className="w-full h-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none"
                 placeholder="Start writing..."
                 style={{ 
                   fontSize: '16px',
