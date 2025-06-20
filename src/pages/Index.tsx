@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import Auth from '@/components/Auth';
 import Navigation from '@/components/Navigation';
 import CasualNotes from '@/components/CasualNotes';
 import NoteDetail from '@/components/NoteDetail';
@@ -11,6 +13,8 @@ import Settings from '@/components/Settings';
 import FloatingActionButton from '@/components/FloatingActionButton';
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const [authComplete, setAuthComplete] = useState(false);
   const [activeTab, setActiveTab] = useState('notes');
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
@@ -35,6 +39,21 @@ const Index = () => {
     window.addEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
     return () => window.removeEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user && !authComplete) {
+    return <Auth onAuthSuccess={() => setAuthComplete(true)} />;
+  }
 
   const handleFloatingButtonClick = () => {
     switch (activeTab) {

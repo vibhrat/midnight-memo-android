@@ -1,6 +1,8 @@
 
-import { ArrowLeft, Download, Upload } from 'lucide-react';
+import { ArrowLeft, Download, Upload, LogOut } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface SettingsProps {
   onBack: () => void;
@@ -10,6 +12,8 @@ const Settings = ({ onBack }: SettingsProps) => {
   const [notes] = useLocalStorage('casual-notes', []);
   const [lists] = useLocalStorage('shopping-lists', []);
   const [passwords] = useLocalStorage('passwords', []);
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
 
   const handleBackup = () => {
     const appData = {
@@ -65,6 +69,22 @@ const Settings = ({ onBack }: SettingsProps) => {
     input.click();
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Success",
+        description: "Signed out successfully!",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FBFAF5] dark:bg-gray-900">
       <div className="max-w-2xl mx-auto p-4">
@@ -76,6 +96,13 @@ const Settings = ({ onBack }: SettingsProps) => {
             <ArrowLeft size={22} className="dark:text-white" />
           </button>
         </div>
+
+        {user && (
+          <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-xl">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Signed in as:</p>
+            <p className="font-medium dark:text-white">{user.email}</p>
+          </div>
+        )}
 
         <div className="space-y-6">
           <button
@@ -103,6 +130,21 @@ const Settings = ({ onBack }: SettingsProps) => {
               <p className="text-gray-600 dark:text-gray-400">Restore your data from a backup file</p>
             </div>
           </button>
+
+          {user && (
+            <button
+              onClick={handleSignOut}
+              className="w-full p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all flex items-center gap-6"
+            >
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-full">
+                <LogOut size={28} className="text-red-600 dark:text-red-400" />
+              </div>
+              <div className="flex-1 text-left">
+                <h3 className="text-xl font-semibold dark:text-white mb-1">Sign Out</h3>
+                <p className="text-gray-600 dark:text-gray-400">Sign out of your account</p>
+              </div>
+            </button>
+          )}
         </div>
       </div>
     </div>

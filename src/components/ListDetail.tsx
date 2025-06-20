@@ -2,10 +2,9 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
+import { ArrowLeft, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface ListDetailProps {
   listId: string;
@@ -16,8 +15,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
   const [editableList, setEditableList] = useState<ShoppingList | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [pressTimer, setPressTimer] = useState<NodeJS.Timeout | null>(null);
 
   const list = lists.find(l => l.id === listId);
 
@@ -32,7 +30,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
       <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500">List not found</p>
-          <Button onClick={onBack} className="mt-4">Go Back</Button>
+          <button onClick={onBack} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Go Back</button>
         </div>
       </div>
     );
@@ -47,7 +45,13 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     ));
   };
 
-  const addItem = () => {
+  const handleDelete = () => {
+    setLists(lists.filter(l => l.id !== listId));
+    setShowDeleteDialog(false);
+    onBack();
+  };
+
+  const addNewItem = () => {
     const newItem: ShoppingListItem = {
       id: Date.now().toString(),
       name: '',
@@ -64,61 +68,32 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     autoSave({ items: updatedItems });
   };
 
-  const toggleItem = (itemId: string) => {
-    const item = editableList.items.find(item => item.id === itemId);
-    if (item) {
-      updateItem(itemId, { checked: !item.checked });
-    }
-  };
-
   const deleteItem = (itemId: string) => {
     const updatedItems = editableList.items.filter(item => item.id !== itemId);
     autoSave({ items: updatedItems });
   };
 
-  const handleDeleteList = () => {
-    setIsDeleting(true);
-    setLists(lists.filter(l => l.id !== listId));
-    setTimeout(() => {
-      onBack();
-    }, 1000);
+  const handleCirclePress = (itemId: string) => {
+    const timer = setTimeout(() => {
+      const item = editableList.items.find(i => i.id === itemId);
+      if (item) {
+        updateItem(itemId, { checked: !item.checked });
+      }
+    }, 500); // 500ms for press and hold
+    setPressTimer(timer);
   };
 
-  const confirmDeleteItem = (itemId: string) => {
-    setItemToDelete(itemId);
-    setShowDeleteDialog(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (itemToDelete) {
-      deleteItem(itemToDelete);
-      setItemToDelete(null);
+  const handleCircleRelease = () => {
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      setPressTimer(null);
     }
-    setShowDeleteDialog(false);
   };
-
-  if (isDeleting) {
-    return (
-      <div className="min-h-screen bg-[#FBFAF5] flex flex-col justify-center items-center p-4">
-        <div className="space-y-4 w-full max-w-2xl">
-          <div className="flex justify-between items-center mb-6">
-            <Skeleton className="h-12 w-12 rounded-lg" />
-            <Skeleton className="h-12 w-12 rounded-lg" />
-          </div>
-          <Skeleton className="h-16 w-full rounded-lg" />
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-14 w-full rounded-lg" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#FBFAF5]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={onBack}
@@ -134,84 +109,95 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
           </button>
         </div>
 
+        {/* Title without card background */}
         <div className="mb-6">
-          <input
-            value={editableList.title}
-            onChange={(e) => autoSave({ title: e.target.value })}
-            className="text-2xl font-bold w-full border-none outline-none bg-transparent"
-            placeholder="List title"
-            style={{ fontSize: '24px' }}
-          />
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 rounded-full bg-[#F2CB2F]"></div>
+            <textarea
+              value={editableList.title}
+              onChange={(e) => autoSave({ title: e.target.value })}
+              className="text-2xl font-bold bg-transparent border-none outline-none resize-none w-full"
+              placeholder="Untitled List"
+              rows={1}
+              style={{ 
+                fontSize: '24px',
+                minHeight: '32px',
+                fontWeight: 'bold'
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = 'auto';
+                target.style.height = target.scrollHeight + 'px';
+              }}
+            />
+          </div>
         </div>
 
-        <div className="space-y-3">
+        {/* Items */}
+        <div className="space-y-3 mb-6">
           {editableList.items.map((item) => (
-            <div key={item.id} className="bg-white rounded-lg p-4" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 bg-blue-200 rounded-full flex-shrink-0"></div>
+            <div 
+              key={item.id} 
+              className="p-4 bg-white rounded-lg"
+              style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
+            >
+              <div className="flex items-start gap-3">
+                <button
+                  onMouseDown={() => handleCirclePress(item.id)}
+                  onMouseUp={handleCircleRelease}
+                  onMouseLeave={handleCircleRelease}
+                  onTouchStart={() => handleCirclePress(item.id)}
+                  onTouchEnd={handleCircleRelease}
+                  className="w-4 h-4 rounded-full bg-blue-200 hover:bg-blue-300 flex-shrink-0 mt-1"
+                  style={{ backgroundColor: '#BFDBFE' }}
+                />
                 <div className="flex-1 min-w-0">
-                  <input
+                  <textarea
                     value={item.name}
                     onChange={(e) => updateItem(item.id, { name: e.target.value })}
-                    className="w-full border-none outline-none bg-transparent text-lg font-medium break-words"
+                    className={`w-full bg-transparent border-none outline-none resize-none font-medium ${
+                      item.checked ? 'line-through text-gray-500' : 'text-gray-900'
+                    }`}
                     placeholder="Item name"
+                    rows={1}
                     style={{ 
-                      fontSize: '18px',
+                      fontSize: '16px',
+                      fontWeight: '500',
                       wordWrap: 'break-word',
-                      whiteSpace: 'normal'
+                      whiteSpace: 'pre-wrap'
+                    }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      target.style.height = 'auto';
+                      target.style.height = target.scrollHeight + 'px';
                     }}
                   />
                 </div>
-                <input
-                  value={item.quantity}
-                  onChange={(e) => updateItem(item.id, { quantity: e.target.value })}
-                  className="w-16 text-center border-none outline-none bg-gray-50 rounded px-2 py-1"
-                  placeholder="1"
-                />
                 <button
-                  onClick={() => toggleItem(item.id)}
-                  className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
-                    item.checked ? 'bg-green-500 border-green-500' : 'border-gray-300'
-                  }`}
+                  onClick={() => deleteItem(item.id)}
+                  className="text-gray-400 hover:text-red-500 p-1 flex-shrink-0"
                 >
-                  {item.checked && <span className="text-white text-sm">✓</span>}
-                </button>
-                <button
-                  onClick={() => confirmDeleteItem(item.id)}
-                  className="p-1 hover:bg-gray-100 rounded"
-                >
-                  <Trash2 size={16} className="text-gray-400" />
+                  <Trash2 size={16} />
                 </button>
               </div>
             </div>
           ))}
         </div>
 
-        <button
-          onClick={addItem}
-          className="w-full mt-4 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 flex items-center justify-center gap-2 text-gray-600"
+        {/* Add Item Button */}
+        <Button
+          onClick={addNewItem}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg flex items-center justify-center gap-2"
         >
           <Plus size={20} />
           Add Item
-        </button>
-
-        <div className="flex justify-between items-center mt-6 px-2">
-          <p className="text-xs text-gray-500">
-            Created: {new Date(editableList.createdAt).toLocaleDateString()}
-          </p>
-          <p className="text-xs text-gray-500">
-            Updated: {new Date(editableList.updatedAt).toLocaleDateString()}
-          </p>
-        </div>
+        </Button>
       </div>
 
       <DeleteConfirmDialog
         isOpen={showDeleteDialog}
-        onClose={() => {
-          setShowDeleteDialog(false);
-          setItemToDelete(null);
-        }}
-        onConfirm={itemToDelete ? handleConfirmDelete : handleDeleteList}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleDelete}
       />
     </div>
   );

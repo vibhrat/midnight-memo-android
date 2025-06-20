@@ -9,7 +9,163 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      casual_notes: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          is_blurred: boolean | null
+          tag: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_blurred?: boolean | null
+          tag?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_blurred?: boolean | null
+          tag?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      password_fields: {
+        Row: {
+          created_at: string
+          id: string
+          password: string
+          password_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          password?: string
+          password_id: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          password?: string
+          password_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "password_fields_password_id_fkey"
+            columns: ["password_id"]
+            isOneToOne: false
+            referencedRelation: "passwords"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      passwords: {
+        Row: {
+          created_at: string
+          id: string
+          password: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          password?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          password?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      shopping_list_items: {
+        Row: {
+          checked: boolean | null
+          created_at: string
+          id: string
+          name: string
+          quantity: string | null
+          shopping_list_id: string
+          updated_at: string
+        }
+        Insert: {
+          checked?: boolean | null
+          created_at?: string
+          id?: string
+          name?: string
+          quantity?: string | null
+          shopping_list_id: string
+          updated_at?: string
+        }
+        Update: {
+          checked?: boolean | null
+          created_at?: string
+          id?: string
+          name?: string
+          quantity?: string | null
+          shopping_list_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_list_items_shopping_list_id_fkey"
+            columns: ["shopping_list_id"]
+            isOneToOne: false
+            referencedRelation: "shopping_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopping_lists: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
