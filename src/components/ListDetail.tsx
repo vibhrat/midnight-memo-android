@@ -1,11 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
-import FloatingActionButton from '@/components/FloatingActionButton';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ListDetailProps {
   listId: string;
@@ -14,12 +14,20 @@ interface ListDetailProps {
 
 const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
+  const [editableList, setEditableList] = useState<ShoppingList | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const list = lists.find(l => l.id === listId);
 
-  if (!list) {
+  useEffect(() => {
+    if (list) {
+      setEditableList(list);
+    }
+  }, [list]);
+
+  if (!list || !editableList) {
     return (
       <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center">
         <div className="text-center">
@@ -30,97 +38,83 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     );
   }
 
-  const handleTitleChange = (newTitle: string) => {
+  const autoSave = (updatedList: Partial<ShoppingList>) => {
+    const now = new Date();
+    const newList = { ...editableList, ...updatedList, updatedAt: now };
+    setEditableList(newList);
     setLists(lists.map(l => 
-      l.id === listId 
-        ? { ...l, title: newTitle, updatedAt: new Date() }
-        : l
+      l.id === listId ? newList : l
     ));
   };
 
-  const handleItemChange = (itemId: string, field: 'name' | 'quantity', value: string) => {
-    setLists(lists.map(l => 
-      l.id === listId 
-        ? { 
-            ...l, 
-            items: l.items.map(item => 
-              item.id === itemId 
-                ? { ...item, [field]: value }
-                : item
-            ),
-            updatedAt: new Date()
-          }
-        : l
-    ));
-  };
-
-  const handleItemToggle = (itemId: string) => {
-    setLists(lists.map(l => 
-      l.id === listId 
-        ? { 
-            ...l, 
-            items: l.items.map(item => 
-              item.id === itemId 
-                ? { ...item, completed: !item.completed }
-                : item
-            ),
-            updatedAt: new Date()
-          }
-        : l
-    ));
-  };
-
-  const addNewItem = () => {
+  const addItem = () => {
     const newItem: ShoppingListItem = {
       id: Date.now().toString(),
       name: '',
-      quantity: '',
-      completed: false,
+      quantity: '1',
+      checked: false
     };
+    autoSave({ items: [...editableList.items, newItem] });
+  };
 
-    setLists(lists.map(l => 
-      l.id === listId 
-        ? { 
-            ...l, 
-            items: [...l.items, newItem],
-            updatedAt: new Date()
-          }
-        : l
-    ));
+  const updateItem = (itemId: string, updates: Partial<ShoppingListItem>) => {
+    const updatedItems = editableList.items.map(item =>
+      item.id === itemId ? { ...item, ...updates } : item
+    );
+    autoSave({ items: updatedItems });
+  };
+
+  const toggleItem = (itemId: string) => {
+    const item = editableList.items.find(item => item.id === itemId);
+    if (item) {
+      updateItem(itemId, { checked: !item.checked });
+    }
   };
 
   const deleteItem = (itemId: string) => {
-    setLists(lists.map(l => 
-      l.id === listId 
-        ? { 
-            ...l, 
-            items: l.items.filter(item => item.id !== itemId),
-            updatedAt: new Date()
-          }
-        : l
-    ));
+    const updatedItems = editableList.items.filter(item => item.id !== itemId);
+    autoSave({ items: updatedItems });
   };
 
-  const handleDelete = () => {
+  const handleDeleteList = () => {
+    setIsDeleting(true);
     setLists(lists.filter(l => l.id !== listId));
     setTimeout(() => {
       onBack();
-    }, 200);
+    }, 1000);
   };
 
-  const handleLongPressStart = (itemId: string) => {
-    const timer = setTimeout(() => {
-      handleItemToggle(itemId);
-    }, 500);
-    setLongPressTimer(timer);
+  const confirmDeleteItem = (itemId: string) => {
+    setItemToDelete(itemId);
+    setShowDeleteDialog(true);
   };
 
-  const handleLongPressEnd = () => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
+  const handleConfirmDelete = () => {
+    if (itemToDelete) {
+      deleteItem(itemToDelete);
+      setItemToDelete(null);
     }
+    setShowDeleteDialog(false);
   };
+
+  if (isDeleting) {
+    return (
+      <div className="min-h-screen bg-[#FBFAF5] flex flex-col justify-center items-center p-4">
+        <div className="space-y-4 w-full max-w-2xl">
+          <div className="flex justify-between items-center mb-6">
+            <Skeleton className="h-12 w-12 rounded-lg" />
+            <Skeleton className="h-12 w-12 rounded-lg" />
+          </div>
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-14 w-full rounded-lg" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FBFAF5]">
@@ -130,97 +124,94 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
             onClick={onBack}
             className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={22} />
           </button>
           <button
             onClick={() => setShowDeleteDialog(true)}
             className="p-2 hover:bg-gray-100 rounded-lg"
           >
-            <Trash2 size={20} className="text-black" />
+            <Trash2 size={22} className="text-gray-600" />
           </button>
         </div>
 
         <div className="mb-6">
           <input
-            type="text"
-            value={list.title}
-            onChange={(e) => handleTitleChange(e.target.value)}
-            className="text-2xl font-bold w-full bg-transparent border-none outline-none"
-            placeholder="List Title"
-            style={{ fontSize: '26px' }}
+            value={editableList.title}
+            onChange={(e) => autoSave({ title: e.target.value })}
+            className="text-2xl font-bold w-full border-none outline-none bg-transparent"
+            placeholder="List title"
+            style={{ fontSize: '24px' }}
           />
         </div>
 
         <div className="space-y-3">
-          {list.items.map((item) => (
-            <div 
-              key={item.id} 
-              className={`bg-white p-4 rounded-lg cursor-pointer ${item.completed ? 'opacity-60' : ''}`}
-              style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
-              onMouseDown={() => handleLongPressStart(item.id)}
-              onMouseUp={handleLongPressEnd}
-              onMouseLeave={handleLongPressEnd}
-              onTouchStart={() => handleLongPressStart(item.id)}
-              onTouchEnd={handleLongPressEnd}
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex-1 flex items-start gap-3" style={{ width: '80%' }}>
-                  <div className="w-3 h-3 bg-blue-200 rounded-full mt-2 flex-shrink-0"></div>
+          {editableList.items.map((item) => (
+            <div key={item.id} className="bg-white rounded-lg p-4" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-blue-200 rounded-full flex-shrink-0"></div>
+                <div className="flex-1 min-w-0">
                   <input
-                    type="text"
                     value={item.name}
-                    onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
-                    className={`flex-1 bg-transparent border-none outline-none font-medium ${item.completed ? 'line-through' : ''} leading-relaxed`}
+                    onChange={(e) => updateItem(item.id, { name: e.target.value })}
+                    className="w-full border-none outline-none bg-transparent text-lg font-medium break-words"
                     placeholder="Item name"
-                    style={{ fontSize: '20px', lineHeight: '1.4' }}
-                    onClick={(e) => e.stopPropagation()}
+                    style={{ 
+                      fontSize: '18px',
+                      wordWrap: 'break-word',
+                      whiteSpace: 'normal'
+                    }}
                   />
                 </div>
-                
-                <div className="w-px h-8 bg-gray-300 mx-2 flex-shrink-0"></div>
-                
-                <div className="flex items-center" style={{ width: '20%' }}>
-                  <input
-                    type="text"
-                    value={item.quantity}
-                    onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
-                    className={`w-full bg-transparent border-none outline-none text-center ${item.completed ? 'line-through' : ''}`}
-                    placeholder="Qty"
-                    style={{ fontSize: '18px' }}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-                
+                <input
+                  value={item.quantity}
+                  onChange={(e) => updateItem(item.id, { quantity: e.target.value })}
+                  className="w-16 text-center border-none outline-none bg-gray-50 rounded px-2 py-1"
+                  placeholder="1"
+                />
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteItem(item.id);
-                  }}
-                  className="p-1 hover:bg-gray-100 rounded opacity-40 hover:opacity-100 flex-shrink-0"
+                  onClick={() => toggleItem(item.id)}
+                  className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
+                    item.checked ? 'bg-green-500 border-green-500' : 'border-gray-300'
+                  }`}
                 >
-                  <Trash2 size={16} className="text-red-600" />
+                  {item.checked && <span className="text-white text-sm">✓</span>}
+                </button>
+                <button
+                  onClick={() => confirmDeleteItem(item.id)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  <Trash2 size={16} className="text-gray-400" />
                 </button>
               </div>
             </div>
           ))}
         </div>
 
+        <button
+          onClick={addItem}
+          className="w-full mt-4 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 flex items-center justify-center gap-2 text-gray-600"
+        >
+          <Plus size={20} />
+          Add Item
+        </button>
+
         <div className="flex justify-between items-center mt-6 px-2">
-          <p className="text-xs text-gray-500" style={{ fontSize: '12px' }}>
-            Created: {new Date(list.createdAt).toLocaleDateString()}
+          <p className="text-xs text-gray-500">
+            Created: {new Date(editableList.createdAt).toLocaleDateString()}
           </p>
-          <p className="text-xs text-gray-500" style={{ fontSize: '12px' }}>
-            Updated: {new Date(list.updatedAt).toLocaleDateString()}
+          <p className="text-xs text-gray-500">
+            Updated: {new Date(editableList.updatedAt).toLocaleDateString()}
           </p>
         </div>
       </div>
 
-      <FloatingActionButton onClick={addNewItem} />
-
       <DeleteConfirmDialog
         isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        onConfirm={handleDelete}
+        onClose={() => {
+          setShowDeleteDialog(false);
+          setItemToDelete(null);
+        }}
+        onConfirm={itemToDelete ? handleConfirmDelete : handleDeleteList}
       />
     </div>
   );

@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote } from '@/types';
-import { Button } from '@/components/ui/button';
 import { ArrowLeft, Trash2, Grid3x3 } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import TagSelector from '@/components/TagSelector';
@@ -33,7 +32,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
       <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500">Note not found</p>
-          <Button onClick={onBack} className="mt-4">Go Back</Button>
+          <button onClick={onBack} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Go Back</button>
         </div>
       </div>
     );
@@ -65,10 +64,34 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
     setShowTagSelector(false);
   };
 
+  const getTagColor = (tag: string) => {
+    const colors = {
+      'Note': '#E3F2FD',
+      'Medicine': '#FFE8E8', 
+      'Travel': '#E8F5E8',
+      'Tech': '#F3E5F5',
+      'Links': '#FFF3E0',
+      'Contact': '#E0F2F1'
+    };
+    return colors[tag as keyof typeof colors] || '#F5F5F5';
+  };
+
+  const getTagTextColor = (tag: string) => {
+    const colors = {
+      'Note': '#1976D2',
+      'Medicine': '#D32F2F',
+      'Travel': '#388E3C',
+      'Tech': '#7B1FA2',
+      'Links': '#F57C00',
+      'Contact': '#00796B'
+    };
+    return colors[tag as keyof typeof colors] || '#666666';
+  };
+
   if (isDeleting) {
     return (
       <div className="min-h-screen bg-[#FBFAF5] flex flex-col justify-center items-center p-4">
-        <div className="space-y-4 w-full max-w-4xl">
+        <div className="space-y-4 w-full max-w-2xl">
           <div className="flex justify-between items-center mb-6">
             <Skeleton className="h-12 w-12 rounded-lg" />
             <div className="flex gap-2">
@@ -84,7 +107,8 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
 
   return (
     <div className="min-h-screen bg-[#FBFAF5] flex flex-col">
-      <div className="max-w-4xl mx-auto p-4 pb-8 flex-1 flex flex-col">
+      <div className="max-w-2xl mx-auto p-4 flex-1 flex flex-col">
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={onBack}
@@ -108,67 +132,69 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg flex flex-col flex-1 min-h-0" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
-          <div className="p-6 flex flex-col flex-1 min-h-0">
-            <textarea
-              value={editableNote.title}
-              onChange={(e) => autoSave({ title: e.target.value })}
-              className="text-xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none"
-              placeholder="Untitled"
-              rows={1}
-              style={{ 
-                fontSize: '20px',
-                minHeight: '28px'
-              }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = 'auto';
-                target.style.height = target.scrollHeight + 'px';
-              }}
-            />
-            
-            {editableNote.tag && (
-              <button
-                onClick={() => setShowTagSelector(true)}
-                className="inline-block px-3 py-1 text-sm rounded-full mb-4 border-none outline-none self-start"
-                style={{
-                  backgroundColor: getTagColor(editableNote.tag),
-                  color: getTagTextColor(editableNote.tag)
-                }}
-              >
-                {editableNote.tag}
-              </button>
-            )}
+        {/* Title */}
+        <textarea
+          value={editableNote.title}
+          onChange={(e) => autoSave({ title: e.target.value })}
+          className="text-2xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none"
+          placeholder="Untitled"
+          rows={1}
+          style={{ 
+            fontSize: '24px',
+            minHeight: '32px',
+            fontWeight: 'bold'
+          }}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = 'auto';
+            target.style.height = target.scrollHeight + 'px';
+          }}
+        />
+        
+        {/* Tag */}
+        {editableNote.tag && (
+          <button
+            onClick={() => setShowTagSelector(true)}
+            className="inline-block px-3 py-1 text-sm rounded-full mb-4 border-none outline-none self-start"
+            style={{
+              backgroundColor: getTagColor(editableNote.tag),
+              color: getTagTextColor(editableNote.tag)
+            }}
+          >
+            {editableNote.tag}
+          </button>
+        )}
 
-            {!editableNote.tag && (
-              <button
-                onClick={() => setShowTagSelector(true)}
-                className="inline-block px-3 py-1 text-sm bg-gray-100 text-gray-500 rounded-full mb-4 hover:bg-gray-200 self-start"
-              >
-                + Add tag
-              </button>
-            )}
-            
-            <div className="flex-1 min-h-0">
-              <textarea
-                value={editableNote.content}
-                onChange={(e) => autoSave({ content: e.target.value })}
-                className="w-full h-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none"
-                placeholder="Start writing..."
-                style={{ 
-                  fontSize: '16px',
-                  minHeight: '100%'
-                }}
-              />
-            </div>
-          </div>
+        {!editableNote.tag && (
+          <button
+            onClick={() => setShowTagSelector(true)}
+            className="inline-block px-3 py-1 text-sm bg-gray-100 text-gray-500 rounded-full mb-4 hover:bg-gray-200 self-start"
+          >
+            + Add tag
+          </button>
+        )}
+        
+        {/* Description - Full height */}
+        <div className="flex-1 min-h-0">
+          <textarea
+            value={editableNote.content}
+            onChange={(e) => autoSave({ content: e.target.value })}
+            className="w-full h-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none font-medium"
+            placeholder="Start writing..."
+            style={{ 
+              fontSize: '16px',
+              minHeight: '100%',
+              fontWeight: '500'
+            }}
+          />
         </div>
 
+        {/* Footer */}
         <div className="flex justify-between items-center mt-4 px-2">
-          <p className="text-xs text-gray-500" style={{ fontSize: '12px' }}>
+          <p className="text-xs text-gray-500">
             Created: {new Date(editableNote.createdAt).toLocaleDateString()}
           </p>
-          <p className="text-xs text-gray-500" style={{ fontSize: '12px' }}>
+          <p className="text-xs text-gray-500">
             Updated: {new Date(editableNote.updatedAt).toLocaleDateString()}
           </p>
         </div>
@@ -188,30 +214,6 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
       />
     </div>
   );
-};
-
-const getTagColor = (tag: string) => {
-  const colors = {
-    'Note': '#E3F2FD',
-    'Medicine': '#FFE8E8', 
-    'Travel': '#E8F5E8',
-    'Tech': '#F3E5F5',
-    'Links': '#FFF3E0',
-    'Contact': '#E0F2F1'
-  };
-  return colors[tag as keyof typeof colors] || '#F5F5F5';
-};
-
-const getTagTextColor = (tag: string) => {
-  const colors = {
-    'Note': '#1976D2',
-    'Medicine': '#D32F2F',
-    'Travel': '#388E3C',
-    'Tech': '#7B1FA2',
-    'Links': '#F57C00',
-    'Contact': '#00796B'
-  };
-  return colors[tag as keyof typeof colors] || '#666666';
 };
 
 export default NoteDetail;
