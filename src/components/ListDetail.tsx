@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
 import { ArrowLeft, Trash2, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 
 interface ListDetailProps {
@@ -30,7 +29,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
       <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500">List not found</p>
-          <button onClick={onBack} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Go Back</button>
+          <button onClick={onBack} className="mt-4 px-4 py-2 bg-black text-white rounded">Go Back</button>
         </div>
       </div>
     );
@@ -79,7 +78,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
       if (item) {
         updateItem(itemId, { checked: !item.checked });
       }
-    }, 500); // 500ms for press and hold
+    }, 500);
     setPressTimer(timer);
   };
 
@@ -109,28 +108,25 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
           </button>
         </div>
 
-        {/* Title without card background */}
+        {/* Title without yellow circle */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 rounded-full bg-[#F2CB2F]"></div>
-            <textarea
-              value={editableList.title}
-              onChange={(e) => autoSave({ title: e.target.value })}
-              className="text-2xl font-bold bg-transparent border-none outline-none resize-none w-full"
-              placeholder="Untitled List"
-              rows={1}
-              style={{ 
-                fontSize: '24px',
-                minHeight: '32px',
-                fontWeight: 'bold'
-              }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = 'auto';
-                target.style.height = target.scrollHeight + 'px';
-              }}
-            />
-          </div>
+          <textarea
+            value={editableList.title}
+            onChange={(e) => autoSave({ title: e.target.value })}
+            className="text-2xl font-bold bg-transparent border-none outline-none resize-none w-full"
+            placeholder="Untitled List"
+            rows={1}
+            style={{ 
+              fontSize: '24px',
+              minHeight: '32px',
+              fontWeight: 'bold'
+            }}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = 'auto';
+              target.style.height = target.scrollHeight + 'px';
+            }}
+          />
         </div>
 
         {/* Items */}
@@ -151,27 +147,44 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
                   className="w-4 h-4 rounded-full bg-blue-200 hover:bg-blue-300 flex-shrink-0 mt-1"
                   style={{ backgroundColor: '#BFDBFE' }}
                 />
-                <div className="flex-1 min-w-0">
-                  <textarea
-                    value={item.name}
-                    onChange={(e) => updateItem(item.id, { name: e.target.value })}
-                    className={`w-full bg-transparent border-none outline-none resize-none font-medium ${
-                      item.checked ? 'line-through text-gray-500' : 'text-gray-900'
-                    }`}
-                    placeholder="Item name"
-                    rows={1}
-                    style={{ 
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      wordWrap: 'break-word',
-                      whiteSpace: 'pre-wrap'
-                    }}
-                    onInput={(e) => {
-                      const target = e.target as HTMLTextAreaElement;
-                      target.style.height = 'auto';
-                      target.style.height = target.scrollHeight + 'px';
-                    }}
-                  />
+                <div className="flex-1 min-w-0 flex gap-3">
+                  <div className="flex-1" style={{ width: '80%' }}>
+                    <textarea
+                      value={item.name}
+                      onChange={(e) => updateItem(item.id, { name: e.target.value })}
+                      className={`w-full bg-transparent border-none outline-none resize-none font-medium ${
+                        item.checked ? 'line-through text-gray-500' : 'text-gray-900'
+                      }`}
+                      placeholder="Item name"
+                      rows={1}
+                      style={{ 
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        wordWrap: 'break-word',
+                        whiteSpace: 'pre-wrap'
+                      }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = 'auto';
+                        target.style.height = target.scrollHeight + 'px';
+                      }}
+                    />
+                  </div>
+                  <div className="w-16" style={{ width: '20%' }}>
+                    <input
+                      type="text"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(item.id, { quantity: e.target.value })}
+                      className={`w-full bg-transparent border-none outline-none font-medium text-center ${
+                        item.checked ? 'line-through text-gray-500' : 'text-gray-900'
+                      }`}
+                      placeholder="Qty"
+                      style={{ 
+                        fontSize: '16px',
+                        fontWeight: '500'
+                      }}
+                    />
+                  </div>
                 </div>
                 <button
                   onClick={() => deleteItem(item.id)}
@@ -184,14 +197,14 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
           ))}
         </div>
 
-        {/* Add Item Button */}
-        <Button
+        {/* Add Item Button - dotted with grey stroke */}
+        <button
           onClick={addNewItem}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg flex items-center justify-center gap-2"
+          className="w-full border-2 border-dashed border-gray-400 text-gray-600 py-3 rounded-lg flex items-center justify-center gap-2 hover:border-gray-500 hover:text-gray-700 transition-colors"
         >
           <Plus size={20} />
           Add Item
-        </Button>
+        </button>
       </div>
 
       <DeleteConfirmDialog

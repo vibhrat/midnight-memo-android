@@ -2,8 +2,6 @@
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Password } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Clock, Search } from 'lucide-react';
 

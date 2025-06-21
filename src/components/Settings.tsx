@@ -104,45 +104,37 @@ const Settings = ({ onBack }: SettingsProps) => {
           </div>
         )}
 
-        <div className="space-y-6">
+        {/* Full width image with 5% margins */}
+        <div className="mb-8" style={{ marginLeft: '5%', marginRight: '5%' }}>
+          <img 
+            src="/placeholder.svg" 
+            alt="Settings Banner" 
+            className="w-full h-48 object-cover rounded-xl"
+          />
+        </div>
+
+        {/* Circular action buttons */}
+        <div className="flex justify-center gap-8 mb-8">
           <button
             onClick={handleBackup}
-            className="w-full p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all flex items-center gap-6"
+            className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
           >
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full">
-              <Download size={28} className="text-blue-600 dark:text-blue-400" />
-            </div>
-            <div className="flex-1 text-left">
-              <h3 className="text-xl font-semibold dark:text-white mb-1">Export Data</h3>
-              <p className="text-gray-600 dark:text-gray-400">Download all your data as a JSON file</p>
-            </div>
+            <Download size={24} />
           </button>
-
+          
           <button
             onClick={handleImport}
-            className="w-full p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all flex items-center gap-6"
+            className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
           >
-            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-full">
-              <Upload size={28} className="text-green-600 dark:text-green-400" />
-            </div>
-            <div className="flex-1 text-left">
-              <h3 className="text-xl font-semibold dark:text-white mb-1">Import Data</h3>
-              <p className="text-gray-600 dark:text-gray-400">Restore your data from a backup file</p>
-            </div>
+            <Upload size={24} />
           </button>
 
           {user && (
             <button
               onClick={handleSignOut}
-              className="w-full p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all flex items-center gap-6"
+              className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
             >
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-full">
-                <LogOut size={28} className="text-red-600 dark:text-red-400" />
-              </div>
-              <div className="flex-1 text-left">
-                <h3 className="text-xl font-semibold dark:text-white mb-1">Sign Out</h3>
-                <p className="text-gray-600 dark:text-gray-400">Sign out of your account</p>
-              </div>
+              <LogOut size={24} />
             </button>
           )}
         </div>

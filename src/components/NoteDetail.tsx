@@ -30,7 +30,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
       <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500">Note not found</p>
-          <button onClick={onBack} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Go Back</button>
+          <button onClick={onBack} className="mt-4 px-4 py-2 bg-black text-white rounded">Go Back</button>
         </div>
       </div>
     );
@@ -85,7 +85,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5]">
+    <div className="min-h-screen bg-[#FBFAF5] overflow-y-auto">
       <div className="max-w-2xl mx-auto p-4">
         {/* Header with back button and action buttons */}
         <div className="flex justify-between items-center mb-6">
@@ -161,7 +161,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
           placeholder="Start writing..."
           style={{ 
             fontSize: '16px',
-            minHeight: '400px',
+            height: '100vh',
             fontWeight: '500'
           }}
         />

@@ -107,7 +107,7 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-500 hover:bg-blue-600"
+            className="w-full bg-black hover:bg-gray-800 text-white"
           >
             {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')}
           </Button>
@@ -116,7 +116,7 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
         <div className="text-center mt-6">
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-500 hover:text-blue-600"
+            className="text-black hover:text-gray-700"
           >
             {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
           </button>
