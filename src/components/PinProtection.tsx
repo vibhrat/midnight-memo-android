@@ -58,16 +58,16 @@ const PinProtection = ({ onUnlock }: PinProtectionProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#FBFAF5] flex items-start justify-center p-4 pt-32">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {isSettingPin ? 'Set PIN' : 'Enter PIN'}
+          <h1 className="text-2xl font-extrabold text-gray-900 mb-2">
+            {isSettingPin ? 'Set PIN' : 'State the cipher'}
           </h1>
           <p className="text-gray-600">
             {isSettingPin 
               ? 'Create a PIN to secure your vault' 
-              : 'Enter your PIN to access the vault'
+              : 'A memory from other side'
             }
           </p>
         </div>
@@ -76,10 +76,10 @@ const PinProtection = ({ onUnlock }: PinProtectionProps) => {
           <div>
             <input
               type="password"
-              placeholder={isSettingPin ? "Enter new PIN" : "Enter PIN"}
+              placeholder={isSettingPin ? "Enter new PIN" : ""}
               value={pin}
               onChange={(e) => setPin(e.target.value)}
-              className="w-full h-12 px-4 border border-gray-300 rounded-lg text-center text-2xl tracking-widest"
+              className="w-full h-12 px-4 bg-transparent border-0 border-b border-gray-300 text-center text-2xl tracking-widest focus:outline-none focus:border-gray-500"
               maxLength={6}
               required
             />
@@ -92,7 +92,7 @@ const PinProtection = ({ onUnlock }: PinProtectionProps) => {
                 placeholder="Confirm PIN"
                 value={confirmPin}
                 onChange={(e) => setConfirmPin(e.target.value)}
-                className="w-full h-12 px-4 border border-gray-300 rounded-lg text-center text-2xl tracking-widest"
+                className="w-full h-12 px-4 bg-transparent border-0 border-b border-gray-300 text-center text-2xl tracking-widest focus:outline-none focus:border-gray-500"
                 maxLength={6}
                 required
               />
@@ -103,7 +103,7 @@ const PinProtection = ({ onUnlock }: PinProtectionProps) => {
             type="submit"
             className="w-full bg-black hover:bg-gray-800 text-white h-12"
           >
-            {isSettingPin ? 'Set PIN' : 'Unlock'}
+            {isSettingPin ? 'Set PIN' : 'Engage'}
           </Button>
         </form>
       </div>

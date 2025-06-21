@@ -5,10 +5,7 @@ import { Password, PasswordField } from '@/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Eye, EyeOff, Copy, Plus, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
-import FloatingActionButton from '@/components/FloatingActionButton';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface PasswordDetailProps {
@@ -19,8 +16,6 @@ interface PasswordDetailProps {
 const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   const [passwords, setPasswords] = useLocalStorage<Password[]>('passwords', []);
   const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
-  const [isAddingField, setIsAddingField] = useState(false);
-  const [newField, setNewField] = useState({ title: '', password: '' });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'main' | 'field', id?: string }>({ type: 'main' });
   const [isDeleting, setIsDeleting] = useState(false);
@@ -94,13 +89,11 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   };
 
   const addPasswordField = () => {
-    if (!newField.title.trim() || !newField.password.trim()) return;
-
     const now = new Date();
     const passwordField: PasswordField = {
       id: Date.now().toString(),
-      title: newField.title,
-      password: newField.password,
+      title: '',
+      password: '',
       createdAt: now,
       updatedAt: now,
     };
@@ -114,9 +107,6 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
           }
         : p
     ));
-
-    setNewField({ title: '', password: '' });
-    setIsAddingField(false);
   };
 
   const handleDelete = () => {
@@ -241,38 +231,16 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
 
         {/* Additional password fields */}
         {password.passwordFields?.map(field => renderPasswordField(field))}
+
+        {/* Add Field Button - dotted with grey stroke */}
+        <button
+          onClick={addPasswordField}
+          className="w-full border-2 border-dashed border-gray-400 text-gray-600 py-3 rounded-lg flex items-center justify-center gap-2 hover:border-gray-500 hover:text-gray-700 transition-colors"
+        >
+          <Plus size={20} />
+          Add Field
+        </button>
       </div>
-
-      <FloatingActionButton onClick={() => setIsAddingField(true)} />
-
-      <Dialog open={isAddingField} onOpenChange={setIsAddingField}>
-        <DialogContent className="sm:max-w-md mx-4 rounded-lg" hideCloseButton>
-          <DialogHeader>
-            <DialogTitle>Add Password Field</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              placeholder="Field title"
-              value={newField.title}
-              onChange={(e) => setNewField({ ...newField, title: e.target.value })}
-            />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={newField.password}
-              onChange={(e) => setNewField({ ...newField, password: e.target.value })}
-            />
-            <div className="flex gap-2">
-              <Button onClick={addPasswordField} className="flex-1 bg-black text-white hover:bg-gray-800">
-                Add Field
-              </Button>
-              <Button variant="outline" onClick={() => setIsAddingField(false)} className="flex-1">
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <DeleteConfirmDialog
         isOpen={showDeleteDialog}

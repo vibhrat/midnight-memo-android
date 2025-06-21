@@ -98,12 +98,12 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
           </button>
         </div>
 
-        {/* Full width image with 5% margins */}
-        <div className="mb-8" style={{ marginLeft: '5%', marginRight: '5%' }}>
+        {/* Full width image with same margin as back button */}
+        <div className="mb-8">
           <img 
             src="/lovable-uploads/0e66d0a5-0c78-4057-ae0a-31ac7f762df9.png" 
             alt="Settings Banner" 
-            className="w-full h-48 object-cover rounded-xl"
+            className="w-full h-auto object-cover rounded-xl"
           />
         </div>
 

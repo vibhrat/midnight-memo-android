@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
-import { ArrowLeft, Trash2, Plus } from 'lucide-react';
+import { ArrowLeft, X, Plus } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 
 interface ListDetailProps {
@@ -104,11 +104,11 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
             onClick={() => setShowDeleteDialog(true)}
             className="p-2 hover:bg-gray-100 rounded-lg"
           >
-            <Trash2 size={22} className="text-gray-600" />
+            <X size={22} className="text-gray-600" />
           </button>
         </div>
 
-        {/* Title without yellow circle */}
+        {/* Title */}
         <div className="mb-6">
           <textarea
             value={editableList.title}
@@ -144,8 +144,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
                   onMouseLeave={handleCircleRelease}
                   onTouchStart={() => handleCirclePress(item.id)}
                   onTouchEnd={handleCircleRelease}
-                  className="w-4 h-4 rounded-full bg-blue-200 hover:bg-blue-300 flex-shrink-0 mt-1"
-                  style={{ backgroundColor: '#BFDBFE' }}
+                  className="w-6 h-6 rounded-full bg-gray-300 hover:bg-gray-400 flex-shrink-0 mt-1 p-1"
                 />
                 <div className="flex-1 min-w-0 flex gap-3">
                   <div className="flex-1" style={{ width: '80%' }}>
@@ -188,16 +187,16 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
                 </div>
                 <button
                   onClick={() => deleteItem(item.id)}
-                  className="text-gray-400 hover:text-red-500 p-1 flex-shrink-0"
+                  className="text-gray-400 hover:text-red-500 p-2 flex-shrink-0"
                 >
-                  <Trash2 size={16} />
+                  <X size={16} />
                 </button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Add Item Button - dotted with grey stroke */}
+        {/* Add Item Button */}
         <button
           onClick={addNewItem}
           className="w-full border-2 border-dashed border-gray-400 text-gray-600 py-3 rounded-lg flex items-center justify-center gap-2 hover:border-gray-500 hover:text-gray-700 transition-colors"
