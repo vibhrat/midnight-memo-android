@@ -14,7 +14,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
   const [editableList, setEditableList] = useState<ShoppingList | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [pressTimer, setPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [swipedItems, setSwipedItems] = useState<Set<string>>(new Set());
 
   const list = lists.find(l => l.id === listId);
 
@@ -72,21 +72,14 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     autoSave({ items: updatedItems });
   };
 
-  const handleCirclePress = (itemId: string) => {
-    const timer = setTimeout(() => {
-      const item = editableList.items.find(i => i.id === itemId);
-      if (item) {
-        updateItem(itemId, { checked: !item.checked });
-      }
-    }, 500);
-    setPressTimer(timer);
-  };
-
-  const handleCircleRelease = () => {
-    if (pressTimer) {
-      clearTimeout(pressTimer);
-      setPressTimer(null);
+  const handleSwipe = (itemId: string) => {
+    const newSwipedItems = new Set(swipedItems);
+    if (swipedItems.has(itemId)) {
+      newSwipedItems.delete(itemId);
+    } else {
+      newSwipedItems.add(itemId);
     }
+    setSwipedItems(newSwipedItems);
   };
 
   return (
@@ -134,62 +127,63 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
           {editableList.items.map((item) => (
             <div 
               key={item.id} 
-              className="p-4 bg-white rounded-lg"
+              className="p-4 bg-white rounded-lg cursor-pointer select-none"
               style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
+              onTouchStart={(e) => e.currentTarget.setAttribute('data-touch-start', e.touches[0].clientX.toString())}
+              onTouchEnd={(e) => {
+                const startX = parseFloat(e.currentTarget.getAttribute('data-touch-start') || '0');
+                const endX = e.changedTouches[0].clientX;
+                const diff = endX - startX;
+                if (Math.abs(diff) > 50) {
+                  handleSwipe(item.id);
+                }
+              }}
+              onClick={(e) => {
+                if (e.detail === 1) {
+                  handleSwipe(item.id);
+                }
+              }}
             >
-              <div className="flex items-start gap-3">
-                <button
-                  onMouseDown={() => handleCirclePress(item.id)}
-                  onMouseUp={handleCircleRelease}
-                  onMouseLeave={handleCircleRelease}
-                  onTouchStart={() => handleCirclePress(item.id)}
-                  onTouchEnd={handleCircleRelease}
-                  className="w-6 h-6 rounded-full bg-gray-300 hover:bg-gray-400 flex-shrink-0 mt-1 p-1"
-                />
-                <div className="flex-1 min-w-0 flex gap-3">
-                  <div className="flex-1" style={{ width: '80%' }}>
-                    <textarea
-                      value={item.name}
-                      onChange={(e) => updateItem(item.id, { name: e.target.value })}
-                      className={`w-full bg-transparent border-none outline-none resize-none font-medium ${
-                        item.checked ? 'line-through text-gray-500' : 'text-gray-900'
-                      }`}
-                      placeholder="Item name"
-                      rows={1}
-                      style={{ 
-                        fontSize: '16px',
-                        fontWeight: '500',
-                        wordWrap: 'break-word',
-                        whiteSpace: 'pre-wrap'
-                      }}
-                      onInput={(e) => {
-                        const target = e.target as HTMLTextAreaElement;
-                        target.style.height = 'auto';
-                        target.style.height = target.scrollHeight + 'px';
-                      }}
-                    />
-                  </div>
-                  <div className="w-16" style={{ width: '20%' }}>
-                    <input
-                      type="text"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(item.id, { quantity: e.target.value })}
-                      className={`w-full bg-transparent border-none outline-none font-medium text-center ${
-                        item.checked ? 'line-through text-gray-500' : 'text-gray-900'
-                      }`}
-                      placeholder="Qty"
-                      style={{ 
-                        fontSize: '16px',
-                        fontWeight: '500'
-                      }}
-                    />
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 flex">
+                  <input
+                    type="text"
+                    value={item.name}
+                    onChange={(e) => updateItem(item.id, { name: e.target.value })}
+                    className={`flex-1 bg-transparent border-none outline-none font-medium mr-1 ${
+                      swipedItems.has(item.id) ? 'line-through text-gray-500' : 'text-gray-900'
+                    }`}
+                    placeholder="Item Name"
+                    style={{ 
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      width: '80%'
+                    }}
+                  />
+                  <div className="w-px bg-gray-300 mx-3"></div>
+                  <input
+                    type="text"
+                    value={item.quantity}
+                    onChange={(e) => updateItem(item.id, { quantity: e.target.value })}
+                    className={`bg-transparent border-none outline-none font-medium text-center ${
+                      swipedItems.has(item.id) ? 'line-through text-gray-500' : 'text-gray-900'
+                    }`}
+                    placeholder="Quantity"
+                    style={{ 
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      width: '20%'
+                    }}
+                  />
                 </div>
                 <button
-                  onClick={() => deleteItem(item.id)}
-                  className="text-gray-400 hover:text-red-500 p-2 flex-shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteItem(item.id);
+                  }}
+                  className="text-gray-400 hover:text-red-500 p-1 flex-shrink-0"
                 >
-                  <X size={16} />
+                  <X size={14} />
                 </button>
               </div>
             </div>

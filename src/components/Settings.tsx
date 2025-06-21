@@ -1,8 +1,18 @@
 
+import { useState } from 'react';
 import { ArrowLeft, Download, Upload, LogOut, Lock } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface SettingsProps {
   onBack: () => void;
@@ -15,6 +25,10 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
   const [passwords] = useLocalStorage('passwords', []);
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleBackup = () => {
     const appData = {
@@ -33,6 +47,12 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
     linkElement.click();
+    
+    setShowExportDialog(false);
+    toast({
+      title: "Success",
+      description: "Data exported successfully!",
+    });
   };
 
   const handleImport = () => {
@@ -58,9 +78,16 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
               localStorage.setItem('passwords', JSON.stringify(data.passwords));
             }
             
-            alert('Data imported successfully! Please refresh the page.');
+            toast({
+              title: "Success",
+              description: "Data imported successfully! Please refresh the page.",
+            });
           } catch (error) {
-            alert('Invalid JSON file. Please check your backup file.');
+            toast({
+              title: "Error",
+              description: "Invalid JSON file. Please check your backup file.",
+              variant: "destructive",
+            });
           }
         };
         reader.readAsText(file);
@@ -68,6 +95,7 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
     };
     
     input.click();
+    setShowImportDialog(false);
   };
 
   const handleSignOut = async () => {
@@ -84,11 +112,12 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
         variant: "destructive",
       });
     }
+    setShowLogoutDialog(false);
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5] dark:bg-gray-900">
-      <div className="max-w-2xl mx-auto p-4">
+    <div className="min-h-screen bg-[#FBFAF5] dark:bg-gray-900 flex flex-col">
+      <div className="max-w-2xl mx-auto p-4 flex-1 flex flex-col">
         <div className="flex items-center mb-8">
           <button
             onClick={onBack}
@@ -98,19 +127,46 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
           </button>
         </div>
 
-        {/* Full width image with same margin as back button */}
-        <div className="mb-8">
+        {/* Image container with loading state and 3D effect */}
+        <div className="mb-8 relative">
+          {!imageLoaded && (
+            <div 
+              className="w-full bg-black rounded-xl animate-pulse transition-opacity duration-500"
+              style={{ height: '200px' }}
+            />
+          )}
           <img 
             src="/lovable-uploads/0e66d0a5-0c78-4057-ae0a-31ac7f762df9.png" 
             alt="Settings Banner" 
-            className="w-full h-auto object-cover rounded-xl"
+            className={`w-full h-auto object-cover rounded-xl transition-all duration-500 transform-gpu hover:scale-105 hover:rotate-1 hover:shadow-2xl ${
+              imageLoaded ? 'opacity-100' : 'opacity-0 absolute top-0'
+            }`}
+            style={{
+              transformStyle: 'preserve-3d',
+              transition: 'transform 0.3s ease-out, box-shadow 0.3s ease-out',
+            }}
+            onLoad={() => setImageLoaded(true)}
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
+              const centerX = rect.width / 2;
+              const centerY = rect.height / 2;
+              const rotateX = (y - centerY) / 10;
+              const rotateY = (centerX - x) / 10;
+              
+              e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+            }}
           />
         </div>
 
         {/* Circular action buttons */}
-        <div className="flex justify-center gap-8 mb-8">
+        <div className="flex justify-center gap-6 mb-8">
           <button
-            onClick={handleBackup}
+            onClick={() => setShowExportDialog(true)}
             className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
             title="Export Data"
           >
@@ -118,7 +174,7 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
           </button>
           
           <button
-            onClick={handleImport}
+            onClick={() => setShowImportDialog(true)}
             className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
             title="Import Data"
           >
@@ -135,7 +191,7 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
 
           {user && (
             <button
-              onClick={handleSignOut}
+              onClick={() => setShowLogoutDialog(true)}
               className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
               title="Sign Out"
             >
@@ -143,15 +199,73 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
             </button>
           )}
         </div>
-
-        {/* User info card at bottom with smaller size */}
-        {user && (
-          <div className="mt-auto p-3 bg-white dark:bg-gray-800 rounded-lg">
-            <p className="text-xs text-gray-600 dark:text-gray-400">Signed in as:</p>
-            <p className="text-sm font-medium dark:text-white">{user.email}</p>
-          </div>
-        )}
       </div>
+
+      {/* Footer with user email */}
+      {user && (
+        <div className="flex items-center justify-center gap-2 pb-6">
+          <Lock size={12} className="text-gray-500" />
+          <p className="text-xs text-gray-500">{user.email}</p>
+        </div>
+      )}
+
+      {/* Confirmation Dialogs */}
+      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Export Data</DialogTitle>
+            <DialogDescription>
+              This will download all your notes, lists, and passwords as a JSON file.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowExportDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleBackup} className="bg-black hover:bg-gray-800">
+              Export
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Import Data</DialogTitle>
+            <DialogDescription>
+              This will replace all your current data with the imported data. Make sure you have a backup first.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowImportDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleImport} className="bg-black hover:bg-gray-800">
+              Import
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign Out</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to sign out of your account?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLogoutDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSignOut} className="bg-black hover:bg-gray-800">
+              Sign Out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
