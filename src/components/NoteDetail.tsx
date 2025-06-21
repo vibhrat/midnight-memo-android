@@ -5,6 +5,7 @@ import { CasualNote } from '@/types';
 import { ArrowLeft, Trash2, Grid3x3 } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import TagSelector from '@/components/TagSelector';
+import { Badge } from '@/components/ui/badge';
 
 interface NoteDetailProps {
   noteId: string;
@@ -60,30 +61,6 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
     setShowTagSelector(false);
   };
 
-  const getTagColor = (tag: string) => {
-    const colors = {
-      'Note': '#E3F2FD',
-      'Medicine': '#FFE8E8', 
-      'Travel': '#E8F5E8',
-      'Tech': '#F3E5F5',
-      'Links': '#FFF3E0',
-      'Contact': '#E0F2F1'
-    };
-    return colors[tag as keyof typeof colors] || '#F5F5F5';
-  };
-
-  const getTagTextColor = (tag: string) => {
-    const colors = {
-      'Note': '#1976D2',
-      'Medicine': '#D32F2F',
-      'Travel': '#388E3C',
-      'Tech': '#7B1FA2',
-      'Links': '#F57C00',
-      'Contact': '#00796B'
-    };
-    return colors[tag as keyof typeof colors] || '#666666';
-  };
-
   return (
     <div className="min-h-screen bg-[#FBFAF5] overflow-y-auto">
       <div className="max-w-2xl mx-auto p-4">
@@ -134,13 +111,11 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         {editableNote.tag && (
           <button
             onClick={() => setShowTagSelector(true)}
-            className="inline-block px-3 py-1 text-sm rounded-full mb-6 border-none outline-none"
-            style={{
-              backgroundColor: getTagColor(editableNote.tag),
-              color: getTagTextColor(editableNote.tag)
-            }}
+            className="mb-6"
           >
-            {editableNote.tag}
+            <Badge tag={editableNote.tag} className="text-sm font-medium">
+              {editableNote.tag}
+            </Badge>
           </button>
         )}
 

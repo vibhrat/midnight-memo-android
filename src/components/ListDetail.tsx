@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
-import { ArrowLeft, X, Plus } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 
 interface ListDetailProps {
@@ -15,6 +15,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [editableList, setEditableList] = useState<ShoppingList | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [swipedItems, setSwipedItems] = useState<Set<string>>(new Set());
+  const [editingItems, setEditingItems] = useState<Set<string>>(new Set());
 
   const list = lists.find(l => l.id === listId);
 
@@ -82,6 +83,18 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     setSwipedItems(newSwipedItems);
   };
 
+  const handleInputFocus = (itemId: string) => {
+    setEditingItems(prev => new Set(prev).add(itemId));
+  };
+
+  const handleInputBlur = (itemId: string) => {
+    setEditingItems(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(itemId);
+      return newSet;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#FBFAF5]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
@@ -97,7 +110,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
             onClick={() => setShowDeleteDialog(true)}
             className="p-2 hover:bg-gray-100 rounded-lg"
           >
-            <X size={22} className="text-gray-600" />
+            <Trash2 size={22} className="text-gray-600" />
           </button>
         </div>
 
@@ -124,58 +137,74 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
 
         {/* Items */}
         <div className="space-y-3 mb-6">
-          {editableList.items.map((item) => (
-            <div 
-              key={item.id} 
-              className="p-4 bg-white rounded-lg cursor-pointer select-none"
-              style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
-              onTouchStart={(e) => e.currentTarget.setAttribute('data-touch-start', e.touches[0].clientX.toString())}
-              onTouchEnd={(e) => {
-                const startX = parseFloat(e.currentTarget.getAttribute('data-touch-start') || '0');
-                const endX = e.changedTouches[0].clientX;
-                const diff = endX - startX;
-                if (Math.abs(diff) > 50) {
-                  handleSwipe(item.id);
-                }
-              }}
-              onClick={(e) => {
-                if (e.detail === 1) {
-                  handleSwipe(item.id);
-                }
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex-1 flex">
+          {editableList.items.map((item) => {
+            const isEditing = editingItems.has(item.id);
+            const isStriked = swipedItems.has(item.id) && !isEditing;
+            
+            return (
+              <div 
+                key={item.id} 
+                className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm"
+                onTouchStart={(e) => e.currentTarget.setAttribute('data-touch-start', e.touches[0].clientX.toString())}
+                onTouchEnd={(e) => {
+                  const startX = parseFloat(e.currentTarget.getAttribute('data-touch-start') || '0');
+                  const endX = e.changedTouches[0].clientX;
+                  const diff = endX - startX;
+                  if (Math.abs(diff) > 50) {
+                    handleSwipe(item.id);
+                  }
+                }}
+                onClick={(e) => {
+                  if (e.detail === 1) {
+                    handleSwipe(item.id);
+                  }
+                }}
+              >
+                <div 
+                  className="w-5 h-5 rounded-full border-2 border-gray-400 flex-shrink-0 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSwipe(item.id);
+                  }}
+                  style={{ minWidth: '20px', minHeight: '20px', touchAction: 'manipulation' }}
+                />
+                
+                <div className="flex-1 flex items-center">
                   <input
                     type="text"
                     value={item.name}
                     onChange={(e) => updateItem(item.id, { name: e.target.value })}
-                    className={`flex-1 bg-transparent border-none outline-none font-medium mr-1 ${
-                      swipedItems.has(item.id) ? 'line-through text-gray-500' : 'text-gray-900'
+                    onFocus={() => handleInputFocus(item.id)}
+                    onBlur={() => handleInputBlur(item.id)}
+                    className={`flex-1 bg-transparent border-none outline-none font-medium mr-3 ${
+                      isStriked ? 'line-through text-gray-500' : 'text-gray-900'
                     }`}
                     placeholder="Item Name"
                     style={{ 
                       fontSize: '16px',
-                      fontWeight: '500',
-                      width: '80%'
+                      fontWeight: '500'
                     }}
                   />
-                  <div className="w-px bg-gray-300 mx-3"></div>
+                  
+                  <div className="w-px bg-gray-300 mx-3 h-4"></div>
+                  
                   <input
                     type="text"
                     value={item.quantity}
                     onChange={(e) => updateItem(item.id, { quantity: e.target.value })}
-                    className={`bg-transparent border-none outline-none font-medium text-center ${
-                      swipedItems.has(item.id) ? 'line-through text-gray-500' : 'text-gray-900'
+                    onFocus={() => handleInputFocus(item.id)}
+                    onBlur={() => handleInputBlur(item.id)}
+                    className={`bg-transparent border-none outline-none font-medium text-center w-16 ${
+                      isStriked ? 'line-through text-gray-500' : 'text-gray-900'
                     }`}
-                    placeholder="Quantity"
+                    placeholder="Qty"
                     style={{ 
                       fontSize: '16px',
-                      fontWeight: '500',
-                      width: '20%'
+                      fontWeight: '500'
                     }}
                   />
                 </div>
+                
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -183,11 +212,11 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
                   }}
                   className="text-gray-400 hover:text-red-500 p-1 flex-shrink-0"
                 >
-                  <X size={14} />
+                  <Plus size={12} className="rotate-45" />
                 </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Add Item Button */}

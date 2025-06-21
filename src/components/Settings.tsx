@@ -25,7 +25,6 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
   const [passwords] = useLocalStorage('passwords', []);
   const { user, signOut } = useAuth();
   const { toast } = useToast();
-  const [imageLoaded, setImageLoaded] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -127,37 +126,42 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
           </button>
         </div>
 
-        {/* Image container with loading state and 3D effect */}
-        <div className="mb-8 relative">
-          {!imageLoaded && (
-            <div 
-              className="w-full bg-black rounded-xl animate-pulse transition-opacity duration-500"
-              style={{ height: '200px' }}
-            />
-          )}
+        {/* Image container with 3D effect */}
+        <div className="mb-8 mx-4">
           <img 
             src="/lovable-uploads/0e66d0a5-0c78-4057-ae0a-31ac7f762df9.png" 
             alt="Settings Banner" 
-            className={`w-full h-auto object-cover rounded-xl transition-all duration-500 transform-gpu hover:scale-105 hover:rotate-1 hover:shadow-2xl ${
-              imageLoaded ? 'opacity-100' : 'opacity-0 absolute top-0'
-            }`}
+            className="w-full h-auto object-cover rounded-xl transition-all duration-300 transform-gpu"
             style={{
               transformStyle: 'preserve-3d',
-              transition: 'transform 0.3s ease-out, box-shadow 0.3s ease-out',
+              transition: 'transform 0.2s ease-out',
             }}
-            onLoad={() => setImageLoaded(true)}
             onMouseMove={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const x = e.clientX - rect.left;
               const y = e.clientY - rect.top;
               const centerX = rect.width / 2;
               const centerY = rect.height / 2;
-              const rotateX = (y - centerY) / 10;
-              const rotateY = (centerX - x) / 10;
+              const rotateX = (y - centerY) / 50;
+              const rotateY = (centerX - x) / 50;
               
-              e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+              e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
             }}
             onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+            }}
+            onTouchMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.touches[0].clientX - rect.left;
+              const y = e.touches[0].clientY - rect.top;
+              const centerX = rect.width / 2;
+              const centerY = rect.height / 2;
+              const rotateX = (y - centerY) / 50;
+              const rotateY = (centerX - x) / 50;
+              
+              e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            }}
+            onTouchEnd={(e) => {
               e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
             }}
           />
@@ -211,18 +215,18 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
 
       {/* Confirmation Dialogs */}
       <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="max-w-md">
+          <DialogHeader className="pb-4">
             <DialogTitle>Export Data</DialogTitle>
             <DialogDescription>
               This will download all your notes, lists, and passwords as a JSON file.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowExportDialog(false)}>
+          <DialogFooter className="gap-4 pt-4">
+            <Button variant="outline" onClick={() => setShowExportDialog(false)} className="flex-1">
               Cancel
             </Button>
-            <Button onClick={handleBackup} className="bg-black hover:bg-gray-800">
+            <Button onClick={handleBackup} className="bg-black hover:bg-gray-800 flex-1">
               Export
             </Button>
           </DialogFooter>
@@ -230,18 +234,18 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
       </Dialog>
 
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="max-w-md">
+          <DialogHeader className="pb-4">
             <DialogTitle>Import Data</DialogTitle>
             <DialogDescription>
               This will replace all your current data with the imported data. Make sure you have a backup first.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowImportDialog(false)}>
+          <DialogFooter className="gap-4 pt-4">
+            <Button variant="outline" onClick={() => setShowImportDialog(false)} className="flex-1">
               Cancel
             </Button>
-            <Button onClick={handleImport} className="bg-black hover:bg-gray-800">
+            <Button onClick={handleImport} className="bg-black hover:bg-gray-800 flex-1">
               Import
             </Button>
           </DialogFooter>
@@ -249,18 +253,18 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
       </Dialog>
 
       <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="max-w-md">
+          <DialogHeader className="pb-4">
             <DialogTitle>Sign Out</DialogTitle>
             <DialogDescription>
               Are you sure you want to sign out of your account?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowLogoutDialog(false)}>
+          <DialogFooter className="gap-4 pt-4">
+            <Button variant="outline" onClick={() => setShowLogoutDialog(false)} className="flex-1">
               Cancel
             </Button>
-            <Button onClick={handleSignOut} className="bg-black hover:bg-gray-800">
+            <Button onClick={handleSignOut} className="bg-black hover:bg-gray-800 flex-1">
               Sign Out
             </Button>
           </DialogFooter>
