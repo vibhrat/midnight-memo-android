@@ -85,6 +85,26 @@ input,
 textarea {
   border: none !important;
   box-shadow: none !important;
+  resize: none !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Remove scrollbars from all input fields */
+input::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+  display: none !important;
+}
+
+input {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+textarea {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 /* Custom dialog styles - Full width with animations */

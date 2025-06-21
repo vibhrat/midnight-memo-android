@@ -1,14 +1,15 @@
 
-import { ArrowLeft, Download, Upload, LogOut } from 'lucide-react';
+import { ArrowLeft, Download, Upload, LogOut, Lock } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface SettingsProps {
   onBack: () => void;
+  onCredentialsClick?: () => void;
 }
 
-const Settings = ({ onBack }: SettingsProps) => {
+const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
   const [notes] = useLocalStorage('casual-notes', []);
   const [lists] = useLocalStorage('shopping-lists', []);
   const [passwords] = useLocalStorage('passwords', []);
@@ -97,17 +98,10 @@ const Settings = ({ onBack }: SettingsProps) => {
           </button>
         </div>
 
-        {user && (
-          <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-xl">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Signed in as:</p>
-            <p className="font-medium dark:text-white">{user.email}</p>
-          </div>
-        )}
-
         {/* Full width image with 5% margins */}
         <div className="mb-8" style={{ marginLeft: '5%', marginRight: '5%' }}>
           <img 
-            src="/placeholder.svg" 
+            src="/lovable-uploads/0e66d0a5-0c78-4057-ae0a-31ac7f762df9.png" 
             alt="Settings Banner" 
             className="w-full h-48 object-cover rounded-xl"
           />
@@ -118,6 +112,7 @@ const Settings = ({ onBack }: SettingsProps) => {
           <button
             onClick={handleBackup}
             className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
+            title="Export Data"
           >
             <Download size={24} />
           </button>
@@ -125,19 +120,37 @@ const Settings = ({ onBack }: SettingsProps) => {
           <button
             onClick={handleImport}
             className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
+            title="Import Data"
           >
             <Upload size={24} />
+          </button>
+
+          <button
+            onClick={onCredentialsClick}
+            className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
+            title="Manage Credentials"
+          >
+            <Lock size={24} />
           </button>
 
           {user && (
             <button
               onClick={handleSignOut}
               className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
+              title="Sign Out"
             >
               <LogOut size={24} />
             </button>
           )}
         </div>
+
+        {/* User info card at bottom with smaller size */}
+        {user && (
+          <div className="mt-auto p-3 bg-white dark:bg-gray-800 rounded-lg">
+            <p className="text-xs text-gray-600 dark:text-gray-400">Signed in as:</p>
+            <p className="text-sm font-medium dark:text-white">{user.email}</p>
+          </div>
+        )}
       </div>
     </div>
   );

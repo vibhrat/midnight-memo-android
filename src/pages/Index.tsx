@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Auth from '@/components/Auth';
@@ -10,6 +11,7 @@ import Passwords from '@/components/Passwords';
 import PasswordDetail from '@/components/PasswordDetail';
 import Search from '@/components/Search';
 import Settings from '@/components/Settings';
+import CredentialsManagement from '@/components/CredentialsManagement';
 import FloatingActionButton from '@/components/FloatingActionButton';
 
 const Index = () => {
@@ -21,6 +23,7 @@ const Index = () => {
   const [selectedPasswordId, setSelectedPasswordId] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showCredentials, setShowCredentials] = useState(false);
   const notesRef = useRef<{ triggerCreate: () => void }>(null);
   const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
   const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
@@ -34,6 +37,7 @@ const Index = () => {
       setSelectedPasswordId(null);
       setShowSearch(false);
       setShowSettings(false);
+      setShowCredentials(false);
     };
 
     window.addEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
@@ -115,6 +119,16 @@ const Index = () => {
     setShowSettings(false);
   };
 
+  const handleCredentialsClick = () => {
+    setShowCredentials(true);
+    setShowSettings(false);
+  };
+
+  const handleBackFromCredentials = () => {
+    setShowCredentials(false);
+    setShowSettings(true);
+  };
+
   const handleSearchNoteSelect = (noteId: string) => {
     setShowSearch(false);
     setActiveTab('notes');
@@ -128,8 +142,12 @@ const Index = () => {
   };
 
   const renderContent = () => {
+    if (showCredentials) {
+      return <CredentialsManagement onBack={handleBackFromCredentials} />;
+    }
+
     if (showSettings) {
-      return <Settings onBack={handleBackFromSettings} />;
+      return <Settings onBack={handleBackFromSettings} onCredentialsClick={handleCredentialsClick} />;
     }
 
     if (showSearch) {
@@ -163,8 +181,8 @@ const Index = () => {
     }
   };
 
-  // Don't show FAB when viewing details, search, or settings
-  const showFAB = !showSearch && !showSettings &&
+  // Don't show FAB when viewing details, search, settings, or credentials
+  const showFAB = !showSearch && !showSettings && !showCredentials &&
     !(activeTab === 'shopping' && selectedListId) && 
     !(activeTab === 'notes' && selectedNoteId) &&
     !(activeTab === 'passwords' && selectedPasswordId);

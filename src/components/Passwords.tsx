@@ -4,6 +4,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Password } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Clock, Search } from 'lucide-react';
+import PinProtection from './PinProtection';
 
 interface PasswordsRef {
   triggerCreate: () => void;
@@ -16,6 +17,7 @@ interface PasswordsProps {
 
 const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onPasswordSelect }, ref) => {
   const [passwords, setPasswords] = useLocalStorage<Password[]>('passwords', []);
+  const [isUnlocked, setIsUnlocked] = useState(false);
 
   useImperativeHandle(ref, () => ({
     triggerCreate: () => {
@@ -34,6 +36,10 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onP
       }
     }
   }));
+
+  if (!isUnlocked) {
+    return <PinProtection onUnlock={() => setIsUnlocked(true)} />;
+  }
 
   const getDaysAgo = (date: Date) => {
     const now = new Date();

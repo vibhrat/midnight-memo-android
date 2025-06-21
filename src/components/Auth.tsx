@@ -11,6 +11,7 @@ interface AuthProps {
 
 const Auth = ({ onAuthSuccess }: AuthProps) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,17 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
     setLoading(true);
 
     try {
-      if (isLogin) {
+      if (isForgotPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/`
+        });
+        if (error) throw error;
+        toast({
+          title: "Success",
+          description: "Password reset email sent! Check your inbox.",
+        });
+        setIsForgotPassword(false);
+      } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -79,7 +90,12 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome</h1>
           <p className="text-gray-600">
-            {isLogin ? 'Sign in to your account' : 'Create a new account'}
+            {isForgotPassword 
+              ? 'Reset your password' 
+              : isLogin 
+                ? 'Sign in to your account' 
+                : 'Create a new account'
+            }
           </p>
         </div>
 
@@ -94,32 +110,57 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
               className="w-full"
             />
           </div>
-          <div>
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full"
-            />
-          </div>
+          {!isForgotPassword && (
+            <div>
+              <Input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full"
+              />
+            </div>
+          )}
           <Button
             type="submit"
             disabled={loading}
             className="w-full bg-black hover:bg-gray-800 text-white"
           >
-            {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')}
+            {loading ? 'Loading...' : (
+              isForgotPassword ? 'Send Reset Email' : 
+              isLogin ? 'Sign In' : 'Sign Up'
+            )}
           </Button>
         </form>
 
-        <div className="text-center mt-6">
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-black hover:text-gray-700"
-          >
-            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-          </button>
+        <div className="text-center mt-6 space-y-2">
+          {!isForgotPassword && (
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="block w-full text-black hover:text-gray-700"
+            >
+              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+            </button>
+          )}
+          
+          {isLogin && !isForgotPassword && (
+            <button
+              onClick={() => setIsForgotPassword(true)}
+              className="block w-full text-gray-600 hover:text-gray-800"
+            >
+              Forgot your password?
+            </button>
+          )}
+          
+          {isForgotPassword && (
+            <button
+              onClick={() => setIsForgotPassword(false)}
+              className="block w-full text-black hover:text-gray-700"
+            >
+              Back to sign in
+            </button>
+          )}
         </div>
       </div>
     </div>
