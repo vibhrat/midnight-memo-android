@@ -5,6 +5,7 @@ import { CasualNote } from '@/types';
 import { ArrowLeft, Trash2, Grid3x3 } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import TagSelector from '@/components/TagSelector';
+import RichTextEditor from '@/components/RichTextEditor';
 import { Badge } from '@/components/ui/badge';
 
 interface NoteDetailProps {
@@ -28,9 +29,9 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
 
   if (!note || !editableNote) {
     return (
-      <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#FBFAF5] dark:bg-black flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500">Note not found</p>
+          <p className="text-gray-500 dark:text-[#6A6A6A]">Note not found</p>
           <button onClick={onBack} className="mt-4 px-4 py-2 bg-black text-white rounded">Go Back</button>
         </div>
       </div>
@@ -62,28 +63,28 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5] overflow-y-auto">
+    <div className="min-h-screen bg-[#FBFAF5] dark:bg-black overflow-y-auto">
       <div className="max-w-2xl mx-auto p-4">
         {/* Header with back button and action buttons */}
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={onBack}
-            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
           >
-            <ArrowLeft size={22} />
+            <ArrowLeft size={22} className="dark:text-[#CACACA]" />
           </button>
           <div className="flex gap-2">
             <button
               onClick={toggleBlur}
-              className={`p-2 hover:bg-gray-100 rounded-lg ${editableNote.isBlurred ? 'bg-gray-200' : ''}`}
+              className={`p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${editableNote.isBlurred ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
             >
-              <Grid3x3 size={22} className={editableNote.isBlurred ? "text-blue-600" : "text-gray-600"} />
+              <Grid3x3 size={22} className={editableNote.isBlurred ? "text-blue-600" : "text-gray-600 dark:text-[#6A6A6A]"} />
             </button>
             <button
               onClick={() => setShowDeleteDialog(true)}
-              className="p-2 hover:bg-gray-100 rounded-lg"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
             >
-              <Trash2 size={22} className="text-gray-600" />
+              <Trash2 size={22} className="text-gray-600 dark:text-[#6A6A6A]" />
             </button>
           </div>
         </div>
@@ -92,7 +93,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         <textarea
           value={editableNote.title}
           onChange={(e) => autoSave({ title: e.target.value })}
-          className="text-2xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none"
+          className="text-2xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none text-black dark:text-[#CACACA]"
           placeholder="Untitled"
           rows={1}
           style={{ 
@@ -122,29 +123,23 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         {!editableNote.tag && (
           <button
             onClick={() => setShowTagSelector(true)}
-            className="inline-block px-3 py-1 text-sm bg-gray-100 text-gray-500 rounded-full mb-6 hover:bg-gray-200"
+            className="inline-block px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-[#6A6A6A] rounded-full mb-6 hover:bg-gray-200 dark:hover:bg-gray-700"
           >
             + Add tag
           </button>
         )}
         
-        {/* Description with proper text wrapping */}
-        <textarea
-          value={editableNote.content}
-          onChange={(e) => autoSave({ content: e.target.value })}
-          className="w-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none font-medium break-words"
-          placeholder="Start writing..."
-          style={{ 
-            fontSize: '16px',
-            height: '100vh',
-            fontWeight: '500',
-            wordWrap: 'break-word',
-            overflowWrap: 'break-word'
-          }}
-        />
+        {/* Rich Text Editor for Description */}
+        <div className="mb-8">
+          <RichTextEditor
+            content={editableNote.content}
+            onChange={(content) => autoSave({ content })}
+            placeholder="Start writing..."
+          />
+        </div>
 
         {/* Footer with dates */}
-        <div className="flex justify-between items-center mt-8 px-2 text-xs text-gray-500">
+        <div className="flex justify-between items-center mt-8 px-2 text-xs text-gray-500 dark:text-[#6A6A6A]">
           <p>Created: {new Date(editableNote.createdAt).toLocaleDateString()}</p>
           <p>Updated: {new Date(editableNote.updatedAt).toLocaleDateString()}</p>
         </div>
