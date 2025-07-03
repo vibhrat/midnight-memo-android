@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
-import { ArrowLeft, Trash2, Plus } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, X } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 
 interface ListDetailProps {
@@ -144,7 +144,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
             return (
               <div 
                 key={item.id} 
-                className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm"
+                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
                 onTouchStart={(e) => e.currentTarget.setAttribute('data-touch-start', e.touches[0].clientX.toString())}
                 onTouchEnd={(e) => {
                   const startX = parseFloat(e.currentTarget.getAttribute('data-touch-start') || '0');
@@ -160,60 +160,47 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
                   }
                 }}
               >
-                <div 
-                  className="w-5 h-5 rounded-full border-2 border-gray-400 flex-shrink-0 cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSwipe(item.id);
-                  }}
-                  style={{ minWidth: '20px', minHeight: '20px', touchAction: 'manipulation' }}
-                />
-                
-                <div className="flex-1 flex items-center">
-                  <input
-                    type="text"
-                    value={item.name}
-                    onChange={(e) => updateItem(item.id, { name: e.target.value })}
-                    onFocus={() => handleInputFocus(item.id)}
-                    onBlur={() => handleInputBlur(item.id)}
-                    className={`flex-1 bg-transparent border-none outline-none font-medium mr-3 ${
-                      isStriked ? 'line-through text-gray-500' : 'text-gray-900'
-                    }`}
-                    placeholder="Item Name"
-                    style={{ 
-                      fontSize: '16px',
-                      fontWeight: '500'
-                    }}
-                  />
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={item.name}
+                      onChange={(e) => updateItem(item.id, { name: e.target.value })}
+                      onFocus={() => handleInputFocus(item.id)}
+                      onBlur={() => handleInputBlur(item.id)}
+                      className={`flex-1 bg-transparent border-none outline-none text-base font-medium ${
+                        isStriked ? 'line-through text-gray-500' : 'text-gray-900'
+                      }`}
+                      placeholder="Item name"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
                   
-                  <div className="w-px bg-gray-300 mx-3 h-4"></div>
-                  
-                  <input
-                    type="text"
-                    value={item.quantity}
-                    onChange={(e) => updateItem(item.id, { quantity: e.target.value })}
-                    onFocus={() => handleInputFocus(item.id)}
-                    onBlur={() => handleInputBlur(item.id)}
-                    className={`bg-transparent border-none outline-none font-medium text-center w-16 ${
-                      isStriked ? 'line-through text-gray-500' : 'text-gray-900'
-                    }`}
-                    placeholder="Qty"
-                    style={{ 
-                      fontSize: '16px',
-                      fontWeight: '500'
-                    }}
-                  />
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(item.id, { quantity: e.target.value })}
+                      onFocus={() => handleInputFocus(item.id)}
+                      onBlur={() => handleInputBlur(item.id)}
+                      className={`bg-transparent border-none outline-none text-center w-12 text-base font-medium ${
+                        isStriked ? 'line-through text-gray-500' : 'text-gray-500'
+                      }`}
+                      placeholder="1"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteItem(item.id);
+                      }}
+                      className="text-gray-400 hover:text-red-500 p-1"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
                 </div>
-                
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteItem(item.id);
-                  }}
-                  className="text-gray-400 hover:text-red-500 p-1 flex-shrink-0"
-                >
-                  <Plus size={12} className="rotate-45" />
-                </button>
               </div>
             );
           })}

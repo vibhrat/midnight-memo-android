@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ArrowLeft, Download, Upload, LogOut, Lock } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -28,6 +27,7 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const handleBackup = () => {
     const appData = {
@@ -126,26 +126,29 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
           </button>
         </div>
 
-        {/* Image container with 3D effect */}
-        <div className="mb-8 mx-4">
+        {/* Image container with optimized loading and 3D effect */}
+        <div className="mb-8 mx-4 relative">
           <img 
             src="/lovable-uploads/0e66d0a5-0c78-4057-ae0a-31ac7f762df9.png" 
             alt="Settings Banner" 
-            className="w-full h-auto object-cover rounded-xl transition-all duration-300 transform-gpu"
+            className={`w-full h-auto object-cover rounded-xl transition-all duration-500 transform-gpu ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
             style={{
               transformStyle: 'preserve-3d',
-              transition: 'transform 0.2s ease-out',
+              transition: 'transform 0.1s ease-out, opacity 0.5s ease-out',
             }}
+            onLoad={() => setImageLoaded(true)}
             onMouseMove={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const x = e.clientX - rect.left;
               const y = e.clientY - rect.top;
               const centerX = rect.width / 2;
               const centerY = rect.height / 2;
-              const rotateX = (y - centerY) / 50;
-              const rotateY = (centerX - x) / 50;
+              const rotateX = (y - centerY) / 200;
+              const rotateY = (centerX - x) / 200;
               
-              e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+              e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.01, 1.01, 1.01)`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
@@ -156,15 +159,18 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
               const y = e.touches[0].clientY - rect.top;
               const centerX = rect.width / 2;
               const centerY = rect.height / 2;
-              const rotateX = (y - centerY) / 50;
-              const rotateY = (centerX - x) / 50;
+              const rotateX = (y - centerY) / 200;
+              const rotateY = (centerX - x) / 200;
               
-              e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+              e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.01, 1.01, 1.01)`;
             }}
             onTouchEnd={(e) => {
               e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
             }}
           />
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-gray-200 rounded-xl animate-pulse" />
+          )}
         </div>
 
         {/* Circular action buttons */}

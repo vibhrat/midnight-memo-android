@@ -64,7 +64,7 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
   const getTagColor = (tag: string) => {
     const colors = {
       'Note': '#E3F2FD',
-      'Medicine': '#FFE8E8', 
+      'Medicine': '#FFEBEE', 
       'Travel': '#E8F5E8',
       'Tech': '#F3E5F5',
       'Links': '#FFF3E0',
@@ -73,16 +73,16 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
     return colors[tag as keyof typeof colors] || '#F5F5F5';
   };
 
-  const getTagTextColor = (tag: string) => {
-    const colors = {
-      'Note': '#1976D2',
-      'Medicine': '#D32F2F',
-      'Travel': '#388E3C',
-      'Tech': '#7B1FA2',
-      'Links': '#F57C00',
-      'Contact': '#00796B'
+  const getTagEmoji = (tag: string) => {
+    const emojis = {
+      'Note': '📝',
+      'Medicine': '💊',
+      'Travel': '✈️',
+      'Tech': '💻',
+      'Links': '🔗',
+      'Contact': '📱'
     };
-    return colors[tag as keyof typeof colors] || '#666666';
+    return emojis[tag as keyof typeof emojis] || '';
   };
 
   const handleCardClick = (noteId: string) => {
@@ -129,16 +129,18 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
                 </h3>
               </div>
               {note.tag && (
-                <span 
-                  className="inline-block px-2 py-1 rounded mb-2" 
+                <div 
+                  className="inline-flex items-center px-3 py-1.5 rounded-full mb-2" 
                   style={{ 
                     fontSize: '12px',
                     backgroundColor: getTagColor(note.tag),
-                    color: getTagTextColor(note.tag)
+                    color: '#000000',
+                    fontWeight: '600'
                   }}
                 >
+                  <span className="mr-1">{getTagEmoji(note.tag)}</span>
                   {note.tag}
-                </span>
+                </div>
               )}
               <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap mb-2" style={{ fontSize: '14px' }}>
                 {truncateContent(note.content)}

@@ -113,7 +113,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
             onClick={() => setShowTagSelector(true)}
             className="mb-6"
           >
-            <Badge tag={editableNote.tag} className="text-sm font-medium">
+            <Badge tag={editableNote.tag} className="text-sm font-semibold">
               {editableNote.tag}
             </Badge>
           </button>
@@ -128,16 +128,18 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
           </button>
         )}
         
-        {/* Description */}
+        {/* Description with proper text wrapping */}
         <textarea
           value={editableNote.content}
           onChange={(e) => autoSave({ content: e.target.value })}
-          className="w-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none font-medium"
+          className="w-full text-gray-700 whitespace-pre-wrap leading-relaxed border-none outline-none bg-transparent resize-none font-medium break-words"
           placeholder="Start writing..."
           style={{ 
             fontSize: '16px',
             height: '100vh',
-            fontWeight: '500'
+            fontWeight: '500',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word'
           }}
         />
 

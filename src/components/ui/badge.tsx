@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
@@ -16,12 +16,12 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
-        note: "border-transparent text-gray-700",
-        medicine: "border-transparent text-gray-700",
-        travel: "border-transparent text-gray-700",
-        tech: "border-transparent text-gray-700",
-        links: "border-transparent text-gray-700",
-        contact: "border-transparent text-gray-700",
+        note: "border-transparent text-black",
+        medicine: "border-transparent text-black",
+        travel: "border-transparent text-black",
+        tech: "border-transparent text-black",
+        links: "border-transparent text-black",
+        contact: "border-transparent text-black",
       },
     },
     defaultVariants: {
@@ -39,28 +39,22 @@ export interface BadgeProps
 const getTagStyle = (tag: string) => {
   const styles = {
     'Note': {
-      background: 'linear-gradient(135deg, #E8F4FD 0%, #B8E6FF 100%)',
-      boxShadow: '0 2px 8px rgba(59, 130, 246, 0.15)'
+      backgroundColor: '#E3F2FD',
     },
     'Medicine': {
-      background: 'linear-gradient(135deg, #FFE8E8 0%, #FFB8B8 100%)',
-      boxShadow: '0 2px 8px rgba(239, 68, 68, 0.15)'
+      backgroundColor: '#FFEBEE',
     },
     'Travel': {
-      background: 'linear-gradient(135deg, #E8F5E8 0%, #B8E6B8 100%)',
-      boxShadow: '0 2px 8px rgba(34, 197, 94, 0.15)'
+      backgroundColor: '#E8F5E8',
     },
     'Tech': {
-      background: 'linear-gradient(135deg, #F3E8FF 0%, #D8B4FE 100%)',
-      boxShadow: '0 2px 8px rgba(147, 51, 234, 0.15)'
+      backgroundColor: '#F3E5F5',
     },
     'Links': {
-      background: 'linear-gradient(135deg, #FFF3E0 0%, #FFCC80 100%)',
-      boxShadow: '0 2px 8px rgba(245, 124, 0, 0.15)'
+      backgroundColor: '#FFF3E0',
     },
     'Contact': {
-      background: 'linear-gradient(135deg, #E0F2F1 0%, #80CBC4 100%)',
-      boxShadow: '0 2px 8px rgba(0, 121, 107, 0.15)'
+      backgroundColor: '#E0F2F1',
     }
   };
   return styles[tag as keyof typeof styles] || {};

@@ -18,38 +18,32 @@ const TagSelector = ({ isOpen, onClose, onSelect, currentTag }: TagSelectorProps
     { 
       name: 'Note', 
       emoji: '📝',
-      gradient: 'linear-gradient(135deg, #E8F4FD 0%, #B8E6FF 100%)',
-      shadow: '0 4px 15px rgba(59, 130, 246, 0.15)'
+      backgroundColor: '#E3F2FD',
     },
     { 
       name: 'Medicine', 
       emoji: '💊',
-      gradient: 'linear-gradient(135deg, #FFE8E8 0%, #FFB8B8 100%)',
-      shadow: '0 4px 15px rgba(239, 68, 68, 0.15)'
+      backgroundColor: '#FFEBEE',
     },
     { 
       name: 'Travel', 
       emoji: '✈️',
-      gradient: 'linear-gradient(135deg, #E8F5E8 0%, #B8E6B8 100%)',
-      shadow: '0 4px 15px rgba(34, 197, 94, 0.15)'
+      backgroundColor: '#E8F5E8',
     },
     { 
       name: 'Tech', 
       emoji: '💻',
-      gradient: 'linear-gradient(135deg, #F3E8FF 0%, #D8B4FE 100%)',
-      shadow: '0 4px 15px rgba(147, 51, 234, 0.15)'
+      backgroundColor: '#F3E5F5',
     },
     { 
       name: 'Links', 
       emoji: '🔗',
-      gradient: 'linear-gradient(135deg, #FFF3E0 0%, #FFCC80 100%)',
-      shadow: '0 4px 15px rgba(245, 124, 0, 0.15)'
+      backgroundColor: '#FFF3E0',
     },
     { 
       name: 'Contact', 
       emoji: '📱',
-      gradient: 'linear-gradient(135deg, #E0F2F1 0%, #80CBC4 100%)',
-      shadow: '0 4px 15px rgba(0, 121, 107, 0.15)'
+      backgroundColor: '#E0F2F1',
     }
   ];
 
@@ -69,13 +63,12 @@ const TagSelector = ({ isOpen, onClose, onSelect, currentTag }: TagSelectorProps
                   currentTag === tag.name ? 'ring-2 ring-gray-400 ring-offset-2' : ''
                 }`}
                 style={{
-                  background: tag.gradient,
-                  boxShadow: tag.shadow,
+                  backgroundColor: tag.backgroundColor,
                 }}
               >
                 <div className="flex flex-col items-center gap-2">
                   <span className="text-2xl">{tag.emoji}</span>
-                  <span className="text-gray-700">{tag.name}</span>
+                  <span className="text-black font-semibold">{tag.name}</span>
                 </div>
               </button>
             ))}
