@@ -29,9 +29,9 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
 
   if (!note || !editableNote) {
     return (
-      <div className="min-h-screen bg-[#FBFAF5] dark:bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500 dark:text-[#6A6A6A]">Note not found</p>
+          <p className="text-gray-500">Note not found</p>
           <button onClick={onBack} className="mt-4 px-4 py-2 bg-black text-white rounded">Go Back</button>
         </div>
       </div>
@@ -63,28 +63,28 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5] dark:bg-black overflow-y-auto">
+    <div className="min-h-screen bg-[#FBFAF5] overflow-y-auto">
       <div className="max-w-2xl mx-auto p-4">
         {/* Header with back button and action buttons */}
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={onBack}
-            className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            <ArrowLeft size={22} className="dark:text-[#CACACA]" />
+            <ArrowLeft size={22} />
           </button>
           <div className="flex gap-2">
             <button
               onClick={toggleBlur}
-              className={`p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${editableNote.isBlurred ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
+              className={`p-2 hover:bg-gray-100 rounded-lg ${editableNote.isBlurred ? 'bg-gray-200' : ''}`}
             >
-              <Grid3x3 size={22} className={editableNote.isBlurred ? "text-blue-600" : "text-gray-600 dark:text-[#6A6A6A]"} />
+              <Grid3x3 size={22} className={editableNote.isBlurred ? "text-blue-600" : "text-gray-600"} />
             </button>
             <button
               onClick={() => setShowDeleteDialog(true)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+              className="p-2 hover:bg-gray-100 rounded-lg"
             >
-              <Trash2 size={22} className="text-gray-600 dark:text-[#6A6A6A]" />
+              <Trash2 size={22} className="text-gray-600" />
             </button>
           </div>
         </div>
@@ -93,7 +93,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         <textarea
           value={editableNote.title}
           onChange={(e) => autoSave({ title: e.target.value })}
-          className="text-2xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none text-black dark:text-[#CACACA]"
+          className="text-2xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none text-black"
           placeholder="Untitled"
           rows={1}
           style={{ 
@@ -123,7 +123,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         {!editableNote.tag && (
           <button
             onClick={() => setShowTagSelector(true)}
-            className="inline-block px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-[#6A6A6A] rounded-full mb-6 hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="inline-block px-3 py-1 text-sm bg-gray-100 text-gray-500 rounded-full mb-6 hover:bg-gray-200"
           >
             + Add tag
           </button>
@@ -139,7 +139,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         </div>
 
         {/* Footer with dates */}
-        <div className="flex justify-between items-center mt-8 px-2 text-xs text-gray-500 dark:text-[#6A6A6A]">
+        <div className="flex justify-between items-center mt-8 px-2 text-xs text-gray-500">
           <p>Created: {new Date(editableNote.createdAt).toLocaleDateString()}</p>
           <p>Updated: {new Date(editableNote.updatedAt).toLocaleDateString()}</p>
         </div>

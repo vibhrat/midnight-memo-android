@@ -1,8 +1,8 @@
+
 import { useState } from 'react';
-import { ArrowLeft, Download, Upload, LogOut, Lock, Moon } from 'lucide-react';
+import { ArrowLeft, Download, Upload, LogOut, Lock } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -24,12 +24,10 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
   const [lists] = useLocalStorage('shopping-lists', []);
   const [passwords] = useLocalStorage('passwords', []);
   const { user, signOut } = useAuth();
-  const { isDarkMode, toggleDarkMode } = useTheme();
   const { toast } = useToast();
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
 
   const handleBackup = () => {
     const appData = {
@@ -117,38 +115,33 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5] dark:bg-black flex flex-col">
+    <div className="min-h-screen bg-[#FBFAF5] flex flex-col">
       <div className="max-w-2xl mx-auto p-4 flex-1 flex flex-col">
         <div className="flex items-center mb-8">
           <button
             onClick={onBack}
-            className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            <ArrowLeft size={22} className="dark:text-[#CACACA]" />
+            <ArrowLeft size={22} />
           </button>
         </div>
 
-        {/* Image container with optimized loading and 3D effect */}
+        {/* Image container with preloading and minimal 3D effect */}
         <div className="mb-8 mx-4 relative">
           <img 
             src="/lovable-uploads/0e66d0a5-0c78-4057-ae0a-31ac7f762df9.png" 
             alt="Settings Banner" 
-            className={`w-full h-auto object-cover rounded-xl transition-all duration-500 transform-gpu ${
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
-            style={{
-              transformStyle: 'preserve-3d',
-              transition: 'transform 0.1s ease-out, opacity 0.5s ease-out',
-            }}
-            onLoad={() => setImageLoaded(true)}
+            className="w-full h-auto object-cover rounded-xl transition-transform duration-75 ease-out"
+            loading="eager"
+            decoding="sync"
             onMouseMove={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const x = e.clientX - rect.left;
               const y = e.clientY - rect.top;
               const centerX = rect.width / 2;
               const centerY = rect.height / 2;
-              const rotateX = (y - centerY) / 1000;
-              const rotateY = (centerX - x) / 1000;
+              const rotateX = (y - centerY) / 2000;
+              const rotateY = (centerX - x) / 2000;
               
               e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
             }}
@@ -161,8 +154,8 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
               const y = e.touches[0].clientY - rect.top;
               const centerX = rect.width / 2;
               const centerY = rect.height / 2;
-              const rotateX = (y - centerY) / 1000;
-              const rotateY = (centerX - x) / 1000;
+              const rotateX = (y - centerY) / 2000;
+              const rotateY = (centerX - x) / 2000;
               
               e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
             }}
@@ -172,11 +165,11 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
           />
         </div>
 
-        {/* Circular action buttons - now 5 buttons */}
+        {/* Circular action buttons - now 4 buttons (removed dark mode toggle) */}
         <div className="flex justify-center gap-4 mb-8">
           <button
             onClick={() => setShowExportDialog(true)}
-            className="w-16 h-16 bg-black dark:bg-[#121212] text-white rounded-full flex items-center justify-center hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
+            className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
             title="Export Data"
           >
             <Download size={24} />
@@ -184,7 +177,7 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
           
           <button
             onClick={() => setShowImportDialog(true)}
-            className="w-16 h-16 bg-black dark:bg-[#121212] text-white rounded-full flex items-center justify-center hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
+            className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
             title="Import Data"
           >
             <Upload size={24} />
@@ -192,24 +185,16 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
 
           <button
             onClick={onCredentialsClick}
-            className="w-16 h-16 bg-black dark:bg-[#121212] text-white rounded-full flex items-center justify-center hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
+            className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
             title="Manage Credentials"
           >
             <Lock size={24} />
           </button>
 
-          <button
-            onClick={toggleDarkMode}
-            className="w-16 h-16 bg-black dark:bg-[#121212] text-white rounded-full flex items-center justify-center hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
-            title="Toggle Dark Mode"
-          >
-            <Moon size={24} />
-          </button>
-
           {user && (
             <button
               onClick={() => setShowLogoutDialog(true)}
-              className="w-16 h-16 bg-black dark:bg-[#121212] text-white rounded-full flex items-center justify-center hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
+              className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors"
               title="Sign Out"
             >
               <LogOut size={24} />
@@ -221,25 +206,25 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
       {/* Footer with user email */}
       {user && (
         <div className="flex items-center justify-center gap-2 pb-6">
-          <Lock size={12} className="text-gray-500 dark:text-[#6A6A6A]" />
-          <p className="text-xs text-gray-500 dark:text-[#6A6A6A]">{user.email}</p>
+          <Lock size={12} className="text-gray-500" />
+          <p className="text-xs text-gray-500">{user.email}</p>
         </div>
       )}
 
       {/* Confirmation Dialogs */}
       <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
-        <DialogContent className="max-w-md bg-white dark:bg-[#121212] border-gray-200 dark:border-gray-700 p-8">
+        <DialogContent className="max-w-md bg-white border-gray-200 p-8">
           <DialogHeader className="pb-6">
-            <DialogTitle className="text-black dark:text-[#CACACA]">Export Data</DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-[#6A6A6A]">
+            <DialogTitle className="text-black">Export Data</DialogTitle>
+            <DialogDescription className="text-gray-600">
               This will download all your notes, lists, and passwords as a JSON file.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-6 pt-6">
-            <Button variant="outline" onClick={() => setShowExportDialog(false)} className="flex-1 py-4 text-lg border-gray-300 dark:border-gray-600 text-black dark:text-[#CACACA] hover:bg-gray-100 dark:hover:bg-gray-800">
+            <Button variant="outline" onClick={() => setShowExportDialog(false)} className="flex-1 py-4 text-lg border-gray-300 text-black hover:bg-gray-100">
               Cancel
             </Button>
-            <Button onClick={handleBackup} className="bg-black hover:bg-gray-800 dark:bg-[#CACACA] dark:text-black dark:hover:bg-gray-300 flex-1 py-4 text-lg">
+            <Button onClick={handleBackup} className="bg-black hover:bg-gray-800 flex-1 py-4 text-lg">
               Export
             </Button>
           </DialogFooter>
@@ -247,18 +232,18 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
       </Dialog>
 
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <DialogContent className="max-w-md bg-white dark:bg-[#121212] border-gray-200 dark:border-gray-700 p-8">
+        <DialogContent className="max-w-md bg-white border-gray-200 p-8">
           <DialogHeader className="pb-6">
-            <DialogTitle className="text-black dark:text-[#CACACA]">Import Data</DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-[#6A6A6A]">
+            <DialogTitle className="text-black">Import Data</DialogTitle>
+            <DialogDescription className="text-gray-600">
               This will replace all your current data with the imported data. Make sure you have a backup first.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-6 pt-6">
-            <Button variant="outline" onClick={() => setShowImportDialog(false)} className="flex-1 py-4 text-lg border-gray-300 dark:border-gray-600 text-black dark:text-[#CACACA] hover:bg-gray-100 dark:hover:bg-gray-800">
+            <Button variant="outline" onClick={() => setShowImportDialog(false)} className="flex-1 py-4 text-lg border-gray-300 text-black hover:bg-gray-100">
               Cancel
             </Button>
-            <Button onClick={handleImport} className="bg-black hover:bg-gray-800 dark:bg-[#CACACA] dark:text-black dark:hover:bg-gray-300 flex-1 py-4 text-lg">
+            <Button onClick={handleImport} className="bg-black hover:bg-gray-800 flex-1 py-4 text-lg">
               Import
             </Button>
           </DialogFooter>
@@ -266,18 +251,18 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
       </Dialog>
 
       <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <DialogContent className="max-w-md bg-white dark:bg-[#121212] border-gray-200 dark:border-gray-700 p-8">
+        <DialogContent className="max-w-md bg-white border-gray-200 p-8">
           <DialogHeader className="pb-6">
-            <DialogTitle className="text-black dark:text-[#CACACA]">Sign Out</DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-[#6A6A6A]">
+            <DialogTitle className="text-black">Sign Out</DialogTitle>
+            <DialogDescription className="text-gray-600">
               Are you sure you want to sign out of your account?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-6 pt-6">
-            <Button variant="outline" onClick={() => setShowLogoutDialog(false)} className="flex-1 py-4 text-lg border-gray-300 dark:border-gray-600 text-black dark:text-[#CACACA] hover:bg-gray-100 dark:hover:bg-gray-800">
+            <Button variant="outline" onClick={() => setShowLogoutDialog(false)} className="flex-1 py-4 text-lg border-gray-300 text-black hover:bg-gray-100">
               Cancel
             </Button>
-            <Button onClick={handleSignOut} className="bg-black hover:bg-gray-800 dark:bg-[#CACACA] dark:text-black dark:hover:bg-gray-300 flex-1 py-4 text-lg">
+            <Button onClick={handleSignOut} className="bg-black hover:bg-gray-800 flex-1 py-4 text-lg">
               Sign Out
             </Button>
           </DialogFooter>

@@ -36,47 +36,47 @@ const RichTextEditor = ({ content, onChange, placeholder }: RichTextEditorProps)
   }
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+    <div className="border border-gray-200 rounded-lg overflow-hidden">
       {/* Toolbar */}
-      <div className="flex items-center gap-2 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50">
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${
-            editor.isActive('bold') ? 'bg-gray-300 dark:bg-gray-600' : ''
+          className={`p-2 rounded hover:bg-gray-200 ${
+            editor.isActive('bold') ? 'bg-gray-300' : ''
           }`}
         >
-          <Bold size={16} className="text-gray-700 dark:text-gray-300" />
+          <Bold size={16} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${
-            editor.isActive('italic') ? 'bg-gray-300 dark:bg-gray-600' : ''
+          className={`p-2 rounded hover:bg-gray-200 ${
+            editor.isActive('italic') ? 'bg-gray-300' : ''
           }`}
         >
-          <Italic size={16} className="text-gray-700 dark:text-gray-300" />
+          <Italic size={16} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${
-            editor.isActive('bulletList') ? 'bg-gray-300 dark:bg-gray-600' : ''
+          className={`p-2 rounded hover:bg-gray-200 ${
+            editor.isActive('bulletList') ? 'bg-gray-300' : ''
           }`}
         >
-          <List size={16} className="text-gray-700 dark:text-gray-300" />
+          <List size={16} className="text-gray-700" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleTaskList().run()}
-          className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 ${
-            editor.isActive('taskList') ? 'bg-gray-300 dark:bg-gray-600' : ''
+          className={`p-2 rounded hover:bg-gray-200 ${
+            editor.isActive('taskList') ? 'bg-gray-300' : ''
           }`}
         >
-          <CheckSquare size={16} className="text-gray-700 dark:text-gray-300" />
+          <CheckSquare size={16} className="text-gray-700" />
         </button>
       </div>
 
       {/* Editor */}
       <EditorContent
         editor={editor}
-        className="bg-white dark:bg-black text-black dark:text-[#CACACA] min-h-[200px]"
+        className="bg-white text-black min-h-[200px]"
         placeholder={placeholder}
       />
     </div>

@@ -29,28 +29,6 @@
     --radius: 0.5rem;
   }
 
-  .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 79%;
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 79%;
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 79%;
-    --primary: 0 0% 79%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 42%;
-    --secondary-foreground: 0 0% 79%;
-    --muted: 0 0% 42%;
-    --muted-foreground: 0 0% 42%;
-    --accent: 0 0% 42%;
-    --accent-foreground: 0 0% 79%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 42%;
-    --input: 0 0% 42%;
-    --ring: 0 0% 42%;
-  }
-
   * {
     @apply border-border;
   }
@@ -58,10 +36,6 @@
   body {
     @apply text-foreground font-inter;
     background-color: #FBFAF5;
-  }
-
-  .dark body {
-    background-color: #000000;
   }
 }
 
@@ -110,11 +84,6 @@ textarea:focus {
   border: none !important;
   border-bottom: 1px solid #d1d5db !important;
   padding-bottom: 2px !important;
-}
-
-.dark input:focus,
-.dark textarea:focus {
-  border-bottom: 1px solid #6b7280 !important;
 }
 
 /* Ensure inputs don't have default borders */
