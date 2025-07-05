@@ -38,14 +38,14 @@ const PinProtection = ({ onUnlock }: PinProtectionProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4">
       <div className="w-full max-w-sm mx-auto">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <Sparkles size={32} className="text-purple-600" />
           </div>
-          <h1 className="text-xl font-bold text-gray-800 mb-2">State the cipher</h1>
-          <p className="text-gray-600 text-sm">A memory from other side</p>
+          <h1 className="text-xl font-bold text-[#DBDBDB] mb-2">State the cipher</h1>
+          <p className="text-[#9B9B9B] text-sm">A memory from other side</p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -54,7 +54,7 @@ const PinProtection = ({ onUnlock }: PinProtectionProps) => {
               type="password"
               value={pin}
               onChange={(e) => setPin(e.target.value)}
-              className="w-full bg-transparent border-0 border-b-2 border-gray-300 pb-2 text-lg text-center focus:outline-none focus:border-purple-600 transition-colors"
+              className="w-full bg-transparent border-0 border-b-2 border-[#9B9B9B] pb-2 text-lg text-center focus:outline-none focus:border-purple-600 transition-colors text-[#DBDBDB]"
               autoFocus
             />
           </div>
@@ -62,7 +62,7 @@ const PinProtection = ({ onUnlock }: PinProtectionProps) => {
           {pin && (
             <button
               type="submit"
-              className="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors text-base"
+              className="w-full bg-[#DBDBDB] text-[#000000] py-3 rounded-lg font-medium hover:bg-[#9B9B9B] transition-colors text-base"
             >
               Engage
             </button>

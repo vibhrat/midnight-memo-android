@@ -55,12 +55,12 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onP
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5]">
+    <div className="min-h-screen bg-[#000000]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-extrabold text-[#131010]" style={{ fontFamily: 'IBM Plex Mono' }}>Vault</h1>
-          <button onClick={onSearchClick} className="p-2 hover:bg-gray-100 rounded-lg">
-            <Search size={20} className="text-gray-600" />
+          <h1 className="text-2xl font-extrabold text-[#DBDBDB]" style={{ fontFamily: 'IBM Plex Mono' }}>Vault</h1>
+          <button onClick={onSearchClick} className="p-2 hover:bg-[#181818] rounded-lg">
+            <Search size={20} className="text-[#9B9B9B]" />
           </button>
         </div>
 
@@ -68,13 +68,12 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onP
           {passwords.map((password) => (
             <div 
               key={password.id} 
-              className="p-4 bg-white rounded-lg cursor-pointer hover:shadow-md transition-shadow" 
-              style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
+              className="p-4 bg-[#181818] rounded-lg cursor-pointer hover:bg-[#2A2A2A] transition-colors" 
               onClick={() => handleCardClick(password.id)}
             >
               <div className="flex justify-between items-center">
-                <h3 className="text-base font-bold">{password.title || 'Untitled Password'}</h3>
-                <div className="flex items-center gap-1 text-sm font-medium" style={{ color: '#818181' }}>
+                <h3 className="text-base font-bold text-[#DBDBDB]">{password.title || 'Untitled Password'}</h3>
+                <div className="flex items-center gap-1 text-sm font-medium text-[#9B9B9B]">
                   <Clock className="w-3 h-3" />
                   <span>{getDaysAgo(password.createdAt)}d</span>
                 </div>
@@ -82,7 +81,7 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onP
             </div>
           ))}
           {passwords.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-[#9B9B9B]">
               No passwords saved yet. Add your first password!
             </div>
           )}

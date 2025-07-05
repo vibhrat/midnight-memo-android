@@ -49,9 +49,9 @@ const TagSelector = ({ isOpen, onClose, onSelect, currentTag }: TagSelectorProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-sm mx-auto bg-white rounded-3xl overflow-hidden">
+      <DialogContent className="w-full max-w-sm mx-auto bg-[#181818] rounded-3xl overflow-hidden border-[#9B9B9B]">
         <DialogHeader className="pt-8 pb-4">
-          <DialogTitle className="text-center text-2xl font-bold text-gray-800">Select a tag</DialogTitle>
+          <DialogTitle className="text-center text-2xl font-bold text-[#DBDBDB]">Select a tag</DialogTitle>
         </DialogHeader>
         <div className="px-8 pb-8">
           <div className="grid grid-cols-2 gap-4 mb-6">
@@ -60,7 +60,7 @@ const TagSelector = ({ isOpen, onClose, onSelect, currentTag }: TagSelectorProps
                 key={tag.name}
                 onClick={() => onSelect(tag.name)}
                 className={`relative px-4 py-6 rounded-2xl text-base font-semibold transition-all duration-200 hover:scale-105 active:scale-95 ${
-                  currentTag === tag.name ? 'ring-2 ring-gray-400 ring-offset-2' : ''
+                  currentTag === tag.name ? 'ring-2 ring-[#DBDBDB] ring-offset-2 ring-offset-[#181818]' : ''
                 }`}
                 style={{
                   backgroundColor: tag.backgroundColor,
@@ -76,7 +76,7 @@ const TagSelector = ({ isOpen, onClose, onSelect, currentTag }: TagSelectorProps
           {currentTag && (
             <button
               onClick={() => onSelect('')}
-              className="w-full p-4 bg-gray-100 text-gray-600 rounded-2xl text-base font-semibold hover:bg-gray-200 transition-colors"
+              className="w-full p-4 bg-[#000000] text-[#9B9B9B] rounded-2xl text-base font-semibold hover:bg-[#2A2A2A] transition-colors"
             >
               Remove tag
             </button>

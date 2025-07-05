@@ -26,7 +26,7 @@ const RichTextEditor = ({ content, onChange, placeholder }: RichTextEditorProps)
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[200px] p-4',
+        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[200px] p-4 text-[#DBDBDB]',
       },
     },
   });
@@ -36,47 +36,47 @@ const RichTextEditor = ({ content, onChange, placeholder }: RichTextEditorProps)
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden">
+    <div className="border border-[#9B9B9B] rounded-lg overflow-hidden bg-[#181818]">
       {/* Toolbar */}
-      <div className="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50">
+      <div className="flex items-center gap-2 p-2 border-b border-[#9B9B9B] bg-[#000000]">
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`p-2 rounded hover:bg-gray-200 ${
-            editor.isActive('bold') ? 'bg-gray-300' : ''
+          className={`p-2 rounded hover:bg-[#181818] ${
+            editor.isActive('bold') ? 'bg-[#181818]' : ''
           }`}
         >
-          <Bold size={16} className="text-gray-700" />
+          <Bold size={16} className="text-[#9B9B9B]" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`p-2 rounded hover:bg-gray-200 ${
-            editor.isActive('italic') ? 'bg-gray-300' : ''
+          className={`p-2 rounded hover:bg-[#181818] ${
+            editor.isActive('italic') ? 'bg-[#181818]' : ''
           }`}
         >
-          <Italic size={16} className="text-gray-700" />
+          <Italic size={16} className="text-[#9B9B9B]" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`p-2 rounded hover:bg-gray-200 ${
-            editor.isActive('bulletList') ? 'bg-gray-300' : ''
+          className={`p-2 rounded hover:bg-[#181818] ${
+            editor.isActive('bulletList') ? 'bg-[#181818]' : ''
           }`}
         >
-          <List size={16} className="text-gray-700" />
+          <List size={16} className="text-[#9B9B9B]" />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleTaskList().run()}
-          className={`p-2 rounded hover:bg-gray-200 ${
-            editor.isActive('taskList') ? 'bg-gray-300' : ''
+          className={`p-2 rounded hover:bg-[#181818] ${
+            editor.isActive('taskList') ? 'bg-[#181818]' : ''
           }`}
         >
-          <CheckSquare size={16} className="text-gray-700" />
+          <CheckSquare size={16} className="text-[#9B9B9B]" />
         </button>
       </div>
 
       {/* Editor */}
       <EditorContent
         editor={editor}
-        className="bg-white text-black min-h-[200px]"
+        className="bg-[#181818] text-[#DBDBDB] min-h-[200px]"
         placeholder={placeholder}
       />
     </div>

@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote, ShoppingList, Password } from '@/types';
@@ -126,33 +125,33 @@ const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5]">
+    <div className="min-h-screen bg-[#000000]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
         <div className="flex items-center gap-4 mb-6">
           <button
             onClick={onBack}
-            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="p-2 border border-[#9B9B9B] rounded-lg hover:bg-[#181818]"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={16} className="text-[#9B9B9B]" />
           </button>
           <Input
             placeholder="Search notes, lists, and passwords..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1"
+            className="flex-1 bg-[#181818] border-[#9B9B9B] text-[#DBDBDB] placeholder:text-[#9B9B9B]"
             autoFocus
           />
         </div>
 
         <div className="space-y-3">
           {searchResults.length === 0 && query.trim() && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-[#9B9B9B]">
               No results found for "{query}"
             </div>
           )}
 
           {searchResults.length === 0 && !query.trim() && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-[#9B9B9B]">
               Start typing to search your notes, lists, and passwords
             </div>
           )}
@@ -160,33 +159,32 @@ const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
           {searchResults.map((result) => (
             <div
               key={`${result.type}-${result.id}`}
-              className="p-4 bg-white rounded-lg cursor-pointer hover:shadow-md transition-shadow"
-              style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}
+              className="p-4 bg-[#181818] rounded-lg cursor-pointer hover:bg-[#2A2A2A] transition-colors"
               onClick={() => handleResultClick(result)}
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   {getIcon(result.type)}
-                  <h3 className="font-medium">{result.title}</h3>
+                  <h3 className="font-medium text-[#DBDBDB]">{result.title}</h3>
                 </div>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                <span className="text-xs text-[#9B9B9B] bg-[#000000] px-2 py-1 rounded">
                   {getTypeLabel(result.type)}
                 </span>
               </div>
 
               {result.content && (
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-sm text-[#9B9B9B] mb-2">
                   {truncateContent(result.content)}
                 </p>
               )}
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1 text-sm font-medium" style={{ color: '#818181' }}>
+                <div className="flex items-center gap-1 text-sm font-medium text-[#9B9B9B]">
                   <Clock className="w-3 h-3" />
                   <span>{getDaysAgo(result.date)}d</span>
                 </div>
                 {result.itemCount !== undefined && (
-                  <span className="text-sm font-medium" style={{ color: '#818181' }}>
+                  <span className="text-sm font-medium text-[#9B9B9B]">
                     {result.itemCount} items
                   </span>
                 )}

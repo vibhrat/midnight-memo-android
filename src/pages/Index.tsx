@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Auth from '@/components/Auth';
@@ -46,10 +45,10 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-[#9B9B9B]">Loading...</p>
         </div>
       </div>
     );
@@ -188,7 +187,7 @@ const Index = () => {
     !(activeTab === 'passwords' && selectedPasswordId);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-[#000000]">
       {renderContent()}
       {showFAB && <FloatingActionButton onClick={handleFloatingButtonClick} />}
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />

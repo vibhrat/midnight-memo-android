@@ -19,10 +19,14 @@ const App = () => {
     if (Capacitor.isNativePlatform()) {
       console.log('Running on native platform:', Capacitor.getPlatform());
       
-      // Hide splash screen after app is loaded
-      import('@capacitor/splash-screen').then(({ SplashScreen }) => {
-        SplashScreen.hide();
-      });
+      // Hide splash screen after app is loaded (only import if available)
+      if (typeof window !== 'undefined') {
+        import('@capacitor/splash-screen').then(({ SplashScreen }) => {
+          SplashScreen.hide();
+        }).catch((error) => {
+          console.log('Splash screen not available:', error);
+        });
+      }
     }
   }, []);
 

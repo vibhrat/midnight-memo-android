@@ -103,16 +103,16 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
     : notes;
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5]">
+    <div className="min-h-screen bg-[#000000]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-extrabold text-[#131010]" style={{ fontFamily: 'IBM Plex Mono' }}>Notes</h1>
+          <h1 className="text-2xl font-extrabold text-[#DBDBDB]" style={{ fontFamily: 'IBM Plex Mono' }}>Notes</h1>
           <div className="flex gap-2">
-            <button onClick={onSettingsClick} className="p-2 hover:bg-gray-100 rounded-lg">
-              <Menu size={20} className="text-gray-600" />
+            <button onClick={onSettingsClick} className="p-2 hover:bg-[#181818] rounded-lg">
+              <Menu size={20} className="text-[#9B9B9B]" />
             </button>
-            <button onClick={onSearchClick} className="p-2 hover:bg-gray-100 rounded-lg">
-              <Search size={20} className="text-gray-600" />
+            <button onClick={onSearchClick} className="p-2 hover:bg-[#181818] rounded-lg">
+              <Search size={20} className="text-[#9B9B9B]" />
             </button>
           </div>
         </div>
@@ -125,8 +125,8 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
                 onClick={() => setSelectedTag('')}
                 className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   selectedTag === '' 
-                    ? 'bg-black text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-[#DBDBDB] text-[#000000]' 
+                    : 'bg-[#181818] text-[#9B9B9B] hover:bg-[#9B9B9B] hover:text-[#000000]'
                 }`}
               >
                 All
@@ -137,8 +137,8 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
                   onClick={() => setSelectedTag(tag)}
                   className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                     selectedTag === tag 
-                      ? 'bg-black text-white' 
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? 'bg-[#DBDBDB] text-[#000000]' 
+                      : 'bg-[#181818] text-[#9B9B9B] hover:bg-[#9B9B9B] hover:text-[#000000]'
                   }`}
                 >
                   <span className="mr-1">{getTagEmoji(tag)}</span>
@@ -153,13 +153,12 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
           {filteredNotes.map((note) => (
             <div 
               key={note.id} 
-              className={`p-3 bg-white rounded-lg cursor-pointer hover:shadow-md transition-shadow ${
+              className={`p-3 bg-[#181818] rounded-lg cursor-pointer hover:bg-[#2A2A2A] transition-colors ${
                 note.isBlurred 
                   ? 'backdrop-blur-sm' 
                   : ''
               }`}
               style={{ 
-                boxShadow: '0px 1px 4px 0px #E8E7E3',
                 filter: note.isBlurred 
                   ? 'blur(4px) saturate(180%) hue-rotate(90deg) contrast(120%)' 
                   : 'none'
@@ -167,7 +166,7 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
               onClick={() => handleCardClick(note.id)}
             >
               <div className="mb-2">
-                <h3 className="font-semibold" style={{ fontSize: '16px' }}>
+                <h3 className="font-semibold text-[#DBDBDB]" style={{ fontSize: '16px' }}>
                   {note.title || 'Untitled'}
                 </h3>
               </div>
@@ -185,22 +184,22 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
                   {note.tag}
                 </div>
               )}
-              <p className="text-gray-700 whitespace-pre-wrap mb-2" style={{ fontSize: '14px' }}>
+              <p className="text-[#9B9B9B] whitespace-pre-wrap mb-2" style={{ fontSize: '14px' }}>
                 {truncateContent(note.content)}
               </p>
-              <div className="flex items-center gap-1 text-sm font-medium" style={{ color: '#818181' }}>
+              <div className="flex items-center gap-1 text-sm font-medium text-[#9B9B9B]">
                 <Clock className="w-3 h-3" />
                 <span>{getDaysAgo(note.updatedAt)}d</span>
               </div>
             </div>
           ))}
           {filteredNotes.length === 0 && selectedTag && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-[#9B9B9B]">
               No notes found for the selected tag.
             </div>
           )}
           {notes.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-[#9B9B9B]">
               No notes yet. Create your first note!
             </div>
           )}
