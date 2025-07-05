@@ -19,6 +19,13 @@ interface CasualNotesProps {
 
 const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick, onSettingsClick }, ref) => {
   const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
+  const [selectedTag, setSelectedTag] = useState<string>('');
+
+  // Preload settings image when component mounts
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/lovable-uploads/0e66d0a5-0c78-4057-ae0a-31ac7f762df9.png';
+  }, []);
 
   useImperativeHandle(ref, () => ({
     triggerCreate: () => {
@@ -84,6 +91,17 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
     }
   };
 
+  // Get unique tags from notes
+  const allTags = ['Note', 'Medicine', 'Travel', 'Tech', 'Links', 'Contact'];
+  const availableTags = allTags.filter(tag => 
+    notes.some(note => note.tag === tag)
+  );
+
+  // Filter notes based on selected tag
+  const filteredNotes = selectedTag 
+    ? notes.filter(note => note.tag === selectedTag)
+    : notes;
+
   return (
     <div className="min-h-screen bg-[#FBFAF5]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
@@ -99,8 +117,40 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
           </div>
         </div>
 
+        {/* Tag Filter Row */}
+        {availableTags.length > 0 && (
+          <div className="mb-6">
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              <button
+                onClick={() => setSelectedTag('')}
+                className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  selectedTag === '' 
+                    ? 'bg-black text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                All
+              </button>
+              {availableTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => setSelectedTag(tag)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                    selectedTag === tag 
+                      ? 'bg-black text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  <span className="mr-1">{getTagEmoji(tag)}</span>
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-3">
-          {notes.map((note) => (
+          {filteredNotes.map((note) => (
             <div 
               key={note.id} 
               className={`p-3 bg-white rounded-lg cursor-pointer hover:shadow-md transition-shadow ${
@@ -144,6 +194,11 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
               </div>
             </div>
           ))}
+          {filteredNotes.length === 0 && selectedTag && (
+            <div className="text-center py-12 text-gray-500">
+              No notes found for the selected tag.
+            </div>
+          )}
           {notes.length === 0 && (
             <div className="text-center py-12 text-gray-500">
               No notes yet. Create your first note!
