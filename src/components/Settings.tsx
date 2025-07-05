@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Download, Upload, LogOut, Lock } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,6 +27,52 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [gyroSupported, setGyroSupported] = useState(false);
+  const [tiltX, setTiltX] = useState(0);
+  const [tiltY, setTiltY] = useState(0);
+
+  // Check for gyroscope support and setup listeners
+  useEffect(() => {
+    const checkGyroSupport = () => {
+      if (typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) {
+        // iOS 13+ requires permission
+        DeviceOrientationEvent.requestPermission()
+          .then(response => {
+            if (response === 'granted') {
+              setGyroSupported(true);
+              setupGyroListener();
+            }
+          })
+          .catch(console.error);
+      } else if (typeof DeviceOrientationEvent !== 'undefined') {
+        // Android and older iOS
+        setGyroSupported(true);
+        setupGyroListener();
+      }
+    };
+
+    const setupGyroListener = () => {
+      const handleOrientation = (event: DeviceOrientationEvent) => {
+        // Limit tilt range and smooth the values
+        const maxTilt = 15; // Maximum tilt in degrees
+        const smoothingFactor = 0.1;
+        
+        const newTiltX = Math.max(-maxTilt, Math.min(maxTilt, (event.beta || 0) * smoothingFactor));
+        const newTiltY = Math.max(-maxTilt, Math.min(maxTilt, (event.gamma || 0) * smoothingFactor));
+        
+        setTiltX(newTiltX);
+        setTiltY(newTiltY);
+      };
+
+      window.addEventListener('deviceorientation', handleOrientation);
+      
+      return () => {
+        window.removeEventListener('deviceorientation', handleOrientation);
+      };
+    };
+
+    checkGyroSupport();
+  }, []);
 
   const handleBackup = () => {
     const appData = {
@@ -126,15 +171,20 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
           </button>
         </div>
 
-        {/* Image container with preloading and minimal 3D effect */}
+        {/* Image container with gyroscope tilt effect */}
         <div className="mb-8 mx-4 relative">
           <img 
             src="/lovable-uploads/0e66d0a5-0c78-4057-ae0a-31ac7f762df9.png" 
             alt="Settings Banner" 
-            className="w-full h-auto object-cover rounded-xl transition-transform duration-75 ease-out"
+            className="w-full h-auto object-cover rounded-xl transition-transform duration-100 ease-out"
             loading="eager"
             decoding="sync"
-            onMouseMove={(e) => {
+            style={{
+              transform: gyroSupported 
+                ? `perspective(1000px) rotateX(${tiltX}deg) rotateY(${-tiltY}deg)`
+                : 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
+            }}
+            onMouseMove={!gyroSupported ? (e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const x = e.clientX - rect.left;
               const y = e.clientY - rect.top;
@@ -144,11 +194,11 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
               const rotateY = (centerX - x) / 2000;
               
               e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-            }}
-            onMouseLeave={(e) => {
+            } : undefined}
+            onMouseLeave={!gyroSupported ? (e) => {
               e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
-            }}
-            onTouchMove={(e) => {
+            } : undefined}
+            onTouchMove={!gyroSupported ? (e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const x = e.touches[0].clientX - rect.left;
               const y = e.touches[0].clientY - rect.top;
@@ -158,14 +208,14 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
               const rotateY = (centerX - x) / 2000;
               
               e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-            }}
-            onTouchEnd={(e) => {
+            } : undefined}
+            onTouchEnd={!gyroSupported ? (e) => {
               e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
-            }}
+            } : undefined}
           />
         </div>
 
-        {/* Circular action buttons - now 4 buttons (removed dark mode toggle) */}
+        {/* Circular action buttons - 4 buttons */}
         <div className="flex justify-center gap-4 mb-8">
           <button
             onClick={() => setShowExportDialog(true)}
