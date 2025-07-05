@@ -20,7 +20,7 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#181818] border-t border-[#9B9B9B] px-4 py-2">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#181818] px-4 py-2">
       <div className="flex justify-around">
         {tabs.map((tab) => {
           const IconComponent = tab.icon;

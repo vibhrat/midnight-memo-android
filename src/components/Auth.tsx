@@ -85,11 +85,11 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold text-[#DBDBDB] mb-2">Welcome</h1>
+          <p className="text-[#9B9B9B]">
             {isForgotPassword 
               ? 'Reset your password' 
               : isLogin 
@@ -107,7 +107,7 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full"
+              className="w-full bg-[#181818] border-[#9B9B9B] text-[#DBDBDB] placeholder:text-[#9B9B9B]"
             />
           </div>
           {!isForgotPassword && (
@@ -118,14 +118,14 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full"
+                className="w-full bg-[#181818] border-[#9B9B9B] text-[#DBDBDB] placeholder:text-[#9B9B9B]"
               />
             </div>
           )}
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-black hover:bg-gray-800 text-white"
+            className="w-full bg-[#DBDBDB] hover:bg-[#9B9B9B] text-[#000000]"
           >
             {loading ? 'Loading...' : (
               isForgotPassword ? 'Send Reset Email' : 
@@ -138,7 +138,7 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
           {!isForgotPassword && (
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="block w-full text-black hover:text-gray-700"
+              className="block w-full text-[#DBDBDB] hover:text-[#9B9B9B]"
             >
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
@@ -147,7 +147,7 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
           {isLogin && !isForgotPassword && (
             <button
               onClick={() => setIsForgotPassword(true)}
-              className="block w-full text-gray-600 hover:text-gray-800"
+              className="block w-full text-[#9B9B9B] hover:text-[#DBDBDB]"
             >
               Forgot your password?
             </button>
@@ -156,7 +156,7 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
           {isForgotPassword && (
             <button
               onClick={() => setIsForgotPassword(false)}
-              className="block w-full text-black hover:text-gray-700"
+              className="block w-full text-[#DBDBDB] hover:text-[#9B9B9B]"
             >
               Back to sign in
             </button>

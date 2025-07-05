@@ -27,10 +27,10 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
 
   if (!list || !editableList) {
     return (
-      <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500">List not found</p>
-          <button onClick={onBack} className="mt-4 px-4 py-2 bg-black text-white rounded">Go Back</button>
+          <p className="text-[#9B9B9B]">List not found</p>
+          <button onClick={onBack} className="mt-4 px-4 py-2 bg-[#DBDBDB] text-[#000000] rounded">Go Back</button>
         </div>
       </div>
     );
@@ -96,21 +96,21 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5]">
+    <div className="min-h-screen bg-[#000000]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={onBack}
-            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="p-2 border border-[#9B9B9B] rounded-lg hover:bg-[#181818]"
           >
-            <ArrowLeft size={22} />
+            <ArrowLeft size={22} className="text-[#9B9B9B]" />
           </button>
           <button
             onClick={() => setShowDeleteDialog(true)}
-            className="p-2 hover:bg-gray-100 rounded-lg"
+            className="p-2 hover:bg-[#181818] rounded-lg"
           >
-            <Trash2 size={22} className="text-gray-600" />
+            <Trash2 size={22} className="text-[#9B9B9B]" />
           </button>
         </div>
 
@@ -119,7 +119,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
           <textarea
             value={editableList.title}
             onChange={(e) => autoSave({ title: e.target.value })}
-            className="text-2xl font-bold bg-transparent border-none outline-none resize-none w-full"
+            className="text-2xl font-bold bg-transparent border-none outline-none resize-none w-full text-[#DBDBDB]"
             placeholder="Untitled List"
             rows={1}
             style={{ 
@@ -144,7 +144,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
             return (
               <div 
                 key={item.id} 
-                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
+                className="bg-[#181818] rounded-2xl p-4 border-none"
                 onTouchStart={(e) => e.currentTarget.setAttribute('data-touch-start', e.touches[0].clientX.toString())}
                 onTouchEnd={(e) => {
                   const startX = parseFloat(e.currentTarget.getAttribute('data-touch-start') || '0');
@@ -169,7 +169,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
                       onFocus={() => handleInputFocus(item.id)}
                       onBlur={() => handleInputBlur(item.id)}
                       className={`flex-1 bg-transparent border-none outline-none text-base font-medium ${
-                        isStriked ? 'line-through text-gray-500' : 'text-gray-900'
+                        isStriked ? 'line-through text-[#9B9B9B]' : 'text-[#DBDBDB]'
                       }`}
                       placeholder="Item name"
                       onClick={(e) => e.stopPropagation()}
@@ -184,7 +184,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
                       onFocus={() => handleInputFocus(item.id)}
                       onBlur={() => handleInputBlur(item.id)}
                       className={`bg-transparent border-none outline-none text-center w-12 text-base font-medium ${
-                        isStriked ? 'line-through text-gray-500' : 'text-gray-500'
+                        isStriked ? 'line-through text-[#9B9B9B]' : 'text-[#9B9B9B]'
                       }`}
                       placeholder="1"
                       onClick={(e) => e.stopPropagation()}
@@ -195,7 +195,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
                         e.stopPropagation();
                         deleteItem(item.id);
                       }}
-                      className="text-gray-400 hover:text-red-500 p-1"
+                      className="text-[#9B9B9B] hover:text-red-500 p-1"
                     >
                       <X size={14} />
                     </button>
@@ -209,7 +209,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         {/* Add Item Button */}
         <button
           onClick={addNewItem}
-          className="w-full border-2 border-dashed border-gray-400 text-gray-600 py-3 rounded-lg flex items-center justify-center gap-2 hover:border-gray-500 hover:text-gray-700 transition-colors"
+          className="w-full border-2 border-dashed border-[#9B9B9B] text-[#9B9B9B] py-3 rounded-lg flex items-center justify-center gap-2 hover:border-[#DBDBDB] hover:text-[#DBDBDB] transition-colors"
         >
           <Plus size={20} />
           Add Item

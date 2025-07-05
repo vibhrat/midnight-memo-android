@@ -10,7 +10,7 @@ interface CredentialsManagementProps {
 }
 
 const CredentialsManagement = ({ onBack }: CredentialsManagementProps) => {
-  const [storedPin, setStoredPin] = useLocalStorage<string>('vault-pin', '');
+  const [storedPin, setStoredPin] = useLocalStorage<string>('app-pin', '');
   const [currentPin, setCurrentPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -58,32 +58,32 @@ const CredentialsManagement = ({ onBack }: CredentialsManagementProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5]">
+    <div className="min-h-screen bg-[#000000]">
       <div className="max-w-2xl mx-auto p-4">
         <div className="flex items-center mb-8">
           <button
             onClick={onBack}
-            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="p-2 border border-[#9B9B9B] rounded-lg hover:bg-[#181818]"
           >
-            <ArrowLeft size={22} />
+            <ArrowLeft size={22} className="text-[#9B9B9B]" />
           </button>
-          <h1 className="text-xl font-bold ml-4">Manage Credentials</h1>
+          <h1 className="text-xl font-bold ml-4 text-[#DBDBDB]">Manage Credentials</h1>
         </div>
 
-        <div className="bg-white p-6 rounded-lg" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
-          <h2 className="text-lg font-bold mb-4">Change Vault PIN</h2>
+        <div className="bg-[#181818] p-6 rounded-lg">
+          <h2 className="text-lg font-bold mb-4 text-[#DBDBDB]">Change Vault PIN</h2>
           
           <form onSubmit={handleChangePIN} className="space-y-4">
             {storedPin && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[#9B9B9B] mb-2">
                   Current PIN
                 </label>
                 <input
                   type="password"
                   value={currentPin}
                   onChange={(e) => setCurrentPin(e.target.value)}
-                  className="w-full h-10 px-3 border border-gray-300 rounded-lg"
+                  className="w-full h-10 px-3 border border-[#9B9B9B] rounded-lg bg-[#000000] text-[#DBDBDB] placeholder:text-[#9B9B9B]"
                   placeholder="Enter current PIN"
                   required
                 />
@@ -91,28 +91,28 @@ const CredentialsManagement = ({ onBack }: CredentialsManagementProps) => {
             )}
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-[#9B9B9B] mb-2">
                 New PIN
               </label>
               <input
                 type="password"
                 value={newPin}
                 onChange={(e) => setNewPin(e.target.value)}
-                className="w-full h-10 px-3 border border-gray-300 rounded-lg"
+                className="w-full h-10 px-3 border border-[#9B9B9B] rounded-lg bg-[#000000] text-[#DBDBDB] placeholder:text-[#9B9B9B]"
                 placeholder="Enter new PIN"
                 required
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-[#9B9B9B] mb-2">
                 Confirm New PIN
               </label>
               <input
                 type="password"
                 value={confirmPin}
                 onChange={(e) => setConfirmPin(e.target.value)}
-                className="w-full h-10 px-3 border border-gray-300 rounded-lg"
+                className="w-full h-10 px-3 border border-[#9B9B9B] rounded-lg bg-[#000000] text-[#DBDBDB] placeholder:text-[#9B9B9B]"
                 placeholder="Confirm new PIN"
                 required
               />
@@ -120,7 +120,7 @@ const CredentialsManagement = ({ onBack }: CredentialsManagementProps) => {
             
             <Button
               type="submit"
-              className="w-full bg-black hover:bg-gray-800 text-white"
+              className="w-full bg-[#DBDBDB] hover:bg-[#9B9B9B] text-[#000000]"
             >
               Update PIN
             </Button>
