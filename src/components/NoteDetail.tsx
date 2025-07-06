@@ -62,6 +62,18 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
     setShowTagSelector(false);
   };
 
+  const getTagColor = (tag: string) => {
+    const colors = {
+      'Note': '#3B82F6',
+      'Medicine': '#EF4444', 
+      'Travel': '#10B981',
+      'Tech': '#8B5CF6',
+      'Links': '#F59E0B',
+      'Contact': '#06B6D4'
+    };
+    return colors[tag as keyof typeof colors] || '#6B7280';
+  };
+
   return (
     <div className="min-h-screen bg-[#000000] overflow-y-auto">
       <div className="max-w-2xl mx-auto p-4">
@@ -114,9 +126,21 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
             onClick={() => setShowTagSelector(true)}
             className="mb-6"
           >
-            <Badge tag={editableNote.tag} className="text-sm font-semibold">
+            <div 
+              className="inline-flex items-center px-3 py-1.5 rounded-full gap-2" 
+              style={{ 
+                fontSize: '12px',
+                backgroundColor: '#2A2A2A',
+                color: '#DBDBDB',
+                fontWeight: '600'
+              }}
+            >
+              <div 
+                className="w-2 h-2 rounded-full" 
+                style={{ backgroundColor: getTagColor(editableNote.tag) }}
+              />
               {editableNote.tag}
-            </Badge>
+            </div>
           </button>
         )}
 

@@ -39,6 +39,16 @@
   }
 }
 
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Rich Text Editor Styles - Dark Theme */
 .ProseMirror {
   outline: none;
@@ -77,6 +87,17 @@
 
 .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
   text-decoration: line-through;
+}
+
+/* Fix bullet lists */
+.ProseMirror ul:not([data-type="taskList"]) {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+}
+
+.ProseMirror ul:not([data-type="taskList"]) li {
+  display: list-item;
+  list-style-type: disc;
 }
 
 /* Custom input focus styles - Dark Theme */

@@ -56,10 +56,10 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
 
   if (!password) {
     return (
-      <div className="min-h-screen bg-[#FBFAF5] flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500">Password not found</p>
-          <Button onClick={onBack} className="mt-4">Go Back</Button>
+          <p className="text-[#9B9B9B]">Password not found</p>
+          <Button onClick={onBack} className="mt-4 bg-[#DBDBDB] text-[#000000] hover:bg-[#9B9B9B]">Go Back</Button>
         </div>
       </div>
     );
@@ -67,7 +67,23 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
 
   const copyToClipboard = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      // Use the modern Clipboard API without showing system popup
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Fallback for older browsers or non-secure contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+      }
+      
       toast({
         title: "Copied!",
         description: "Password copied to clipboard",
@@ -139,57 +155,57 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   };
 
   const renderPasswordField = (field: { id: string; title: string; password: string; createdAt: Date; updatedAt: Date }, isMain = false) => (
-    <div key={field.id} className="bg-white p-4 rounded-lg mb-4" style={{ boxShadow: '0px 1px 4px 0px #E8E7E3' }}>
+    <div key={field.id} className="bg-[#181818] p-4 rounded-lg mb-4">
       <div className="flex justify-between items-center mb-3">
         <input
           type="text"
           value={field.title}
           onChange={(e) => isMain ? handleTitleChange(e.target.value) : handleFieldChange(field.id, 'title', e.target.value)}
-          className="text-lg font-extrabold bg-transparent border-none outline-none flex-1"
+          className="text-lg font-extrabold bg-transparent border-none outline-none flex-1 text-[#DBDBDB]"
           placeholder="Password Title"
           style={{ fontSize: '20px' }}
         />
         {!isMain && (
           <button
             onClick={() => openDeleteDialog('field', field.id)}
-            className="p-1 hover:bg-gray-100 rounded"
+            className="p-1 hover:bg-[#2A2A2A] rounded"
           >
             <Trash2 size={16} className="text-red-600" />
           </button>
         )}
       </div>
       
-      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-3">
+      <div className="flex items-center justify-between p-3 bg-[#000000] rounded-lg mb-3">
         <div className="flex-1 font-mono text-lg">
           <input
             type={showPasswords[field.id] ? 'text' : 'password'}
             value={field.password}
             onChange={(e) => isMain ? handlePasswordChange(e.target.value) : handleFieldChange(field.id, 'password', e.target.value)}
-            className="bg-transparent border-none outline-none w-full font-mono text-lg"
+            className="bg-transparent border-none outline-none w-full font-mono text-lg text-[#DBDBDB]"
             placeholder="Enter password"
           />
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => togglePasswordVisibility(field.id)}
-            className="p-2 hover:bg-gray-200 rounded-lg"
+            className="p-2 hover:bg-[#181818] rounded-lg"
           >
-            {showPasswords[field.id] ? <EyeOff size={20} /> : <Eye size={20} />}
+            {showPasswords[field.id] ? <EyeOff size={20} className="text-[#9B9B9B]" /> : <Eye size={20} className="text-[#9B9B9B]" />}
           </button>
           <button
             onClick={() => copyToClipboard(field.password)}
-            className="p-2 hover:bg-gray-200 rounded-lg"
+            className="p-2 hover:bg-[#181818] rounded-lg"
           >
-            <Copy size={20} />
+            <Copy size={20} className="text-[#9B9B9B]" />
           </button>
         </div>
       </div>
 
       <div className="flex justify-between items-center">
-        <p className="text-gray-500" style={{ fontSize: '12px' }}>
+        <p className="text-[#9B9B9B]" style={{ fontSize: '12px' }}>
           Created: {new Date(field.createdAt).toLocaleDateString()}
         </p>
-        <p className="text-gray-500" style={{ fontSize: '12px' }}>
+        <p className="text-[#9B9B9B]" style={{ fontSize: '12px' }}>
           Updated: {new Date(field.updatedAt).toLocaleDateString()}
         </p>
       </div>
@@ -198,31 +214,31 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
 
   if (isDeleting) {
     return (
-      <div className="min-h-screen bg-[#FBFAF5] flex flex-col justify-center items-center p-4">
+      <div className="min-h-screen bg-[#000000] flex flex-col justify-center items-center p-4">
         <div className="space-y-4 w-full max-w-2xl">
-          <Skeleton className="h-20 w-full rounded-lg" />
-          <Skeleton className="h-32 w-full rounded-lg" />
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Skeleton className="h-20 w-full rounded-lg bg-[#181818]" />
+          <Skeleton className="h-32 w-full rounded-lg bg-[#181818]" />
+          <Skeleton className="h-32 w-full rounded-lg bg-[#181818]" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FBFAF5]">
+    <div className="min-h-screen bg-[#000000]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={onBack}
-            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="p-2 border border-[#9B9B9B] rounded-lg hover:bg-[#181818]"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={20} className="text-[#9B9B9B]" />
           </button>
           <button
             onClick={() => openDeleteDialog('main')}
-            className="p-2 hover:bg-gray-100 rounded-lg"
+            className="p-2 hover:bg-[#181818] rounded-lg"
           >
-            <Trash2 size={20} className="text-black" />
+            <Trash2 size={20} className="text-[#9B9B9B]" />
           </button>
         </div>
         
@@ -235,7 +251,7 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
         {/* Add Field Button - dotted with grey stroke */}
         <button
           onClick={addPasswordField}
-          className="w-full border-2 border-dashed border-gray-400 text-gray-600 py-3 rounded-lg flex items-center justify-center gap-2 hover:border-gray-500 hover:text-gray-700 transition-colors"
+          className="w-full border-2 border-dashed border-[#9B9B9B] text-[#9B9B9B] py-3 rounded-lg flex items-center justify-center gap-2 hover:border-[#DBDBDB] hover:text-[#DBDBDB] transition-colors"
         >
           <Plus size={20} />
           Add Field

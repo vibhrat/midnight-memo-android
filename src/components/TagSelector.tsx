@@ -17,39 +17,39 @@ const TagSelector = ({ isOpen, onClose, onSelect, currentTag }: TagSelectorProps
   const tags = [
     { 
       name: 'Note', 
-      emoji: '📝',
-      backgroundColor: '#E3F2FD',
+      color: '#3B82F6',
     },
     { 
       name: 'Medicine', 
-      emoji: '💊',
-      backgroundColor: '#FFEBEE',
+      color: '#EF4444',
     },
     { 
       name: 'Travel', 
-      emoji: '✈️',
-      backgroundColor: '#E8F5E8',
+      color: '#10B981',
     },
     { 
       name: 'Tech', 
-      emoji: '💻',
-      backgroundColor: '#F3E5F5',
+      color: '#8B5CF6',
     },
     { 
       name: 'Links', 
-      emoji: '🔗',
-      backgroundColor: '#FFF3E0',
+      color: '#F59E0B',
     },
     { 
       name: 'Contact', 
-      emoji: '📱',
-      backgroundColor: '#E0F2F1',
+      color: '#06B6D4',
     }
   ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-sm mx-auto bg-[#181818] rounded-3xl overflow-hidden border-[#9B9B9B]">
+      <DialogContent className="w-full max-w-sm mx-auto rounded-3xl overflow-hidden border border-[#2A2A2A]" 
+        style={{
+          background: 'rgba(24, 24, 24, 0.9)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}
+      >
         <DialogHeader className="pt-8 pb-4">
           <DialogTitle className="text-center text-2xl font-bold text-[#DBDBDB]">Select a tag</DialogTitle>
         </DialogHeader>
@@ -60,15 +60,20 @@ const TagSelector = ({ isOpen, onClose, onSelect, currentTag }: TagSelectorProps
                 key={tag.name}
                 onClick={() => onSelect(tag.name)}
                 className={`relative px-4 py-6 rounded-2xl text-base font-semibold transition-all duration-200 hover:scale-105 active:scale-95 ${
-                  currentTag === tag.name ? 'ring-2 ring-[#DBDBDB] ring-offset-2 ring-offset-[#181818]' : ''
+                  currentTag === tag.name ? 'ring-2 ring-[#DBDBDB] ring-offset-2 ring-offset-transparent' : ''
                 }`}
                 style={{
-                  backgroundColor: tag.backgroundColor,
+                  background: 'rgba(42, 42, 42, 0.7)',
+                  backdropFilter: 'blur(5px)',
+                  WebkitBackdropFilter: 'blur(5px)',
                 }}
               >
                 <div className="flex flex-col items-center gap-2">
-                  <span className="text-2xl">{tag.emoji}</span>
-                  <span className="text-black font-semibold">{tag.name}</span>
+                  <div 
+                    className="w-4 h-4 rounded-full" 
+                    style={{ backgroundColor: tag.color }}
+                  />
+                  <span className="text-[#DBDBDB] font-semibold">{tag.name}</span>
                 </div>
               </button>
             ))}
@@ -76,7 +81,13 @@ const TagSelector = ({ isOpen, onClose, onSelect, currentTag }: TagSelectorProps
           {currentTag && (
             <button
               onClick={() => onSelect('')}
-              className="w-full p-4 bg-[#000000] text-[#9B9B9B] rounded-2xl text-base font-semibold hover:bg-[#2A2A2A] transition-colors"
+              className="w-full p-4 rounded-2xl text-base font-semibold hover:bg-[#2A2A2A] transition-colors"
+              style={{
+                background: 'rgba(0, 0, 0, 0.7)',
+                backdropFilter: 'blur(5px)',
+                WebkitBackdropFilter: 'blur(5px)',
+                color: '#9B9B9B'
+              }}
             >
               Remove tag
             </button>

@@ -63,26 +63,14 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
 
   const getTagColor = (tag: string) => {
     const colors = {
-      'Note': '#E3F2FD',
-      'Medicine': '#FFEBEE', 
-      'Travel': '#E8F5E8',
-      'Tech': '#F3E5F5',
-      'Links': '#FFF3E0',
-      'Contact': '#E0F2F1'
+      'Note': '#3B82F6',
+      'Medicine': '#EF4444', 
+      'Travel': '#10B981',
+      'Tech': '#8B5CF6',
+      'Links': '#F59E0B',
+      'Contact': '#06B6D4'
     };
-    return colors[tag as keyof typeof colors] || '#F5F5F5';
-  };
-
-  const getTagEmoji = (tag: string) => {
-    const emojis = {
-      'Note': '📝',
-      'Medicine': '💊',
-      'Travel': '✈️',
-      'Tech': '💻',
-      'Links': '🔗',
-      'Contact': '📱'
-    };
-    return emojis[tag as keyof typeof emojis] || '';
+    return colors[tag as keyof typeof colors] || '#6B7280';
   };
 
   const handleCardClick = (noteId: string) => {
@@ -120,12 +108,12 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
         {/* Tag Filter Row */}
         {availableTags.length > 0 && (
           <div className="mb-6">
-            <div className="flex gap-2 overflow-x-auto pb-2">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               <button
                 onClick={() => setSelectedTag('')}
                 className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   selectedTag === '' 
-                    ? 'bg-[#DBDBDB] text-[#000000]' 
+                    ? 'bg-[#2A2A2A] text-[#DBDBDB]' 
                     : 'bg-[#181818] text-[#9B9B9B] hover:bg-[#9B9B9B] hover:text-[#000000]'
                 }`}
               >
@@ -135,13 +123,16 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
                 <button
                   key={tag}
                   onClick={() => setSelectedTag(tag)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${
                     selectedTag === tag 
-                      ? 'bg-[#DBDBDB] text-[#000000]' 
+                      ? 'bg-[#2A2A2A] text-[#DBDBDB]' 
                       : 'bg-[#181818] text-[#9B9B9B] hover:bg-[#9B9B9B] hover:text-[#000000]'
                   }`}
                 >
-                  <span className="mr-1">{getTagEmoji(tag)}</span>
+                  <div 
+                    className="w-2 h-2 rounded-full" 
+                    style={{ backgroundColor: getTagColor(tag) }}
+                  />
                   {tag}
                 </button>
               ))}
@@ -172,19 +163,29 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
               </div>
               {note.tag && (
                 <div 
-                  className="inline-flex items-center px-3 py-1.5 rounded-full mb-2" 
+                  className="inline-flex items-center px-3 py-1.5 rounded-full mb-2 gap-2" 
                   style={{ 
                     fontSize: '12px',
-                    backgroundColor: getTagColor(note.tag),
-                    color: '#000000',
+                    backgroundColor: '#2A2A2A',
+                    color: '#DBDBDB',
                     fontWeight: '600'
                   }}
                 >
-                  <span className="mr-1">{getTagEmoji(note.tag)}</span>
+                  <div 
+                    className="w-2 h-2 rounded-full" 
+                    style={{ backgroundColor: getTagColor(note.tag) }}
+                  />
                   {note.tag}
                 </div>
               )}
-              <p className="text-[#9B9B9B] whitespace-pre-wrap mb-2" style={{ fontSize: '14px' }}>
+              <p 
+                className="text-[#9B9B9B] mb-2 break-words overflow-wrap-anywhere" 
+                style={{ 
+                  fontSize: '14px',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'anywhere'
+                }}
+              >
                 {truncateContent(note.content)}
               </p>
               <div className="flex items-center gap-1 text-sm font-medium text-[#9B9B9B]">
