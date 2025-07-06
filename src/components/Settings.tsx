@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { ArrowLeft, Import, Export, LogOut, Lock, Award } from 'lucide-react';
+import { ArrowLeft, Upload, Download, LogOut, Lock, Award } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -133,7 +133,7 @@ const Settings = ({ onBack, onCredentialsClick, onBadgeClick }: SettingsProps) =
             onClick={() => setShowExportDialog(true)}
             className="w-full bg-[#181818] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
           >
-            <Export size={20} />
+            <Download size={20} />
             <span className="text-left">Export Data</span>
           </button>
           
@@ -141,7 +141,7 @@ const Settings = ({ onBack, onCredentialsClick, onBadgeClick }: SettingsProps) =
             onClick={() => setShowImportDialog(true)}
             className="w-full bg-[#181818] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
           >
-            <Import size={20} />
+            <Upload size={20} />
             <span className="text-left">Import Data</span>
           </button>
 
