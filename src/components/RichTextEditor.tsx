@@ -3,7 +3,8 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import { Bold, Italic, List, CheckSquare, Underline, Strikethrough } from 'lucide-react';
+import Underline from '@tiptap/extension-underline';
+import { Bold, Italic, List, CheckSquare, Strikethrough } from 'lucide-react';
 
 interface RichTextEditorProps {
   content: string;
@@ -19,6 +20,7 @@ const RichTextEditor = ({ content, onChange, placeholder }: RichTextEditorProps)
       TaskItem.configure({
         nested: true,
       }),
+      Underline,
     ],
     content,
     onUpdate: ({ editor }) => {
