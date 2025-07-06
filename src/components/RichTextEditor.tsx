@@ -1,10 +1,9 @@
-
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Underline from '@tiptap/extension-underline';
-import { Bold, Italic, List, CheckSquare, Strikethrough } from 'lucide-react';
+import { Bold, Italic, List, CheckSquare, Strikethrough, Underline as UnderlineIcon } from 'lucide-react';
 
 interface RichTextEditorProps {
   content: string;
@@ -70,7 +69,7 @@ const RichTextEditor = ({ content, onChange, placeholder }: RichTextEditorProps)
             editor.isActive('underline') ? 'bg-[#181818] text-[#DBDBDB]' : 'text-[#9B9B9B]'
           }`}
         >
-          <Underline size={16} />
+          <UnderlineIcon size={16} />
         </button>
         <button
           onClick={() => editor.chain().focus().toggleStrike().run()}
