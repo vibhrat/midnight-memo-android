@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useToast } from '@/hooks/use-toast';
-import { Sparkles } from 'lucide-react';
 
 interface PinProtectionProps {
   onUnlock: () => void;
@@ -42,7 +41,11 @@ const PinProtection = ({ onUnlock }: PinProtectionProps) => {
       <div className="w-full max-w-sm mx-auto">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <Sparkles size={32} className="text-purple-600" />
+            <img 
+              src="/lovable-uploads/26774bb1-bc3f-4a92-b07f-d342de25dc8c.png" 
+              alt="Cipher" 
+              className="w-[100px] h-[100px] object-contain"
+            />
           </div>
           <h1 className="text-xl font-bold text-[#DBDBDB] mb-2">State the cipher</h1>
           <p className="text-[#9B9B9B] text-sm">A memory from other side</p>

@@ -85,47 +85,47 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4 overflow-hidden">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#DBDBDB] mb-2">Welcome</h1>
-          <p className="text-[#9B9B9B]">
-            {isForgotPassword 
-              ? 'Reset your password' 
-              : isLogin 
-                ? 'Sign in to your account' 
-                : 'Create a new account'
-            }
-          </p>
+          {/* Vertex Logo */}
+          <div className="flex justify-center mb-6">
+            <svg width="88" height="107" viewBox="0 0 177 215" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M48.0001 136H128L95.0001 215H81.0001L48.0001 136Z" fill="white"/>
+              <path d="M115 107.5L109 136H128L176.5 68L165.5 0V57.5L115 107.5Z" fill="white"/>
+              <path d="M61.5 107.5L67.0001 136H48.0001L0 68L11 0V57.5L61.5 107.5Z" fill="white"/>
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold text-[#DBDBDB] mb-8">VERTEX</h1>
         </div>
 
-        <form onSubmit={handleAuth} className="space-y-4">
+        <form onSubmit={handleAuth} className="space-y-6">
           <div>
-            <Input
+            <input
               type="email"
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-[#181818] border-[#9B9B9B] text-[#DBDBDB] placeholder:text-[#9B9B9B]"
+              className="w-full bg-transparent border-0 border-b border-[#9B9B9B] pb-2 text-[#DBDBDB] placeholder:text-[#9B9B9B] focus:outline-none focus:border-[#DBDBDB] transition-colors"
             />
           </div>
           {!isForgotPassword && (
             <div>
-              <Input
+              <input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-[#181818] border-[#9B9B9B] text-[#DBDBDB] placeholder:text-[#9B9B9B]"
+                className="w-full bg-transparent border-0 border-b border-[#9B9B9B] pb-2 text-[#DBDBDB] placeholder:text-[#9B9B9B] focus:outline-none focus:border-[#DBDBDB] transition-colors"
               />
             </div>
           )}
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#DBDBDB] hover:bg-[#9B9B9B] text-[#000000]"
+            className="w-full bg-[#DBDBDB] hover:bg-[#9B9B9B] text-[#000000] mt-8"
           >
             {loading ? 'Loading...' : (
               isForgotPassword ? 'Send Reset Email' : 

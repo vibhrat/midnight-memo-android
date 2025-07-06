@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Download, Upload, LogOut, Lock } from 'lucide-react';
+
+import { useState } from 'react';
+import { ArrowLeft, Download, Upload, LogOut, Lock, Award } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -16,9 +17,10 @@ import { Button } from "@/components/ui/button";
 interface SettingsProps {
   onBack: () => void;
   onCredentialsClick?: () => void;
+  onBadgeClick?: () => void;
 }
 
-const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
+const Settings = ({ onBack, onCredentialsClick, onBadgeClick }: SettingsProps) => {
   const [notes] = useLocalStorage('casual-notes', []);
   const [lists] = useLocalStorage('shopping-lists', []);
   const [passwords] = useLocalStorage('passwords', []);
@@ -27,54 +29,6 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  const [gyroSupported, setGyroSupported] = useState(false);
-  const [tiltX, setTiltX] = useState(0);
-  const [tiltY, setTiltY] = useState(0);
-
-  // Check for gyroscope support and setup listeners
-  useEffect(() => {
-    const checkGyroSupport = () => {
-      if (typeof DeviceOrientationEvent !== 'undefined') {
-        // Check if requestPermission method exists (iOS 13+)
-        if ('requestPermission' in DeviceOrientationEvent) {
-          (DeviceOrientationEvent as any).requestPermission()
-            .then((response: string) => {
-              if (response === 'granted') {
-                setGyroSupported(true);
-                setupGyroListener();
-              }
-            })
-            .catch(console.error);
-        } else {
-          // Android and older iOS
-          setGyroSupported(true);
-          setupGyroListener();
-        }
-      }
-    };
-
-    const setupGyroListener = () => {
-      const handleOrientation = (event: DeviceOrientationEvent) => {
-        // Limit tilt range and smooth the values
-        const maxTilt = 15; // Maximum tilt in degrees
-        const smoothingFactor = 0.1;
-        
-        const newTiltX = Math.max(-maxTilt, Math.min(maxTilt, (event.beta || 0) * smoothingFactor));
-        const newTiltY = Math.max(-maxTilt, Math.min(maxTilt, (event.gamma || 0) * smoothingFactor));
-        
-        setTiltX(newTiltX);
-        setTiltY(newTiltY);
-      };
-
-      window.addEventListener('deviceorientation', handleOrientation);
-      
-      return () => {
-        window.removeEventListener('deviceorientation', handleOrientation);
-      };
-    };
-
-    checkGyroSupport();
-  }, []);
 
   const handleBackup = () => {
     const appData = {
@@ -173,83 +127,47 @@ const Settings = ({ onBack, onCredentialsClick }: SettingsProps) => {
           </button>
         </div>
 
-        {/* Image container with gyroscope tilt effect */}
-        <div className="mb-8 mx-4 relative">
-          <img 
-            src="/lovable-uploads/0e66d0a5-0c78-4057-ae0a-31ac7f762df9.png" 
-            alt="Settings Banner" 
-            className="w-full h-auto object-cover rounded-xl transition-transform duration-100 ease-out"
-            loading="eager"
-            decoding="sync"
-            style={{
-              transform: gyroSupported 
-                ? `perspective(1000px) rotateX(${tiltX}deg) rotateY(${-tiltY}deg)`
-                : 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
-            }}
-            onMouseMove={!gyroSupported ? (e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const x = e.clientX - rect.left;
-              const y = e.clientY - rect.top;
-              const centerX = rect.width / 2;
-              const centerY = rect.height / 2;
-              const rotateX = (y - centerY) / 2000;
-              const rotateY = (centerX - x) / 2000;
-              
-              e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-            } : undefined}
-            onMouseLeave={!gyroSupported ? (e) => {
-              e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
-            } : undefined}
-            onTouchMove={!gyroSupported ? (e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const x = e.touches[0].clientX - rect.left;
-              const y = e.touches[0].clientY - rect.top;
-              const centerX = rect.width / 2;
-              const centerY = rect.height / 2;
-              const rotateX = (y - centerY) / 2000;
-              const rotateY = (centerX - x) / 2000;
-              
-              e.currentTarget.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-            } : undefined}
-            onTouchEnd={!gyroSupported ? (e) => {
-              e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
-            } : undefined}
-          />
-        </div>
-
-        {/* Circular action buttons - 4 buttons */}
-        <div className="flex justify-center gap-4 mb-8">
+        {/* Full-width buttons */}
+        <div className="space-y-4 mb-8">
           <button
             onClick={() => setShowExportDialog(true)}
-            className="w-16 h-16 bg-[#DBDBDB] text-[#000000] rounded-full flex items-center justify-center hover:bg-[#9B9B9B] transition-colors"
-            title="Export Data"
+            className="w-full bg-[#181818] border border-[#9B9B9B] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
           >
-            <Download size={24} />
+            <Download size={20} />
+            <span className="text-left">Export Data</span>
           </button>
           
           <button
             onClick={() => setShowImportDialog(true)}
-            className="w-16 h-16 bg-[#DBDBDB] text-[#000000] rounded-full flex items-center justify-center hover:bg-[#9B9B9B] transition-colors"
-            title="Import Data"
+            className="w-full bg-[#181818] border border-[#9B9B9B] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
           >
-            <Upload size={24} />
+            <Upload size={20} />
+            <span className="text-left">Import Data</span>
           </button>
 
           <button
             onClick={onCredentialsClick}
-            className="w-16 h-16 bg-[#DBDBDB] text-[#000000] rounded-full flex items-center justify-center hover:bg-[#9B9B9B] transition-colors"
-            title="Manage Credentials"
+            className="w-full bg-[#181818] border border-[#9B9B9B] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
           >
-            <Lock size={24} />
+            <Lock size={20} />
+            <span className="text-left">Manage Credentials</span>
+          </button>
+
+          <button
+            onClick={onBadgeClick}
+            className="w-full bg-[#181818] border border-[#9B9B9B] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
+          >
+            <Award size={20} />
+            <span className="text-left">Badge</span>
           </button>
 
           {user && (
             <button
               onClick={() => setShowLogoutDialog(true)}
-              className="w-16 h-16 bg-[#DBDBDB] text-[#000000] rounded-full flex items-center justify-center hover:bg-[#9B9B9B] transition-colors"
-              title="Sign Out"
+              className="w-full bg-[#181818] border border-[#9B9B9B] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
             >
-              <LogOut size={24} />
+              <LogOut size={20} />
+              <span className="text-left">Sign Out</span>
             </button>
           )}
         </div>
