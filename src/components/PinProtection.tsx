@@ -37,7 +37,7 @@ const PinProtection = ({ onUnlock }: PinProtectionProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4 overflow-hidden">
       <div className="w-full max-w-sm mx-auto">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">

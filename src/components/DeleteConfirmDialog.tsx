@@ -19,17 +19,17 @@ interface DeleteConfirmDialogProps {
 const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm }: DeleteConfirmDialogProps) => {
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="w-full max-w-full">
+      <AlertDialogContent className="w-full max-w-full mx-4 rounded-lg bg-[#181818] border-[#9B9B9B] p-6">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-center text-xl font-bold">Erase it's existence?</AlertDialogTitle>
+          <AlertDialogTitle className="text-center text-xl font-bold text-[#DBDBDB]">Erase it's existence?</AlertDialogTitle>
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex gap-4 mt-8 px-6 pb-6">
-          <AlertDialogCancel onClick={onClose} className="flex-1 h-14 text-lg font-semibold">
+        <AlertDialogFooter className="flex gap-4 mt-8">
+          <AlertDialogCancel onClick={onClose} className="flex-1 h-14 text-lg font-semibold bg-transparent border-[#9B9B9B] text-[#DBDBDB] hover:bg-[#000000]">
             Mercy
           </AlertDialogCancel>
           <AlertDialogAction 
             onClick={onConfirm} 
-            className="flex-1 h-14 text-lg font-semibold bg-red-600 text-white hover:bg-red-700"
+            className="flex-1 h-14 text-lg font-semibold bg-red-600 text-white hover:bg-red-700 border-none"
           >
             Obliterate
           </AlertDialogAction>

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { ArrowLeft, Download, Upload, LogOut, Lock, Award } from 'lucide-react';
+import { ArrowLeft, Import, Export, LogOut, Lock, Award } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -131,23 +131,23 @@ const Settings = ({ onBack, onCredentialsClick, onBadgeClick }: SettingsProps) =
         <div className="space-y-4 mb-8">
           <button
             onClick={() => setShowExportDialog(true)}
-            className="w-full bg-[#181818] border border-[#9B9B9B] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
+            className="w-full bg-[#181818] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
           >
-            <Download size={20} />
+            <Export size={20} />
             <span className="text-left">Export Data</span>
           </button>
           
           <button
             onClick={() => setShowImportDialog(true)}
-            className="w-full bg-[#181818] border border-[#9B9B9B] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
+            className="w-full bg-[#181818] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
           >
-            <Upload size={20} />
+            <Import size={20} />
             <span className="text-left">Import Data</span>
           </button>
 
           <button
             onClick={onCredentialsClick}
-            className="w-full bg-[#181818] border border-[#9B9B9B] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
+            className="w-full bg-[#181818] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
           >
             <Lock size={20} />
             <span className="text-left">Manage Credentials</span>
@@ -155,7 +155,7 @@ const Settings = ({ onBack, onCredentialsClick, onBadgeClick }: SettingsProps) =
 
           <button
             onClick={onBadgeClick}
-            className="w-full bg-[#181818] border border-[#9B9B9B] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
+            className="w-full bg-[#181818] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
           >
             <Award size={20} />
             <span className="text-left">Badge</span>
@@ -164,7 +164,7 @@ const Settings = ({ onBack, onCredentialsClick, onBadgeClick }: SettingsProps) =
           {user && (
             <button
               onClick={() => setShowLogoutDialog(true)}
-              className="w-full bg-[#181818] border border-[#9B9B9B] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
+              className="w-full bg-[#181818] text-[#DBDBDB] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
             >
               <LogOut size={20} />
               <span className="text-left">Sign Out</span>
@@ -183,7 +183,7 @@ const Settings = ({ onBack, onCredentialsClick, onBadgeClick }: SettingsProps) =
 
       {/* Confirmation Dialogs */}
       <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
-        <DialogContent className="max-w-md bg-[#181818] border-[#9B9B9B] p-8">
+        <DialogContent className="max-w-md bg-[#181818] border-[#9B9B9B] p-8 rounded-lg">
           <DialogHeader className="pb-6">
             <DialogTitle className="text-[#DBDBDB]">Export Data</DialogTitle>
             <DialogDescription className="text-[#9B9B9B]">
@@ -202,7 +202,7 @@ const Settings = ({ onBack, onCredentialsClick, onBadgeClick }: SettingsProps) =
       </Dialog>
 
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <DialogContent className="max-w-md bg-[#181818] border-[#9B9B9B] p-8">
+        <DialogContent className="max-w-md bg-[#181818] border-[#9B9B9B] p-8 rounded-lg">
           <DialogHeader className="pb-6">
             <DialogTitle className="text-[#DBDBDB]">Import Data</DialogTitle>
             <DialogDescription className="text-[#9B9B9B]">
@@ -221,7 +221,7 @@ const Settings = ({ onBack, onCredentialsClick, onBadgeClick }: SettingsProps) =
       </Dialog>
 
       <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <DialogContent className="max-w-md bg-[#181818] border-[#9B9B9B] p-8">
+        <DialogContent className="max-w-md bg-[#181818] border-[#9B9B9B] p-8 rounded-lg">
           <DialogHeader className="pb-6">
             <DialogTitle className="text-[#DBDBDB]">Sign Out</DialogTitle>
             <DialogDescription className="text-[#9B9B9B]">

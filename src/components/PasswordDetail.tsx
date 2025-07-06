@@ -77,13 +77,21 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
         textArea.style.position = 'fixed';
         textArea.style.left = '-999999px';
         textArea.style.top = '-999999px';
+        textArea.style.opacity = '0';
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-        document.execCommand('copy');
+        
+        // Execute copy command silently
+        const successful = document.execCommand('copy');
         textArea.remove();
+        
+        if (!successful) {
+          throw new Error('Copy command failed');
+        }
       }
       
+      // Show custom toast instead of system popup
       toast({
         title: "Copied!",
         description: "Password copied to clipboard",

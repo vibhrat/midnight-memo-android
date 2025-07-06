@@ -87,16 +87,16 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
   return (
     <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4 overflow-hidden">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
+        <div className="text-center mb-12">
           {/* Vertex Logo */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-8">
             <svg width="88" height="107" viewBox="0 0 177 215" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M48.0001 136H128L95.0001 215H81.0001L48.0001 136Z" fill="white"/>
               <path d="M115 107.5L109 136H128L176.5 68L165.5 0V57.5L115 107.5Z" fill="white"/>
               <path d="M61.5 107.5L67.0001 136H48.0001L0 68L11 0V57.5L61.5 107.5Z" fill="white"/>
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-[#DBDBDB] mb-8">VERTEX</h1>
+          <h1 className="text-2xl font-bold text-[#DBDBDB] tracking-widest">VERTEX</h1>
         </div>
 
         <form onSubmit={handleAuth} className="space-y-6">
