@@ -13,7 +13,7 @@ const FloatingActionButton = ({ onClick, className = '' }: FloatingActionButtonP
     >
       <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
         <foreignObject x="-5" y="-5" width="66" height="66">
-          <div xmlns="http://www.w3.org/1999/xhtml" style={{backdropFilter:'blur(2.5px)', clipPath:'url(#bgblur_0_4422_1050_clip_path)', height:'100%', width:'100%'}}></div>
+          <div style={{backdropFilter:'blur(2.5px)', clipPath:'url(#bgblur_0_4422_1050_clip_path)', height:'100%', width:'100%'}}></div>
         </foreignObject>
         <rect data-figma-bg-blur-radius="5" width="56" height="56" rx="28" fill="url(#paint0_linear_4422_1050)"/>
         <g filter="url(#filter1_d_4422_1050)">
