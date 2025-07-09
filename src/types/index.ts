@@ -1,3 +1,4 @@
+
 export interface CasualNote {
   id: string;
   title: string;
@@ -35,7 +36,7 @@ export interface Password {
   id: string;
   title: string;
   password: string;
-  passwordFields?: PasswordField[];
+  fields?: PasswordField[];
   createdAt: Date;
   updatedAt: Date;
 }

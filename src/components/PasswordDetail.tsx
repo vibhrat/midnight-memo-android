@@ -79,17 +79,20 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   };
 
   const addNewField = () => {
+    const now = new Date();
     const newField: PasswordField = {
       id: Date.now().toString(),
       title: '',
-      password: ''
+      password: '',
+      createdAt: now,
+      updatedAt: now
     };
     autoSave({ fields: [...(editablePassword.fields || []), newField] });
   };
 
   const updateField = (fieldId: string, updates: Partial<PasswordField>) => {
     const updatedFields = (editablePassword.fields || []).map(field =>
-      field.id === fieldId ? { ...field, ...updates } : field
+      field.id === fieldId ? { ...field, ...updates, updatedAt: new Date() } : field
     );
     autoSave({ fields: updatedFields });
   };
