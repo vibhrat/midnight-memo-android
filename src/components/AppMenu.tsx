@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote, ShoppingList, Password } from '@/types';
-import { ArrowLeft, Download, LogOut, Award, Upload, KeyRound } from 'lucide-react';
+import { ArrowLeft, Upload, LogOut, Award, Download, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AppMenuProps {
@@ -13,7 +12,7 @@ interface AppMenuProps {
 const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
   const [notes] = useLocalStorage<CasualNote[]>('casual-notes', []);
   const [lists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
-  const [passwords] = useLocalStorage<Password[]>('vault-passwords', []);
+  const [passwords] = useLocalStorage<Password[]>('passwords', []);
   const [showExportConfirm, setShowExportConfirm] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -169,14 +168,14 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
     }
     
     if (data.passwords) {
-      const currentPasswords = JSON.parse(localStorage.getItem('vault-passwords') || '[]');
+      const currentPasswords = JSON.parse(localStorage.getItem('passwords') || '[]');
       const newPasswords = data.passwords.map((password: any) => ({
         ...password,
         id: Date.now().toString() + Math.random().toString(),
         createdAt: new Date(password.createdAt || Date.now()),
         updatedAt: new Date(password.updatedAt || Date.now())
       }));
-      localStorage.setItem('vault-passwords', JSON.stringify([...currentPasswords, ...newPasswords]));
+      localStorage.setItem('passwords', JSON.stringify([...currentPasswords, ...newPasswords]));
     }
   };
 
@@ -203,14 +202,14 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
   };
 
   const importPassword = (data: any) => {
-    const currentPasswords = JSON.parse(localStorage.getItem('vault-passwords') || '[]');
+    const currentPasswords = JSON.parse(localStorage.getItem('passwords') || '[]');
     const newPassword = {
       ...data,
       id: Date.now().toString() + Math.random().toString(),
       createdAt: new Date(data.createdAt || Date.now()),
       updatedAt: new Date(data.updatedAt || Date.now())
     };
-    localStorage.setItem('vault-passwords', JSON.stringify([newPassword, ...currentPasswords]));
+    localStorage.setItem('passwords', JSON.stringify([newPassword, ...currentPasswords]));
   };
 
   return (
@@ -231,7 +230,7 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
             onClick={() => setShowExportConfirm(true)}
             className="w-full bg-[#181818] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
           >
-            <Download size={20} className="text-[#9B9B9B]" />
+            <Upload size={20} className="text-[#9B9B9B]" />
             <span className="text-[#DBDBDB]">Export Data</span>
           </button>
 
@@ -255,7 +254,7 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
             onClick={() => setShowImportDialog(true)}
             className="w-full bg-[#181818] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
           >
-            <Upload size={20} className="text-[#9B9B9B]" />
+            <Download size={20} className="text-[#9B9B9B]" />
             <span className="text-[#DBDBDB]">Import</span>
           </button>
 

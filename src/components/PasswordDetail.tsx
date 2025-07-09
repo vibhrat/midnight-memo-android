@@ -12,7 +12,7 @@ interface PasswordDetailProps {
 }
 
 const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
-  const [passwords, setPasswords] = useLocalStorage<Password[]>('vault-passwords', []);
+  const [passwords, setPasswords] = useLocalStorage<Password[]>('passwords', []);
   const [editablePassword, setEditablePassword] = useState<Password | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -56,7 +56,6 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   const copyToClipboard = async (text: string, fieldName: string = 'Password') => {
     try {
       await navigator.clipboard.writeText(text);
-      // Don't show toast for clipboard copy to avoid system popup
     } catch (error) {
       console.error('Failed to copy to clipboard:', error);
     }
