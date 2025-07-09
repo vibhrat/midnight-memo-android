@@ -233,3 +233,42 @@ textarea {
   width: 28px !important;
   height: 28px !important;
 }
+
+/* Toast message styles - reduced size */
+[data-radix-toast-viewport] {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 2147483647 !important;
+}
+
+[data-radix-toast-root] {
+  max-width: 280px !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+  background-color: #181818 !important;
+  color: #DBDBDB !important;
+  border: 1px solid #2A2A2A !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-radix-toast-title] {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  margin-bottom: 4px !important;
+}
+
+[data-radix-toast-description] {
+  font-size: 12px !important;
+  color: #9B9B9B !important;
+}
+
+[data-radix-toast-close] {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: #9B9B9B !important;
+}

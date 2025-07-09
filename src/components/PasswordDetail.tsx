@@ -2,9 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Password, PasswordField } from '@/types';
-import { ArrowLeft, Trash2, Eye, EyeOff, Copy, Plus, X, Share } from 'lucide-react';
+import { ArrowLeft, Trash2, Eye, EyeOff, Copy, Plus, X } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
-import ShareDialog from '@/components/ShareDialog';
 import { useToast } from '@/hooks/use-toast';
 
 interface PasswordDetailProps {
@@ -16,7 +15,6 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   const [passwords, setPasswords] = useLocalStorage<Password[]>('vault-passwords', []);
   const [editablePassword, setEditablePassword] = useState<Password | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showShareDialog, setShowShareDialog] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [visibleFields, setVisibleFields] = useState<Set<string>>(new Set());
   const { toast } = useToast();
@@ -114,12 +112,6 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
             <ArrowLeft size={22} className="text-[#9B9B9B]" />
           </button>
           <div className="flex gap-2">
-            <button
-              onClick={() => setShowShareDialog(true)}
-              className="p-2 hover:bg-[#181818] rounded-lg"
-            >
-              <Share size={22} className="text-[#9B9B9B]" />
-            </button>
             <button
               onClick={() => setShowDeleteDialog(true)}
               className="p-2 hover:bg-[#181818] rounded-lg"
@@ -250,13 +242,6 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
         onConfirm={handleDelete}
-      />
-
-      <ShareDialog
-        isOpen={showShareDialog}
-        onClose={() => setShowShareDialog(false)}
-        data={editablePassword}
-        type="password"
       />
     </div>
   );

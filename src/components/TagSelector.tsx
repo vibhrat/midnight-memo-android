@@ -43,9 +43,10 @@ const TagSelector = ({ isOpen, onClose, onSelect, currentTag }: TagSelectorProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-sm mx-auto rounded-3xl overflow-hidden border border-[#2A2A2A]" 
+      <DialogContent 
+        className="w-full max-w-sm mx-auto rounded-3xl overflow-hidden border border-[#2A2A2A]" 
         style={{
-          background: 'rgba(24, 24, 24, 0.9)',
+          background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
         }}
@@ -59,8 +60,8 @@ const TagSelector = ({ isOpen, onClose, onSelect, currentTag }: TagSelectorProps
               <button
                 key={tag.name}
                 onClick={() => onSelect(tag.name)}
-                className={`relative px-4 py-6 rounded-2xl text-base font-semibold transition-all duration-200 hover:scale-105 active:scale-95 ${
-                  currentTag === tag.name ? 'ring-2 ring-[#DBDBDB] ring-offset-2 ring-offset-transparent' : ''
+                className={`relative px-4 py-6 rounded-2xl text-base font-semibold transition-all duration-200 hover:scale-105 active:scale-95 border-2 ${
+                  currentTag === tag.name ? 'border-[#645D51]' : 'border-transparent'
                 }`}
                 style={{
                   background: 'rgba(42, 42, 42, 0.7)',
