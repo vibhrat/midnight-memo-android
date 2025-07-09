@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote, ShoppingList, Password } from '@/types';
@@ -134,11 +135,11 @@ const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
           >
             <ArrowLeft size={16} className="text-[#9B9B9B]" />
           </button>
-          <Input
+          <input
             placeholder="Search notes, lists, and passwords..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-[#181818] border-[#9B9B9B] text-[#DBDBDB] placeholder:text-[#9B9B9B]"
+            className="flex-1 bg-transparent border-0 border-b border-[#9B9B9B] text-[#DBDBDB] placeholder:text-[#9B9B9B] px-0 py-2 focus:outline-none focus:border-[#DBDBDB] rounded-none"
             autoFocus
           />
         </div>
@@ -147,12 +148,6 @@ const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
           {searchResults.length === 0 && query.trim() && (
             <div className="text-center py-12 text-[#9B9B9B]">
               No results found for "{query}"
-            </div>
-          )}
-
-          {searchResults.length === 0 && !query.trim() && (
-            <div className="text-center py-12 text-[#9B9B9B]">
-              Start typing to search your notes, lists, and passwords
             </div>
           )}
 

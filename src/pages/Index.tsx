@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Auth from '@/components/Auth';
@@ -25,6 +26,7 @@ const Index = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [showBadge, setShowBadge] = useState(false);
   const [showPinManagement, setShowPinManagement] = useState(false);
+  const [navigationHistory, setNavigationHistory] = useState<string[]>(['main']);
   const notesRef = useRef<{ triggerCreate: () => void }>(null);
   const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
   const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
@@ -40,11 +42,69 @@ const Index = () => {
       setShowMenu(false);
       setShowBadge(false);
       setShowPinManagement(false);
+      setNavigationHistory(['main']);
     };
 
     window.addEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
     return () => window.removeEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
   }, []);
+
+  // Handle Android back button
+  useEffect(() => {
+    const handleBackButton = () => {
+      if (navigationHistory.length > 1) {
+        const newHistory = [...navigationHistory];
+        newHistory.pop();
+        const previousPage = newHistory[newHistory.length - 1];
+        
+        setNavigationHistory(newHistory);
+        
+        switch (previousPage) {
+          case 'main':
+            setSelectedListId(null);
+            setSelectedNoteId(null);
+            setSelectedPasswordId(null);
+            setShowSearch(false);
+            setShowMenu(false);
+            setShowBadge(false);
+            setShowPinManagement(false);
+            break;
+          case 'menu':
+            setShowMenu(true);
+            setShowBadge(false);
+            setShowPinManagement(false);
+            break;
+          case 'search':
+            setShowSearch(true);
+            setSelectedListId(null);
+            setSelectedNoteId(null);
+            break;
+        }
+        return true;
+      }
+      return false;
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleBackButton();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    
+    // For mobile back gesture
+    const handlePopState = () => {
+      handleBackButton();
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [navigationHistory]);
 
   if (loading) {
     return (
@@ -83,74 +143,90 @@ const Index = () => {
 
   const handleListSelect = (listId: string) => {
     setSelectedListId(listId);
+    setNavigationHistory(prev => [...prev, 'list-detail']);
   };
 
   const handleNoteSelect = (noteId: string) => {
     setSelectedNoteId(noteId);
+    setNavigationHistory(prev => [...prev, 'note-detail']);
   };
 
   const handlePasswordSelect = (passwordId: string) => {
     setSelectedPasswordId(passwordId);
+    setNavigationHistory(prev => [...prev, 'password-detail']);
   };
 
   const handleBackToLists = () => {
     setSelectedListId(null);
+    setNavigationHistory(prev => prev.slice(0, -1));
   };
 
   const handleBackToNotes = () => {
     setSelectedNoteId(null);
+    setNavigationHistory(prev => prev.slice(0, -1));
   };
 
   const handleBackToPasswords = () => {
     setSelectedPasswordId(null);
+    setNavigationHistory(prev => prev.slice(0, -1));
   };
 
   const handleSearchClick = () => {
     setShowSearch(true);
+    setNavigationHistory(prev => [...prev, 'search']);
   };
 
   const handleBackFromSearch = () => {
     setShowSearch(false);
+    setNavigationHistory(prev => prev.slice(0, -1));
   };
 
   const handleMenuClick = () => {
     setShowMenu(true);
+    setNavigationHistory(prev => [...prev, 'menu']);
   };
 
   const handleBackFromMenu = () => {
     setShowMenu(false);
+    setNavigationHistory(prev => prev.slice(0, -1));
   };
 
   const handleNavigate = (page: string) => {
     if (page === 'badge') {
       setShowBadge(true);
       setShowMenu(false);
+      setNavigationHistory(prev => [...prev, 'badge']);
     } else if (page === 'pin-management') {
       setShowPinManagement(true);
       setShowMenu(false);
+      setNavigationHistory(prev => [...prev, 'pin-management']);
     }
   };
 
   const handleBackFromBadge = () => {
     setShowBadge(false);
     setShowMenu(true);
+    setNavigationHistory(prev => prev.slice(0, -1));
   };
 
   const handleBackFromPin = () => {
     setShowPinManagement(false);
     setShowMenu(true);
+    setNavigationHistory(prev => prev.slice(0, -1));
   };
 
   const handleSearchNoteSelect = (noteId: string) => {
     setShowSearch(false);
     setActiveTab('notes');
     setSelectedNoteId(noteId);
+    setNavigationHistory(prev => [...prev.slice(0, -1), 'note-detail']);
   };
 
   const handleSearchListSelect = (listId: string) => {
     setShowSearch(false);
     setActiveTab('shopping');
     setSelectedListId(listId);
+    setNavigationHistory(prev => [...prev.slice(0, -1), 'list-detail']);
   };
 
   const renderContent = () => {
