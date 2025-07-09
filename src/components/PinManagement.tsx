@@ -1,15 +1,14 @@
 
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
 
-interface CredentialsManagementProps {
+interface PinManagementProps {
   onBack: () => void;
 }
 
-const CredentialsManagement = ({ onBack }: CredentialsManagementProps) => {
+const PinManagement = ({ onBack }: PinManagementProps) => {
   const [storedPin, setStoredPin] = useLocalStorage<string>('app-pin', '');
   const [currentPin, setCurrentPin] = useState('');
   const [newPin, setNewPin] = useState('');
@@ -67,7 +66,7 @@ const CredentialsManagement = ({ onBack }: CredentialsManagementProps) => {
           >
             <ArrowLeft size={22} className="text-[#9B9B9B]" />
           </button>
-          <h1 className="text-xl font-bold ml-4 text-[#DBDBDB]">Manage Credentials</h1>
+          <h1 className="text-xl font-bold ml-4 text-[#DBDBDB]">Manage PIN</h1>
         </div>
 
         <div className="bg-[#181818] p-6 rounded-lg">
@@ -118,12 +117,12 @@ const CredentialsManagement = ({ onBack }: CredentialsManagementProps) => {
               />
             </div>
             
-            <Button
+            <button
               type="submit"
-              className="w-full bg-[#DBDBDB] hover:bg-[#9B9B9B] text-[#000000]"
+              className="w-full bg-[#DBDBDB] hover:bg-[#9B9B9B] text-[#000000] py-3 rounded-lg font-medium transition-colors"
             >
               Update PIN
-            </Button>
+            </button>
           </form>
         </div>
       </div>
@@ -131,4 +130,4 @@ const CredentialsManagement = ({ onBack }: CredentialsManagementProps) => {
   );
 };
 
-export default CredentialsManagement;
+export default PinManagement;

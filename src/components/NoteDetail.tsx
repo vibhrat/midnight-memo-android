@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote } from '@/types';
-import { ArrowLeft, Trash2, Grid3x3 } from 'lucide-react';
+import { ArrowLeft, Trash2, Grid3x3, Share } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import TagSelector from '@/components/TagSelector';
 import RichTextEditor from '@/components/RichTextEditor';
+import ShareDialog from '@/components/ShareDialog';
 import { Badge } from '@/components/ui/badge';
 
 interface NoteDetailProps {
@@ -18,6 +19,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   const [editableNote, setEditableNote] = useState<CasualNote | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTagSelector, setShowTagSelector] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   const note = notes.find(n => n.id === noteId);
 
@@ -91,6 +93,12 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
               className={`p-2 hover:bg-[#181818] rounded-lg ${editableNote.isBlurred ? 'bg-[#181818]' : ''}`}
             >
               <Grid3x3 size={22} className={editableNote.isBlurred ? "text-blue-600" : "text-[#9B9B9B]"} />
+            </button>
+            <button
+              onClick={() => setShowShareDialog(true)}
+              className="p-2 hover:bg-[#181818] rounded-lg"
+            >
+              <Share size={22} className="text-[#9B9B9B]" />
             </button>
             <button
               onClick={() => setShowDeleteDialog(true)}
@@ -180,6 +188,13 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         onClose={() => setShowTagSelector(false)}
         onSelect={handleTagSelect}
         currentTag={editableNote.tag}
+      />
+
+      <ShareDialog
+        isOpen={showShareDialog}
+        onClose={() => setShowShareDialog(false)}
+        data={editableNote}
+        type="note"
       />
     </div>
   );

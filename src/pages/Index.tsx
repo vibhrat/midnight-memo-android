@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Auth from '@/components/Auth';
@@ -9,8 +10,9 @@ import ListDetail from '@/components/ListDetail';
 import Passwords from '@/components/Passwords';
 import PasswordDetail from '@/components/PasswordDetail';
 import Search from '@/components/Search';
-import Settings from '@/components/Settings';
-import CredentialsManagement from '@/components/CredentialsManagement';
+import AppMenu from '@/components/AppMenu';
+import BadgePage from '@/components/BadgePage';
+import PinManagement from '@/components/PinManagement';
 import FloatingActionButton from '@/components/FloatingActionButton';
 
 const Index = () => {
@@ -21,8 +23,9 @@ const Index = () => {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [selectedPasswordId, setSelectedPasswordId] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showCredentials, setShowCredentials] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showBadge, setShowBadge] = useState(false);
+  const [showPinManagement, setShowPinManagement] = useState(false);
   const notesRef = useRef<{ triggerCreate: () => void }>(null);
   const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
   const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
@@ -35,8 +38,9 @@ const Index = () => {
       setSelectedNoteId(null);
       setSelectedPasswordId(null);
       setShowSearch(false);
-      setShowSettings(false);
-      setShowCredentials(false);
+      setShowMenu(false);
+      setShowBadge(false);
+      setShowPinManagement(false);
     };
 
     window.addEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
@@ -110,22 +114,32 @@ const Index = () => {
     setShowSearch(false);
   };
 
-  const handleSettingsClick = () => {
-    setShowSettings(true);
+  const handleMenuClick = () => {
+    setShowMenu(true);
   };
 
-  const handleBackFromSettings = () => {
-    setShowSettings(false);
+  const handleBackFromMenu = () => {
+    setShowMenu(false);
   };
 
-  const handleCredentialsClick = () => {
-    setShowCredentials(true);
-    setShowSettings(false);
+  const handleBadgeClick = () => {
+    setShowBadge(true);
+    setShowMenu(false);
   };
 
-  const handleBackFromCredentials = () => {
-    setShowCredentials(false);
-    setShowSettings(true);
+  const handleBackFromBadge = () => {
+    setShowBadge(false);
+    setShowMenu(true);
+  };
+
+  const handlePinClick = () => {
+    setShowPinManagement(true);
+    setShowMenu(false);
+  };
+
+  const handleBackFromPin = () => {
+    setShowPinManagement(false);
+    setShowMenu(true);
   };
 
   const handleSearchNoteSelect = (noteId: string) => {
@@ -141,12 +155,22 @@ const Index = () => {
   };
 
   const renderContent = () => {
-    if (showCredentials) {
-      return <CredentialsManagement onBack={handleBackFromCredentials} />;
+    if (showPinManagement) {
+      return <PinManagement onBack={handleBackFromPin} />;
     }
 
-    if (showSettings) {
-      return <Settings onBack={handleBackFromSettings} onCredentialsClick={handleCredentialsClick} />;
+    if (showBadge) {
+      return <BadgePage onBack={handleBackFromBadge} />;
+    }
+
+    if (showMenu) {
+      return (
+        <AppMenu 
+          onBack={handleBackFromMenu} 
+          onBadgeClick={handleBadgeClick}
+          onPinClick={handlePinClick}
+        />
+      );
     }
 
     if (showSearch) {
@@ -164,7 +188,7 @@ const Index = () => {
         if (selectedNoteId) {
           return <NoteDetail noteId={selectedNoteId} onBack={handleBackToNotes} />;
         }
-        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} onSettingsClick={handleSettingsClick} />;
+        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} onMenuClick={handleMenuClick} />;
       case 'shopping':
         if (selectedListId) {
           return <ListDetail listId={selectedListId} onBack={handleBackToLists} />;
@@ -176,12 +200,12 @@ const Index = () => {
         }
         return <Passwords ref={passwordsRef} onPasswordSelect={handlePasswordSelect} onSearchClick={handleSearchClick} />;
       default:
-        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} onSettingsClick={handleSettingsClick} />;
+        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} onMenuClick={handleMenuClick} />;
     }
   };
 
-  // Don't show FAB when viewing details, search, settings, or credentials
-  const showFAB = !showSearch && !showSettings && !showCredentials &&
+  // Don't show FAB when viewing details, search, menu, badge, or pin management
+  const showFAB = !showSearch && !showMenu && !showBadge && !showPinManagement &&
     !(activeTab === 'shopping' && selectedListId) && 
     !(activeTab === 'notes' && selectedNoteId) &&
     !(activeTab === 'passwords' && selectedPasswordId);

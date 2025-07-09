@@ -13,10 +13,10 @@ interface CasualNotesRef {
 interface CasualNotesProps {
   onNoteSelect?: (noteId: string) => void;
   onSearchClick?: () => void;
-  onSettingsClick?: () => void;
+  onMenuClick?: () => void;
 }
 
-const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick, onSettingsClick }, ref) => {
+const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick, onMenuClick }, ref) => {
   const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
   const [selectedTag, setSelectedTag] = useState<string>('');
 
@@ -68,7 +68,7 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
       <div className="max-w-2xl mx-auto p-4 pb-20">
         <NotesHeader 
           onSearchClick={onSearchClick}
-          onSettingsClick={onSettingsClick}
+          onMenuClick={onMenuClick}
         />
 
         <TagFilter 

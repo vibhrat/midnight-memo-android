@@ -2,8 +2,9 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
-import { ArrowLeft, Trash2, Plus, X } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, X, Share } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
+import ShareDialog from '@/components/ShareDialog';
 
 interface ListDetailProps {
   listId: string;
@@ -14,6 +15,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
   const [editableList, setEditableList] = useState<ShoppingList | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [swipedItems, setSwipedItems] = useState<Set<string>>(new Set());
   const [editingItems, setEditingItems] = useState<Set<string>>(new Set());
 
@@ -106,12 +108,20 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
           >
             <ArrowLeft size={22} className="text-[#9B9B9B]" />
           </button>
-          <button
-            onClick={() => setShowDeleteDialog(true)}
-            className="p-2 hover:bg-[#181818] rounded-lg"
-          >
-            <Trash2 size={22} className="text-[#9B9B9B]" />
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowShareDialog(true)}
+              className="p-2 hover:bg-[#181818] rounded-lg"
+            >
+              <Share size={22} className="text-[#9B9B9B]" />
+            </button>
+            <button
+              onClick={() => setShowDeleteDialog(true)}
+              className="p-2 hover:bg-[#181818] rounded-lg"
+            >
+              <Trash2 size={22} className="text-[#9B9B9B]" />
+            </button>
+          </div>
         </div>
 
         {/* Title */}
@@ -220,6 +230,13 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
         onConfirm={handleDelete}
+      />
+
+      <ShareDialog
+        isOpen={showShareDialog}
+        onClose={() => setShowShareDialog(false)}
+        data={editableList}
+        type="list"
       />
     </div>
   );
