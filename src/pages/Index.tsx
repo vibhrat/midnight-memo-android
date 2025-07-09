@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Auth from '@/components/Auth';
@@ -122,19 +121,19 @@ const Index = () => {
     setShowMenu(false);
   };
 
-  const handleBadgeClick = () => {
-    setShowBadge(true);
-    setShowMenu(false);
+  const handleNavigate = (page: string) => {
+    if (page === 'badge') {
+      setShowBadge(true);
+      setShowMenu(false);
+    } else if (page === 'pin-management') {
+      setShowPinManagement(true);
+      setShowMenu(false);
+    }
   };
 
   const handleBackFromBadge = () => {
     setShowBadge(false);
     setShowMenu(true);
-  };
-
-  const handlePinClick = () => {
-    setShowPinManagement(true);
-    setShowMenu(false);
   };
 
   const handleBackFromPin = () => {
@@ -167,8 +166,7 @@ const Index = () => {
       return (
         <AppMenu 
           onBack={handleBackFromMenu} 
-          onBadgeClick={handleBadgeClick}
-          onPinClick={handlePinClick}
+          onNavigate={handleNavigate}
         />
       );
     }
