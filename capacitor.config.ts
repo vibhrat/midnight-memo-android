@@ -1,31 +1,13 @@
 
-import { CapacitorConfig } from '@capacitor/core';
+import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'app.lovable.72c6dea7dbb84d3eafee2d39b47e068e',
   appName: 'Vertex',
   webDir: 'dist',
   server: {
-    url: 'https://72c6dea7-dbb8-4d3e-afee-2d39b47e068e.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
-  plugins: {
-    SplashScreen: {
-      launchShowDuration: 3000,
-      launchAutoHide: true,
-      backgroundColor: "#000000",
-      androidSplashResourceName: "splash",
-      androidScaleType: "CENTER_CROP",
-      showSpinner: false,
-      androidSpinnerStyle: "large",
-      iosSpinnerStyle: "small",
-      spinnerColor: "#DBDBDB",
-      splashFullScreen: true,
-      splashImmersive: true,
-      layoutName: "launch_screen",
-      useDialog: true,
-    },
-  },
+    androidScheme: 'https'
+  }
 };
 
 export default config;
