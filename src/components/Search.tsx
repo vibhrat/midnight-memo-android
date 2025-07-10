@@ -17,9 +17,10 @@ const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
   const [lists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
   const [passwords] = useLocalStorage<Password[]>('passwords', []);
 
-  const getDaysAgo = (date: Date) => {
+  const getDaysAgo = (dateString: string) => {
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - new Date(date).getTime());
+    const date = new Date(dateString);
+    const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
@@ -37,7 +38,7 @@ const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
       type: 'note' | 'list' | 'password';
       title: string;
       content?: string;
-      date: Date;
+      date: string;
       itemCount?: number;
     }> = [];
 
@@ -45,22 +46,22 @@ const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
     notes.forEach(note => {
       if (
         note.title.toLowerCase().includes(query.toLowerCase()) ||
-        note.content.toLowerCase().includes(query.toLowerCase()) ||
-        note.tag.toLowerCase().includes(query.toLowerCase())
+        (note.content && note.content.toLowerCase().includes(query.toLowerCase())) ||
+        (note.tag && note.tag.toLowerCase().includes(query.toLowerCase()))
       ) {
         results.push({
           id: note.id,
           type: 'note',
           title: note.title,
-          content: note.content,
-          date: note.updatedAt,
+          content: note.content || '',
+          date: note.updated_at,
         });
       }
     });
 
     // Search lists
     lists.forEach(list => {
-      const itemsText = list.items.map(item => item.name).join(' ');
+      const itemsText = (list.items || []).map(item => item.name).join(' ');
       if (
         list.title.toLowerCase().includes(query.toLowerCase()) ||
         itemsText.toLowerCase().includes(query.toLowerCase())
@@ -69,8 +70,8 @@ const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
           id: list.id,
           type: 'list',
           title: list.title,
-          date: list.updatedAt,
-          itemCount: list.items.length,
+          date: list.updated_at,
+          itemCount: (list.items || []).length,
         });
       }
     });
@@ -82,7 +83,7 @@ const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
           id: password.id,
           type: 'password',
           title: password.title,
-          date: password.updatedAt,
+          date: password.updated_at,
         });
       }
     });
@@ -136,10 +137,9 @@ const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
             <ArrowLeft size={16} className="text-[#9B9B9B]" />
           </button>
           <input
-            placeholder="Search notes, lists, and passwords..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent border-0 border-b border-[#9B9B9B] text-[#DBDBDB] placeholder:text-[#9B9B9B] px-0 py-2 focus:outline-none focus:border-[#DBDBDB] rounded-none"
+            className="flex-1 bg-transparent border-0 border-b border-[#9B9B9B] text-[#DBDBDB] px-0 py-2 focus:outline-none focus:border-[#DBDBDB] rounded-none"
             autoFocus
           />
         </div>

@@ -39,8 +39,8 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   }
 
   const autoSave = (updatedPassword: Partial<Password>) => {
-    const now = new Date();
-    const newPassword = { ...editablePassword, ...updatedPassword, updatedAt: now };
+    const now = new Date().toISOString();
+    const newPassword = { ...editablePassword, ...updatedPassword, updated_at: now };
     setEditablePassword(newPassword);
     setPasswords(passwords.map(p => 
       p.id === passwordId ? newPassword : p
@@ -76,20 +76,21 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   };
 
   const addNewField = () => {
-    const now = new Date();
+    const now = new Date().toISOString();
     const newField: PasswordField = {
       id: Date.now().toString(),
       title: '',
       password: '',
-      createdAt: now,
-      updatedAt: now
+      password_id: passwordId,
+      created_at: now,
+      updated_at: now
     };
     autoSave({ fields: [...(editablePassword.fields || []), newField] });
   };
 
   const updateField = (fieldId: string, updates: Partial<PasswordField>) => {
     const updatedFields = (editablePassword.fields || []).map(field =>
-      field.id === fieldId ? { ...field, ...updates, updatedAt: new Date() } : field
+      field.id === fieldId ? { ...field, ...updates, updated_at: new Date().toISOString() } : field
     );
     autoSave({ fields: updatedFields });
   };
@@ -232,8 +233,8 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
 
         {/* Footer with dates */}
         <div className="flex justify-between items-center px-2 text-xs text-[#9B9B9B]">
-          <p>Created: {new Date(editablePassword.createdAt).toLocaleDateString()}</p>
-          <p>Updated: {new Date(editablePassword.updatedAt).toLocaleDateString()}</p>
+          <p>Created: {new Date(editablePassword.created_at).toLocaleDateString()}</p>
+          <p>Updated: {new Date(editablePassword.updated_at).toLocaleDateString()}</p>
         </div>
       </div>
 

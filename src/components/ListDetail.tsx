@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
@@ -39,8 +38,8 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   }
 
   const autoSave = (updatedList: Partial<ShoppingList>) => {
-    const now = new Date();
-    const newList = { ...editableList, ...updatedList, updatedAt: now };
+    const now = new Date().toISOString();
+    const newList = { ...editableList, ...updatedList, updated_at: now };
     setEditableList(newList);
     setLists(lists.map(l => 
       l.id === listId ? newList : l
@@ -54,24 +53,28 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   };
 
   const addNewItem = () => {
+    const now = new Date().toISOString();
     const newItem: ShoppingListItem = {
       id: Date.now().toString(),
       name: '',
       quantity: '1',
-      checked: false
+      checked: false,
+      shopping_list_id: listId,
+      created_at: now,
+      updated_at: now
     };
-    autoSave({ items: [...editableList.items, newItem] });
+    autoSave({ items: [...(editableList.items || []), newItem] });
   };
 
   const updateItem = (itemId: string, updates: Partial<ShoppingListItem>) => {
-    const updatedItems = editableList.items.map(item =>
-      item.id === itemId ? { ...item, ...updates } : item
+    const updatedItems = (editableList.items || []).map(item =>
+      item.id === itemId ? { ...item, ...updates, updated_at: new Date().toISOString() } : item
     );
     autoSave({ items: updatedItems });
   };
 
   const deleteItem = (itemId: string) => {
-    const updatedItems = editableList.items.filter(item => item.id !== itemId);
+    const updatedItems = (editableList.items || []).filter(item => item.id !== itemId);
     autoSave({ items: updatedItems });
   };
 
@@ -147,7 +150,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
 
         {/* Items */}
         <div className="space-y-3 mb-6">
-          {editableList.items.map((item) => {
+          {(editableList.items || []).map((item) => {
             const isEditing = editingItems.has(item.id);
             const isStriked = swipedItems.has(item.id) && !isEditing;
             
