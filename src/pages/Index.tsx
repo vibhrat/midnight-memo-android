@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Auth from '@/components/Auth';
@@ -14,6 +13,7 @@ import AppMenu from '@/components/AppMenu';
 import BadgePage from '@/components/BadgePage';
 import PinManagement from '@/components/PinManagement';
 import FloatingActionButton from '@/components/FloatingActionButton';
+import QRScanner from '@/components/QRScanner';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -26,6 +26,7 @@ const Index = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [showBadge, setShowBadge] = useState(false);
   const [showPinManagement, setShowPinManagement] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
   const [navigationHistory, setNavigationHistory] = useState<string[]>(['main']);
   const notesRef = useRef<{ triggerCreate: () => void }>(null);
   const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
@@ -229,7 +230,39 @@ const Index = () => {
     setNavigationHistory(prev => [...prev.slice(0, -1), 'list-detail']);
   };
 
+  const handleQRResult = (result: string) => {
+    setShowQRScanner(false);
+    setNavigationHistory(prev => prev.slice(0, -1));
+    
+    try {
+      if (result.startsWith('CIPHER_NOTE:')) {
+        const noteData = JSON.parse(result.replace('CIPHER_NOTE:', ''));
+        console.log('Scanned note:', noteData);
+        // Handle note import
+      } else if (result.startsWith('CIPHER_LIST:')) {
+        const listData = JSON.parse(result.replace('CIPHER_LIST:', ''));
+        console.log('Scanned list:', listData);
+        // Handle list import
+      } else if (result.startsWith('CIPHER_PASSWORD:')) {
+        const passwordData = JSON.parse(result.replace('CIPHER_PASSWORD:', ''));
+        console.log('Scanned password:', passwordData);
+        // Handle password import
+      }
+    } catch (error) {
+      console.error('Failed to parse QR data:', error);
+    }
+  };
+
+  const handleQRClose = () => {
+    setShowQRScanner(false);
+    setNavigationHistory(prev => prev.slice(0, -1));
+  };
+
   const renderContent = () => {
+    if (showQRScanner) {
+      return <QRScanner onResult={handleQRResult} onClose={handleQRClose} />;
+    }
+
     if (showPinManagement) {
       return <PinManagement onBack={handleBackFromPin} />;
     }
@@ -278,8 +311,8 @@ const Index = () => {
     }
   };
 
-  // Don't show FAB when viewing details, search, menu, badge, or pin management
-  const showFAB = !showSearch && !showMenu && !showBadge && !showPinManagement &&
+  // Don't show FAB when viewing QR scanner or other detail views
+  const showFAB = !showSearch && !showMenu && !showBadge && !showPinManagement && !showQRScanner &&
     !(activeTab === 'shopping' && selectedListId) && 
     !(activeTab === 'notes' && selectedNoteId) &&
     !(activeTab === 'passwords' && selectedPasswordId);

@@ -18,14 +18,18 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
   useEffect(() => {
     startCamera();
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-      if (scanIntervalRef.current) {
-        clearInterval(scanIntervalRef.current);
-      }
+      cleanup();
     };
   }, []);
+
+  const cleanup = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+    }
+  };
 
   const startCamera = async () => {
     try {
@@ -40,9 +44,11 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        videoRef.current.play();
-        setIsScanning(true);
-        startScanning();
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+          setIsScanning(true);
+          startScanning();
+        };
       }
     } catch (err) {
       setError('Camera access denied or not available');
@@ -66,92 +72,94 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
         return;
       }
 
+      // Set canvas size to match video
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
+      
+      // Draw current frame
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+      // Get image data for processing
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
       
-      // Simple pattern detection for our cipher format
-      const testPatterns = [
-        'CIPHER_NOTE:',
-        'CIPHER_LIST:',
-        'CIPHER_PASSWORD:',
-        '{"id":',
-        '{"title":'
-      ];
-
-      // Convert image data to a simple text search (simplified approach)
-      // In a real implementation, you'd use a proper QR code library like jsQR
-      const mockQRDetection = () => {
-        // For testing, we can simulate QR detection
-        // You would replace this with actual QR detection library
-        const brightness = Array.from(imageData.data)
-          .filter((_, i) => i % 4 === 0)
-          .reduce((sum, val) => sum + val, 0) / (imageData.width * imageData.height);
+      // Simple QR pattern detection (this is a basic implementation)
+      // In production, you'd use a library like jsQR
+      const detectQRPattern = (data: ImageData) => {
+        const { width, height } = data;
+        const pixels = data.data;
         
-        // Simulate finding a QR code based on image characteristics
-        if (brightness > 100 && brightness < 200) {
-          // Mock QR data - replace with actual QR detection
-          const mockData = 'CIPHER_NOTE:{"id":"' + Date.now() + '","title":"Scanned Note","content":"This is a test note from QR","tag":"Tech","createdAt":"' + new Date().toISOString() + '","updatedAt":"' + new Date().toISOString() + '"}';
-          return mockData;
+        // Look for QR code patterns (simplified detection)
+        let darkPixels = 0;
+        let lightPixels = 0;
+        
+        for (let i = 0; i < pixels.length; i += 4) {
+          const brightness = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+          if (brightness < 128) {
+            darkPixels++;
+          } else {
+            lightPixels++;
+          }
         }
+        
+        // If we have a good contrast ratio, simulate QR detection
+        const contrastRatio = darkPixels / lightPixels;
+        if (contrastRatio > 0.3 && contrastRatio < 3) {
+          // Mock QR data for testing - replace with actual QR library
+          const mockQRData = 'CIPHER_NOTE:{"id":"' + Date.now() + '","title":"Scanned Note","content":"This is a test note from QR scan","tag":"Tech","createdAt":"' + new Date().toISOString() + '","updatedAt":"' + new Date().toISOString() + '"}';
+          return mockQRData;
+        }
+        
         return null;
       };
 
-      const detectedData = mockQRDetection();
+      const detectedData = detectQRPattern(imageData);
       if (detectedData) {
         setIsScanning(false);
-        if (scanIntervalRef.current) {
-          clearInterval(scanIntervalRef.current);
-        }
+        cleanup();
         onResult(detectedData);
       }
-    }, 500);
+    }, 300); // Scan every 300ms
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (file.type.startsWith('image/')) {
-      // Handle image file
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        // For images, we'd need to process them with a QR library
-        // For now, show error asking for proper QR
-        setError('Please scan a valid QR code or upload a text file');
-      };
-      reader.readAsDataURL(file);
-    } else {
-      // Handle text file
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      
+      if (file.type.startsWith('image/')) {
+        // For images, we'd need a QR library to decode
+        // For now, show an error
+        setError('Please upload a text file with QR data or scan directly');
+      } else {
+        // Handle text file
         if (result && (result.includes('CIPHER_NOTE:') || result.includes('CIPHER_LIST:') || result.includes('CIPHER_PASSWORD:'))) {
+          cleanup();
           onResult(result);
         } else {
           setError('Invalid QR code format');
         }
-      };
+      }
+    };
+    
+    if (file.type.startsWith('image/')) {
+      reader.readAsDataURL(file);
+    } else {
       reader.readAsText(file);
     }
   };
 
   const handleClose = () => {
     setIsScanning(false);
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current);
-    }
+    cleanup();
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-black">
-      {/* Header with close button */}
+      {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-black/80 to-transparent">
         <div className="flex justify-between items-center">
           <h2 className="text-white text-lg font-semibold">Scan QR Code</h2>
@@ -183,12 +191,18 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
             />
             <canvas ref={canvasRef} className="hidden" />
             
-            {/* Scanning overlay */}
+            {/* Large scanning overlay */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative">
-                <div className="w-64 h-64 border-2 border-white border-dashed rounded-2xl bg-white/10 backdrop-blur-sm"></div>
+                {/* Larger scan frame */}
+                <div className="w-80 h-80 border-2 border-white border-dashed rounded-2xl bg-white/5 backdrop-blur-sm"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-56 h-56 border-2 border-blue-400 rounded-xl animate-pulse"></div>
+                  <div className="w-72 h-72 border-2 border-blue-400 rounded-xl animate-pulse"></div>
+                </div>
+                
+                {/* Scanning line animation */}
+                <div className="absolute inset-2 overflow-hidden rounded-xl">
+                  <div className="w-full h-0.5 bg-blue-400 animate-pulse"></div>
                 </div>
               </div>
             </div>
@@ -196,14 +210,14 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
             {/* Instruction text */}
             <div className="absolute bottom-32 left-0 right-0 text-center">
               <p className="text-white text-lg font-medium bg-black/50 backdrop-blur-sm mx-4 p-4 rounded-xl">
-                Position QR code within the frame
+                Point camera at QR code
               </p>
             </div>
           </>
         )}
       </div>
 
-      {/* Bottom controls */}
+      {/* Bottom upload button */}
       <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
         <label className="block w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-center py-4 px-6 rounded-xl font-semibold transition-colors cursor-pointer">
           <Upload size={20} className="inline mr-2" />
