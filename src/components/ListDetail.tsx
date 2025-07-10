@@ -237,6 +237,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         onClose={() => setShowShareDialog(false)}
         data={editableList}
         type="list"
+        mode="share"
       />
     </div>
   );

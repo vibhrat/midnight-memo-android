@@ -5,8 +5,8 @@ import { ShoppingList, ShoppingListItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Clock } from 'lucide-react';
-import { Search } from 'lucide-react';
+import { Clock, Search, Download } from 'lucide-react';
+import ShareDialog from '@/components/ShareDialog';
 
 interface ShoppingListsRef {
   triggerCreate: () => void;
@@ -19,10 +19,10 @@ interface ShoppingListsProps {
 
 const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onListSelect, onSearchClick }, ref) => {
   const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
+  const [showImportDialog, setShowImportDialog] = useState(false);
 
   useImperativeHandle(ref, () => ({
     triggerCreate: () => {
-      // Create a new blank list and navigate to it
       const now = new Date();
       const newList: ShoppingList = {
         id: Date.now().toString(),
@@ -51,14 +51,23 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
     }
   };
 
+  const handleImportClick = () => {
+    setShowImportDialog(true);
+  };
+
   return (
     <div className="min-h-screen bg-[#000000]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-extrabold text-[#DBDBDB]" style={{ fontFamily: 'IBM Plex Mono' }}>Lists</h1>
-          <button onClick={onSearchClick} className="p-2 hover:bg-[#181818] rounded-lg">
-            <Search size={20} className="text-[#9B9B9B]" />
-          </button>
+          <div className="flex gap-2">
+            <button onClick={handleImportClick} className="p-2 hover:bg-[#181818] rounded-lg">
+              <Download size={20} className="text-[#9B9B9B]" />
+            </button>
+            <button onClick={onSearchClick} className="p-2 hover:bg-[#181818] rounded-lg">
+              <Search size={20} className="text-[#9B9B9B]" />
+            </button>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -94,6 +103,14 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
           )}
         </div>
       </div>
+
+      <ShareDialog
+        isOpen={showImportDialog}
+        onClose={() => setShowImportDialog(false)}
+        data={{}}
+        type="list"
+        mode="import"
+      />
     </div>
   );
 });

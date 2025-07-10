@@ -195,6 +195,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         onClose={() => setShowShareDialog(false)}
         data={editableNote}
         type="note"
+        mode="share"
       />
     </div>
   );

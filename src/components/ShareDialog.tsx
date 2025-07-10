@@ -2,21 +2,21 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import QRCode from 'qrcode';
-import { Camera, QrCode } from 'lucide-react';
+import QRScanner from './QRScanner';
 
 interface ShareDialogProps {
   isOpen: boolean;
   onClose: () => void;
   data: any;
   type: 'note' | 'list' | 'password';
+  mode?: 'share' | 'import'; // New prop to distinguish between share and import modes
 }
 
-const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
+const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialogProps) => {
   const { toast } = useToast();
   const [showQR, setShowQR] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [showScanner, setShowScanner] = useState(false);
-  const [showImport, setShowImport] = useState(false);
 
   if (!isOpen) return null;
 
@@ -102,7 +102,6 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
         break;
     }
 
-    // Check if data is too big for QR code (typical limit is around 2953 bytes)
     if (qrData.length > 2900) {
       toast({
         title: "Error",
@@ -136,8 +135,9 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
     setShowScanner(true);
   };
 
-  const handleImport = () => {
-    setShowImport(true);
+  const handleQRScanResult = (result: string) => {
+    setShowScanner(false);
+    processImportData(result);
   };
 
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,13 +162,11 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
 
   const processImportData = (content: string) => {
     try {
-      // Try to parse as cipher format first
       if (content.startsWith('CIPHER_NOTE:') || content.startsWith('CIPHER_LIST:')) {
         const prefix = content.startsWith('CIPHER_NOTE:') ? 'CIPHER_NOTE:' : 'CIPHER_LIST:';
         const jsonStr = content.substring(prefix.length);
         const parsedData = JSON.parse(jsonStr);
         
-        // Add to localStorage based on current type
         if (type === 'note' && prefix === 'CIPHER_NOTE:') {
           const existingNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
           const newNote = {
@@ -191,7 +189,6 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
           localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
         }
       } else {
-        // Try to parse as regular JSON
         const parsedData = JSON.parse(content);
         
         if (type === 'note' && (parsedData.title !== undefined || parsedData.content !== undefined)) {
@@ -225,7 +222,6 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
         title: "Success",
         description: `${type.charAt(0).toUpperCase() + type.slice(1)} imported successfully!`,
       });
-      setShowImport(false);
       onClose();
       window.location.reload();
     } catch (error) {
@@ -284,20 +280,14 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
           }}
         >
           <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Scan QR Code</h2>
-          <p className="text-center text-[#9B9B9B] mb-6">QR scanner functionality would be implemented here</p>
-          <button
-            onClick={() => setShowScanner(false)}
-            className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-            style={{ backgroundColor: '#191919' }}
-          >
-            Close
-          </button>
+          <QRScanner onResult={handleQRScanResult} onClose={() => setShowScanner(false)} />
         </div>
       </div>
     );
   }
 
-  if (showImport) {
+  // Import mode - shows scan QR and import options
+  if (mode === 'import') {
     return (
       <div 
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -307,15 +297,22 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
         }}
       >
         <div 
-          className="w-full max-w-sm mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
+          className="w-full max-w-xs mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
           style={{
             background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
           }}
         >
           <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Import {type.charAt(0).toUpperCase() + type.slice(1)}</h2>
           <div className="flex flex-col gap-4">
+            <button
+              onClick={handleScanQR}
+              className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
+              style={{ backgroundColor: '#272727' }}
+            >
+              Scan QR
+            </button>
             <label className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer text-center" style={{ backgroundColor: '#272727' }}>
-              Import JSON File
+              Import
               <input
                 type="file"
                 accept=".json,.txt"
@@ -324,7 +321,7 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
               />
             </label>
             <button
-              onClick={() => setShowImport(false)}
+              onClick={onClose}
               className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
               style={{ backgroundColor: '#191919' }}
             >
@@ -336,6 +333,7 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
     );
   }
 
+  // Share mode - shows limited options for note and list details
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -352,6 +350,15 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
       >
         <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Share {type}</h2>
         <div className="flex flex-col gap-4">
+          {type !== 'password' && (
+            <button
+              onClick={handleGenerateQR}
+              className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
+              style={{ backgroundColor: '#272727' }}
+            >
+              Generate QR
+            </button>
+          )}
           <button
             onClick={handleExportJSON}
             className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
@@ -366,33 +373,6 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
           >
             Share as Text
           </button>
-          {type !== 'password' && (
-            <>
-              <button
-                onClick={handleGenerateQR}
-                className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-                style={{ backgroundColor: '#272727' }}
-              >
-                <QrCode size={18} />
-                Generate QR
-              </button>
-              <button
-                onClick={handleScanQR}
-                className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-                style={{ backgroundColor: '#272727' }}
-              >
-                <Camera size={18} />
-                Scan QR
-              </button>
-              <button
-                onClick={handleImport}
-                className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-                style={{ backgroundColor: '#272727' }}
-              >
-                Import
-              </button>
-            </>
-          )}
           <button
             onClick={onClose}
             className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"

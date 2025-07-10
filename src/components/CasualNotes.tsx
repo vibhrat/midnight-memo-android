@@ -1,10 +1,10 @@
-
 import { useState, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote } from '@/types';
 import NotesHeader from './notes/NotesHeader';
 import TagFilter from './notes/TagFilter';
 import NotesList from './notes/NotesList';
+import ShareDialog from '@/components/ShareDialog';
 
 interface CasualNotesRef {
   triggerCreate: () => void;
@@ -19,6 +19,7 @@ interface CasualNotesProps {
 const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick, onMenuClick }, ref) => {
   const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
   const [selectedTag, setSelectedTag] = useState<string>('');
+  const [showImportDialog, setShowImportDialog] = useState(false);
 
   // Preload settings image when component mounts
   useEffect(() => {
@@ -52,6 +53,10 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
     }
   };
 
+  const handleImportClick = () => {
+    setShowImportDialog(true);
+  };
+
   // Get unique tags from notes
   const allTags = ['Note', 'Medicine', 'Travel', 'Tech', 'Links', 'Contact'];
   const availableTags = allTags.filter(tag => 
@@ -69,6 +74,7 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
         <NotesHeader 
           onSearchClick={onSearchClick}
           onMenuClick={onMenuClick}
+          onImportClick={handleImportClick}
         />
 
         <TagFilter 
@@ -84,6 +90,14 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
           onNoteClick={handleCardClick}
         />
       </div>
+
+      <ShareDialog
+        isOpen={showImportDialog}
+        onClose={() => setShowImportDialog(false)}
+        data={{}}
+        type="note"
+        mode="import"
+      />
     </div>
   );
 });
