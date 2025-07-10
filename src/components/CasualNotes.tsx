@@ -1,14 +1,14 @@
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { ArrowLeft, Plus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { CasualNote } from '@/types';
-import { Badge } from '@/components/ui/badge';
 import TagSelector from './TagSelector';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import ShareDialog from './ShareDialog';
+import NotesList from './notes/NotesList';
 
 interface CasualNotesRef {
   triggerCreate: () => void;
@@ -34,17 +34,37 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(
     const { toast } = useToast();
 
     useImperativeHandle(ref, () => ({
-      triggerCreate: () => {
-        const now = new Date().toISOString();
-        const newNote: Partial<CasualNote> = {
-          title: '',
-          content: '',
-          tag: 'Note',
-          created_at: now,
-          updated_at: now,
-          is_blurred: false,
-        };
-        createNote(newNote);
+      triggerCreate: async () => {
+        if (!user) return;
+
+        try {
+          const now = new Date().toISOString();
+          const { data, error } = await supabase
+            .from('casual_notes')
+            .insert([{
+              title: '',
+              content: '',
+              tag: 'Note',
+              created_at: now,
+              updated_at: now,
+              is_blurred: false,
+              user_id: user.id
+            }])
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          setNotes(prev => [data, ...prev]);
+          onNoteSelect(data.id);
+        } catch (error) {
+          console.error('Error creating note:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create note",
+            variant: "destructive"
+          });
+        }
       }
     }));
 
@@ -76,33 +96,6 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(
         });
       } finally {
         setLoading(false);
-      }
-    };
-
-    const createNote = async (noteData: Partial<CasualNote>) => {
-      if (!user) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('casual_notes')
-          .insert([{
-            ...noteData,
-            user_id: user.id
-          }])
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        setNotes(prev => [data, ...prev]);
-        onNoteSelect(data.id);
-      } catch (error) {
-        console.error('Error creating note:', error);
-        toast({
-          title: "Error",
-          description: "Failed to create note",
-          variant: "destructive"
-        });
       }
     };
 
@@ -152,15 +145,6 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(
     const handleShareNote = (note: CasualNote) => {
       setNoteToShare(note);
       setShareDialogOpen(true);
-    };
-
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
     };
 
     const EmptyStateIllustration = () => (
@@ -230,72 +214,12 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(
               />
 
               {/* Notes List */}
-              <div className="space-y-4">
-                {filteredNotes.map((note) => (
-                  <div
-                    key={note.id}
-                    className="p-4 rounded-lg border border-[#2F2F2F] bg-[#1A1A1A] hover:bg-[#2A2A2A] transition-colors cursor-pointer"
-                    onClick={() => onNoteSelect(note.id)}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-[#DBDBDB]">{note.title || 'Untitled'}</h3>
-                        {note.tag && (
-                          <Badge variant={note.tag.toLowerCase() as any} tag={note.tag}>
-                            {note.tag}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShareNote(note);
-                          }}
-                          className="p-1 hover:bg-[#3A3A3A] rounded"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-[#9B9B9B]">
-                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <polyline points="16,6 12,2 8,6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <line x1="12" y1="2" x2="12" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                          </svg>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteNote(note);
-                          }}
-                          className="text-red-500 hover:text-red-400 text-sm"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-[#9B9B9B] text-sm line-clamp-2">
-                      {note.content}
-                    </p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs text-[#666666]">
-                        {formatDate(note.created_at)}
-                      </span>
-                      {note.is_blurred && (
-                        <span className="text-xs text-[#666666] bg-[#2F2F2F] px-2 py-1 rounded">
-                          Blurred
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {filteredNotes.length === 0 && selectedTag !== 'all' && (
-                <div className="text-center py-12">
-                  <p className="text-[#9B9B9B] text-lg">No notes found</p>
-                  <p className="text-[#666666] text-sm mt-2">
-                    No notes found with tag "{selectedTag}"
-                  </p>
-                </div>
-              )}
+              <NotesList
+                notes={notes}
+                filteredNotes={filteredNotes}
+                selectedTag={selectedTag}
+                onNoteClick={onNoteSelect}
+              />
             </>
           )}
         </div>
