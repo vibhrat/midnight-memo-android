@@ -4,9 +4,10 @@ export interface CasualNote {
   title: string;
   tag: string;
   content: string;
-  createdAt: Date;
-  updatedAt: Date;
-  isBlurred?: boolean;
+  created_at: string;
+  updated_at: string;
+  is_blurred?: boolean;
+  user_id: string;
 }
 
 export interface ShoppingListItem {
@@ -14,22 +15,27 @@ export interface ShoppingListItem {
   name: string;
   quantity: string;
   checked?: boolean;
+  shopping_list_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ShoppingList {
   id: string;
   title: string;
-  items: ShoppingListItem[];
-  createdAt: Date;
-  updatedAt: Date;
+  items?: ShoppingListItem[];
+  created_at: string;
+  updated_at: string;
+  user_id: string;
 }
 
 export interface PasswordField {
   id: string;
   title: string;
   password: string;
-  createdAt: Date;
-  updatedAt: Date;
+  password_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Password {
@@ -37,6 +43,7 @@ export interface Password {
   title: string;
   password: string;
   fields?: PasswordField[];
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
 }
