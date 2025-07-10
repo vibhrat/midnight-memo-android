@@ -41,8 +41,8 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   }
 
   const autoSave = (updatedNote: Partial<CasualNote>) => {
-    const now = new Date().toISOString();
-    const newNote = { ...editableNote, ...updatedNote, updated_at: now };
+    const now = new Date();
+    const newNote = { ...editableNote, ...updatedNote, updatedAt: now };
     setEditableNote(newNote);
     setNotes(notes.map(n => 
       n.id === noteId ? newNote : n
@@ -56,7 +56,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   };
 
   const toggleBlur = () => {
-    autoSave({ is_blurred: !editableNote.is_blurred });
+    autoSave({ isBlurred: !editableNote.isBlurred });
   };
 
   const handleTagSelect = (tag: string) => {
@@ -90,9 +90,9 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
           <div className="flex gap-2">
             <button
               onClick={toggleBlur}
-              className={`p-2 hover:bg-[#181818] rounded-lg ${editableNote.is_blurred ? 'bg-[#181818]' : ''}`}
+              className={`p-2 hover:bg-[#181818] rounded-lg ${editableNote.isBlurred ? 'bg-[#181818]' : ''}`}
             >
-              <Grid3x3 size={22} className={editableNote.is_blurred ? "text-blue-600" : "text-[#9B9B9B]"} />
+              <Grid3x3 size={22} className={editableNote.isBlurred ? "text-blue-600" : "text-[#9B9B9B]"} />
             </button>
             <button
               onClick={() => setShowShareDialog(true)}
@@ -164,7 +164,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         {/* Rich Text Editor for Description */}
         <div className="mb-8">
           <RichTextEditor
-            content={editableNote.content || ''}
+            content={editableNote.content}
             onChange={(content) => autoSave({ content })}
             placeholder="Start writing..."
           />
@@ -172,8 +172,8 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
 
         {/* Footer with dates */}
         <div className="flex justify-between items-center mt-8 px-2 text-xs text-[#9B9B9B]">
-          <p>Created: {new Date(editableNote.created_at).toLocaleDateString()}</p>
-          <p>Updated: {new Date(editableNote.updated_at).toLocaleDateString()}</p>
+          <p>Created: {new Date(editableNote.createdAt).toLocaleDateString()}</p>
+          <p>Updated: {new Date(editableNote.updatedAt).toLocaleDateString()}</p>
         </div>
       </div>
 
@@ -184,9 +184,10 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
       />
 
       <TagSelector
-        selectedTag={editableNote.tag || ''}
-        onTagChange={handleTagSelect}
-        notes={notes}
+        isOpen={showTagSelector}
+        onClose={() => setShowTagSelector(false)}
+        onSelect={handleTagSelect}
+        currentTag={editableNote.tag}
       />
 
       <ShareDialog

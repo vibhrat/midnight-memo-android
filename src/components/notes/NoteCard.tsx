@@ -8,10 +8,9 @@ interface NoteCardProps {
 }
 
 const NoteCard = ({ note, onClick }: NoteCardProps) => {
-  const getDaysAgo = (dateString: string) => {
+  const getDaysAgo = (date: Date) => {
     const now = new Date();
-    const date = new Date(dateString);
-    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffTime = Math.abs(now.getTime() - new Date(date).getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
@@ -37,12 +36,12 @@ const NoteCard = ({ note, onClick }: NoteCardProps) => {
   return (
     <div 
       className={`p-3 bg-[#181818] rounded-lg cursor-pointer hover:bg-[#2A2A2A] transition-colors ${
-        note.is_blurred 
+        note.isBlurred 
           ? 'backdrop-blur-sm' 
           : ''
       }`}
       style={{ 
-        filter: note.is_blurred 
+        filter: note.isBlurred 
           ? 'blur(4px) saturate(180%) hue-rotate(90deg) contrast(120%)' 
           : 'none'
       }}
@@ -78,11 +77,11 @@ const NoteCard = ({ note, onClick }: NoteCardProps) => {
           overflowWrap: 'anywhere'
         }}
       >
-        {truncateContent(note.content || '')}
+        {truncateContent(note.content)}
       </p>
       <div className="flex items-center gap-1 text-sm font-medium text-[#9B9B9B]">
         <Clock className="w-3 h-3" />
-        <span>{getDaysAgo(note.updated_at)}d</span>
+        <span>{getDaysAgo(note.updatedAt)}d</span>
       </div>
     </div>
   );

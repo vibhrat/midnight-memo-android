@@ -262,45 +262,19 @@ const Index = () => {
         if (selectedNoteId) {
           return <NoteDetail noteId={selectedNoteId} onBack={handleBackToNotes} />;
         }
-        return (
-          <CasualNotes 
-            ref={notesRef} 
-            onNoteSelect={handleNoteSelect} 
-            onSearchClick={handleSearchClick} 
-            onMenuClick={handleMenuClick} 
-          />
-        );
+        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} onMenuClick={handleMenuClick} />;
       case 'shopping':
         if (selectedListId) {
           return <ListDetail listId={selectedListId} onBack={handleBackToLists} />;
         }
-        return (
-          <ShoppingLists 
-            ref={shoppingRef} 
-            onListSelect={handleListSelect} 
-            onSearchClick={handleSearchClick} 
-          />
-        );
+        return <ShoppingLists ref={shoppingRef} onListSelect={handleListSelect} onSearchClick={handleSearchClick} />;
       case 'passwords':
         if (selectedPasswordId) {
           return <PasswordDetail passwordId={selectedPasswordId} onBack={handleBackToPasswords} />;
         }
-        return (
-          <Passwords 
-            ref={passwordsRef} 
-            onPasswordSelect={handlePasswordSelect} 
-            onSearchClick={handleSearchClick} 
-          />
-        );
+        return <Passwords ref={passwordsRef} onPasswordSelect={handlePasswordSelect} onSearchClick={handleSearchClick} />;
       default:
-        return (
-          <CasualNotes 
-            ref={notesRef} 
-            onNoteSelect={handleNoteSelect} 
-            onSearchClick={handleSearchClick} 
-            onMenuClick={handleMenuClick} 
-          />
-        );
+        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} onMenuClick={handleMenuClick} />;
     }
   };
 
