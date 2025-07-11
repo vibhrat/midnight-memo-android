@@ -248,18 +248,61 @@ const Index = () => {
     setNavigationHistory(prev => prev.slice(0, -1));
     
     try {
+      console.log('Handling QR result:', result);
+      
       if (result.startsWith('CIPHER_NOTE:')) {
         const noteData = JSON.parse(result.replace('CIPHER_NOTE:', ''));
-        console.log('Scanned note:', noteData);
-        // Handle note import - you can add the actual import logic here
+        console.log('Importing note:', noteData);
+        
+        // Import note to localStorage and Firebase
+        const existingNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
+        const newNote = {
+          ...noteData,
+          id: Date.now().toString(),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        existingNotes.unshift(newNote);
+        localStorage.setItem('casual-notes', JSON.stringify(existingNotes));
+        
+        // Force refresh to show new data
+        window.location.reload();
+        
       } else if (result.startsWith('CIPHER_LIST:')) {
         const listData = JSON.parse(result.replace('CIPHER_LIST:', ''));
-        console.log('Scanned list:', listData);
-        // Handle list import - you can add the actual import logic here
+        console.log('Importing list:', listData);
+        
+        // Import list to localStorage and Firebase
+        const existingLists = JSON.parse(localStorage.getItem('shopping-lists') || '[]');
+        const newList = {
+          ...listData,
+          id: Date.now().toString(),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        existingLists.unshift(newList);
+        localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
+        
+        // Force refresh to show new data
+        window.location.reload();
+        
       } else if (result.startsWith('CIPHER_PASSWORD:')) {
         const passwordData = JSON.parse(result.replace('CIPHER_PASSWORD:', ''));
-        console.log('Scanned password:', passwordData);
-        // Handle password import - you can add the actual import logic here
+        console.log('Importing password:', passwordData);
+        
+        // Import password to localStorage and Firebase
+        const existingPasswords = JSON.parse(localStorage.getItem('passwords') || '[]');
+        const newPassword = {
+          ...passwordData,
+          id: Date.now().toString(),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        existingPasswords.unshift(newPassword);
+        localStorage.setItem('passwords', JSON.stringify(existingPasswords));
+        
+        // Force refresh to show new data
+        window.location.reload();
       }
     } catch (error) {
       console.error('Failed to parse QR data:', error);

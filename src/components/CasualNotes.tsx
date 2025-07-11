@@ -1,5 +1,6 @@
+
 import { useState, forwardRef, useImperativeHandle, useEffect } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useFirebaseNotes } from '@/hooks/useFirebaseNotes';
 import { CasualNote } from '@/types';
 import NotesHeader from './notes/NotesHeader';
 import TagFilter from './notes/TagFilter';
@@ -17,7 +18,7 @@ interface CasualNotesProps {
 }
 
 const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick, onMenuClick }, ref) => {
-  const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
+  const { notes, loading, createNote } = useFirebaseNotes();
   const [selectedTag, setSelectedTag] = useState<string>('');
   const [showImportDialog, setShowImportDialog] = useState(false);
 
@@ -31,8 +32,7 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
     triggerCreate: () => {
       // Create a new blank note and navigate to it
       const now = new Date();
-      const newNote: CasualNote = {
-        id: Date.now().toString(),
+      const newNote = {
         title: '',
         tag: '',
         content: '',
@@ -40,10 +40,14 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
         updatedAt: now,
         isBlurred: false
       };
-      setNotes([newNote, ...notes]);
-      if (onNoteSelect) {
-        onNoteSelect(newNote.id);
-      }
+      createNote(newNote);
+      
+      // Navigate to the new note (we'll need to get the ID from Firebase)
+      setTimeout(() => {
+        if (notes.length > 0 && onNoteSelect) {
+          onNoteSelect(notes[0].id);
+        }
+      }, 500);
     }
   }));
 
@@ -56,6 +60,17 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
   const handleImportClick = () => {
     setShowImportDialog(true);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-[#9B9B9B]">Loading notes...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Get unique tags from notes
   const allTags = ['Note', 'Medicine', 'Travel', 'Tech', 'Links', 'Contact'];

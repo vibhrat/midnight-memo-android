@@ -2,6 +2,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import jsQR from 'jsqr';
+import { useToast } from '@/hooks/use-toast';
 
 interface QRScannerProps {
   onResult: (result: string) => void;
@@ -16,6 +17,7 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
   const [error, setError] = useState<string>('');
   const [isScanning, setIsScanning] = useState(false);
   const scanIntervalRef = useRef<number | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     startCamera();
@@ -58,6 +60,44 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
     }
   };
 
+  const processScannedData = (data: string) => {
+    console.log('Processing scanned data:', data);
+    
+    try {
+      // Check for our specific cipher prefixes OR any valid JSON data
+      if (data.includes('CIPHER_NOTE:') || 
+          data.includes('CIPHER_LIST:') || 
+          data.includes('CIPHER_PASSWORD:') ||
+          data.startsWith('{')) {
+        
+        console.log('Valid QR code found, processing...');
+        setIsScanning(false);
+        cleanup();
+        
+        toast({
+          title: "Success",
+          description: "QR code scanned successfully!",
+        });
+        
+        onResult(data);
+      } else {
+        console.log('QR code found but not our format:', data);
+        toast({
+          title: "Invalid QR Code",
+          description: "This QR code is not compatible with this app",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error processing QR data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process QR code data",
+        variant: "destructive",
+      });
+    }
+  };
+
   const startScanning = () => {
     if (scanIntervalRef.current) {
       clearInterval(scanIntervalRef.current);
@@ -83,21 +123,9 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
       
       if (qrCode && qrCode.data) {
         console.log('QR Code detected:', qrCode.data);
-        
-        // Check for our specific cipher prefixes OR any valid JSON data
-        if (qrCode.data.includes('CIPHER_NOTE:') || 
-            qrCode.data.includes('CIPHER_LIST:') || 
-            qrCode.data.includes('CIPHER_PASSWORD:') ||
-            qrCode.data.startsWith('{')) {
-          console.log('Valid QR code found, processing...');
-          setIsScanning(false);
-          cleanup();
-          onResult(qrCode.data);
-        } else {
-          console.log('QR code found but not our format:', qrCode.data);
-        }
+        processScannedData(qrCode.data);
       }
-    }, 200); // Reduced scanning frequency for better performance
+    }, 200);
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,19 +149,14 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
 
         if (qrCode && qrCode.data) {
           console.log('QR Code from image:', qrCode.data);
-          
-          if (qrCode.data.includes('CIPHER_NOTE:') || 
-              qrCode.data.includes('CIPHER_LIST:') || 
-              qrCode.data.includes('CIPHER_PASSWORD:') ||
-              qrCode.data.startsWith('{')) {
-            setIsScanning(false);
-            cleanup();
-            onResult(qrCode.data);
-          } else {
-            console.log('QR code found but not our format');
-          }
+          processScannedData(qrCode.data);
         } else {
           console.log('No QR code found in image');
+          toast({
+            title: "No QR Code Found",
+            description: "Could not find a QR code in the selected image",
+            variant: "destructive",
+          });
         }
       };
       img.src = e.target?.result as string;
