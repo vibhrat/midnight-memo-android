@@ -37,6 +37,8 @@ const convertTimestamps = (data: any) => {
 export const subscribeToNotes = (callback: (notes: CasualNote[]) => void) => {
   try {
     const userId = getCurrentUserId();
+    console.log('Subscribing to notes for user:', userId);
+    
     const notesRef = collection(db, 'casualNotes');
     const q = query(
       notesRef, 
@@ -45,14 +47,17 @@ export const subscribeToNotes = (callback: (notes: CasualNote[]) => void) => {
     );
     
     return onSnapshot(q, (snapshot) => {
+      console.log('Notes snapshot received, size:', snapshot.size);
       const notes: CasualNote[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
+        console.log('Note data:', data);
         notes.push({
           id: doc.id,
           ...convertTimestamps(data),
         } as CasualNote);
       });
+      console.log('Processed notes:', notes);
       callback(notes);
     });
   } catch (error) {
@@ -64,6 +69,8 @@ export const subscribeToNotes = (callback: (notes: CasualNote[]) => void) => {
 export const addNote = async (note: Omit<CasualNote, 'id'>) => {
   try {
     const userId = getCurrentUserId();
+    console.log('Adding note for user:', userId, note);
+    
     const notesRef = collection(db, 'casualNotes');
     const docRef = await addDoc(notesRef, {
       ...note,
@@ -81,6 +88,7 @@ export const addNote = async (note: Omit<CasualNote, 'id'>) => {
 
 export const updateNote = async (id: string, note: Partial<CasualNote>) => {
   try {
+    console.log('Updating note:', id, note);
     const noteRef = doc(db, 'casualNotes', id);
     await updateDoc(noteRef, {
       ...note,
@@ -95,6 +103,7 @@ export const updateNote = async (id: string, note: Partial<CasualNote>) => {
 
 export const deleteNote = async (id: string) => {
   try {
+    console.log('Deleting note:', id);
     const noteRef = doc(db, 'casualNotes', id);
     await deleteDoc(noteRef);
     console.log('Note deleted:', id);
@@ -108,6 +117,8 @@ export const deleteNote = async (id: string) => {
 export const subscribeToLists = (callback: (lists: ShoppingList[]) => void) => {
   try {
     const userId = getCurrentUserId();
+    console.log('Subscribing to lists for user:', userId);
+    
     const listsRef = collection(db, 'shoppingLists');
     const q = query(
       listsRef, 
@@ -116,25 +127,30 @@ export const subscribeToLists = (callback: (lists: ShoppingList[]) => void) => {
     );
     
     return onSnapshot(q, (snapshot) => {
+      console.log('Lists snapshot received, size:', snapshot.size);
       const lists: ShoppingList[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
+        console.log('List data:', data);
         lists.push({
           id: doc.id,
           ...convertTimestamps(data),
         } as ShoppingList);
       });
+      console.log('Processed lists:', lists);
       callback(lists);
     });
   } catch (error) {
     console.error('Error subscribing to lists:', error);
-    return () => {}; // Return empty unsubscribe function
+    return () => {};
   }
 };
 
 export const addList = async (list: Omit<ShoppingList, 'id'>) => {
   try {
     const userId = getCurrentUserId();
+    console.log('Adding list for user:', userId, list);
+    
     const listsRef = collection(db, 'shoppingLists');
     const docRef = await addDoc(listsRef, {
       ...list,
@@ -152,6 +168,7 @@ export const addList = async (list: Omit<ShoppingList, 'id'>) => {
 
 export const updateList = async (id: string, list: Partial<ShoppingList>) => {
   try {
+    console.log('Updating list:', id, list);
     const listRef = doc(db, 'shoppingLists', id);
     await updateDoc(listRef, {
       ...list,
@@ -166,6 +183,7 @@ export const updateList = async (id: string, list: Partial<ShoppingList>) => {
 
 export const deleteList = async (id: string) => {
   try {
+    console.log('Deleting list:', id);
     const listRef = doc(db, 'shoppingLists', id);
     await deleteDoc(listRef);
     console.log('List deleted:', id);
@@ -179,6 +197,8 @@ export const deleteList = async (id: string) => {
 export const subscribeToPasswords = (callback: (passwords: Password[]) => void) => {
   try {
     const userId = getCurrentUserId();
+    console.log('Subscribing to passwords for user:', userId);
+    
     const passwordsRef = collection(db, 'passwords');
     const q = query(
       passwordsRef, 
@@ -187,25 +207,30 @@ export const subscribeToPasswords = (callback: (passwords: Password[]) => void) 
     );
     
     return onSnapshot(q, (snapshot) => {
+      console.log('Passwords snapshot received, size:', snapshot.size);
       const passwords: Password[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
+        console.log('Password data:', data);
         passwords.push({
           id: doc.id,
           ...convertTimestamps(data),
         } as Password);
       });
+      console.log('Processed passwords:', passwords);
       callback(passwords);
     });
   } catch (error) {
     console.error('Error subscribing to passwords:', error);
-    return () => {}; // Return empty unsubscribe function
+    return () => {};
   }
 };
 
 export const addPassword = async (password: Omit<Password, 'id'>) => {
   try {
     const userId = getCurrentUserId();
+    console.log('Adding password for user:', userId, password);
+    
     const passwordsRef = collection(db, 'passwords');
     const docRef = await addDoc(passwordsRef, {
       ...password,
@@ -223,6 +248,7 @@ export const addPassword = async (password: Omit<Password, 'id'>) => {
 
 export const updatePassword = async (id: string, password: Partial<Password>) => {
   try {
+    console.log('Updating password:', id, password);
     const passwordRef = doc(db, 'passwords', id);
     await updateDoc(passwordRef, {
       ...password,
@@ -237,6 +263,7 @@ export const updatePassword = async (id: string, password: Partial<Password>) =>
 
 export const deletePassword = async (id: string) => {
   try {
+    console.log('Deleting password:', id);
     const passwordRef = doc(db, 'passwords', id);
     await deleteDoc(passwordRef);
     console.log('Password deleted:', id);

@@ -60,6 +60,60 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
     }
   };
 
+  const processQRData = (qrData: string) => {
+    console.log('Processing QR data:', qrData);
+    
+    // Check for our specific cipher prefixes
+    if (qrData.startsWith('CIPHER_NOTE:') || 
+        qrData.startsWith('CIPHER_LIST:') || 
+        qrData.startsWith('CIPHER_PASSWORD:')) {
+      
+      console.log('Valid cipher QR code detected');
+      setIsScanning(false);
+      cleanup();
+      
+      toast({
+        title: "Success",
+        description: "QR code detected successfully!",
+      });
+      
+      // Process the result
+      setTimeout(() => {
+        onResult(qrData);
+      }, 500);
+      
+      return true;
+    }
+    
+    // Check for JSON data that might be valid
+    try {
+      const parsed = JSON.parse(qrData);
+      if (parsed && typeof parsed === 'object' && 
+          (parsed.title !== undefined || parsed.content !== undefined || 
+           parsed.items !== undefined || parsed.password !== undefined)) {
+        
+        console.log('Valid JSON QR code detected');
+        setIsScanning(false);
+        cleanup();
+        
+        toast({
+          title: "Success",
+          description: "QR code detected successfully!",
+        });
+        
+        setTimeout(() => {
+          onResult(qrData);
+        }, 500);
+        
+        return true;
+      }
+    } catch (e) {
+      // Not valid JSON, continue
+    }
+    
+    return false;
+  };
+
   const startScanning = () => {
     if (scanIntervalRef.current) {
       clearInterval(scanIntervalRef.current);
@@ -86,28 +140,8 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
       if (qrCode && qrCode.data) {
         console.log('QR Code detected:', qrCode.data);
         
-        // Check for our specific cipher prefixes OR any valid JSON data
-        const isValidQR = qrCode.data.startsWith('CIPHER_NOTE:') || 
-                         qrCode.data.startsWith('CIPHER_LIST:') || 
-                         qrCode.data.startsWith('CIPHER_PASSWORD:') ||
-                         qrCode.data.startsWith('{');
-
-        if (isValidQR) {
-          console.log('Valid QR code found, processing...');
-          setIsScanning(false);
-          cleanup();
-          
-          toast({
-            title: "Success",
-            description: "QR code detected successfully!",
-          });
-          
-          // Small delay to show the toast before processing
-          setTimeout(() => {
-            onResult(qrCode.data);
-          }, 500);
-        } else {
-          console.log('QR code found but not our format:', qrCode.data);
+        const processed = processQRData(qrCode.data);
+        if (!processed) {
           toast({
             title: "Invalid QR Code",
             description: "This QR code is not compatible with this app",
@@ -140,24 +174,8 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
         if (qrCode && qrCode.data) {
           console.log('QR Code from image:', qrCode.data);
           
-          const isValidQR = qrCode.data.startsWith('CIPHER_NOTE:') || 
-                           qrCode.data.startsWith('CIPHER_LIST:') || 
-                           qrCode.data.startsWith('CIPHER_PASSWORD:') ||
-                           qrCode.data.startsWith('{');
-
-          if (isValidQR) {
-            setIsScanning(false);
-            cleanup();
-            
-            toast({
-              title: "Success",
-              description: "QR code from image detected successfully!",
-            });
-            
-            setTimeout(() => {
-              onResult(qrCode.data);
-            }, 500);
-          } else {
+          const processed = processQRData(qrCode.data);
+          if (!processed) {
             toast({
               title: "Invalid QR Code",
               description: "This QR code is not compatible with this app",
@@ -223,7 +241,7 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
             />
             <canvas ref={canvasRef} className="hidden" />
             
-            {/* Large scanning frame - 420x420px */}
+            {/* Large scanning frame */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative">
                 <div 

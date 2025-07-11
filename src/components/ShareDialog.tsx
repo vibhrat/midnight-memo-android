@@ -1,5 +1,10 @@
+
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
+import { useFirebaseNotes } from '@/hooks/useFirebaseNotes';
+import { useFirebaseLists } from '@/hooks/useFirebaseLists';
+import { useFirebasePasswords } from '@/hooks/useFirebasePasswords';
 import QRCode from 'qrcode';
 import QRScanner from './QRScanner';
 
@@ -13,6 +18,10 @@ interface ShareDialogProps {
 
 const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialogProps) => {
   const { toast } = useToast();
+  const { user } = useFirebaseAuth();
+  const { createNote } = useFirebaseNotes();
+  const { createList } = useFirebaseLists();
+  const { createPassword } = useFirebasePasswords();
   const [showQR, setShowQR] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [showScanner, setShowScanner] = useState(false);
@@ -111,7 +120,6 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
     }
 
     console.log('Generating QR code for data:', qrData);
-    console.log('QR data length:', qrData.length);
 
     if (qrData.length > 2900) {
       toast({
@@ -132,7 +140,6 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
         },
         width: 400
       });
-      console.log('QR code generated successfully');
       setQrCodeDataUrl(qrCodeUrl);
       setShowQR(true);
     } catch (error) {
@@ -176,23 +183,25 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
     reader.readAsText(file);
   };
 
-  const processImportData = (content: string) => {
+  const processImportData = async (content: string) => {
     try {
       console.log('Processing import data:', content);
+      
+      let parsedData: any = null;
+      let expectedType = '';
       
       // Check if it's our cipher format
       if (content.startsWith('CIPHER_')) {
         let jsonStr = '';
-        let expectedType = '';
         
         if (content.startsWith('CIPHER_NOTE:')) {
-          jsonStr = content.substring(12); // Remove 'CIPHER_NOTE:'
+          jsonStr = content.substring(12);
           expectedType = 'note';
         } else if (content.startsWith('CIPHER_LIST:')) {
-          jsonStr = content.substring(12); // Remove 'CIPHER_LIST:'
+          jsonStr = content.substring(12);
           expectedType = 'list';
         } else if (content.startsWith('CIPHER_PASSWORD:')) {
-          jsonStr = content.substring(16); // Remove 'CIPHER_PASSWORD:'
+          jsonStr = content.substring(16);
           expectedType = 'password';
         }
         
@@ -205,98 +214,82 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
           return;
         }
         
-        console.log('Extracted JSON string:', jsonStr);
-        const parsedData = JSON.parse(jsonStr);
-        console.log('Parsed data:', parsedData);
-        
-        // Save to localStorage (the hooks will handle Firebase sync)
-        if (type === 'note') {
-          const existingNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
-          const newNote = {
-            ...parsedData,
-            id: Date.now().toString(),
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          existingNotes.unshift(newNote);
-          localStorage.setItem('casual-notes', JSON.stringify(existingNotes));
-        } else if (type === 'list') {
-          const existingLists = JSON.parse(localStorage.getItem('shopping-lists') || '[]');
-          const newList = {
-            ...parsedData,
-            id: Date.now().toString(),
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          existingLists.unshift(newList);
-          localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
-        } else if (type === 'password') {
-          const existingPasswords = JSON.parse(localStorage.getItem('passwords') || '[]');
-          const newPassword = {
-            ...parsedData,
-            id: Date.now().toString(),
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          existingPasswords.unshift(newPassword);
-          localStorage.setItem('passwords', JSON.stringify(existingPasswords));
-        }
-
-        toast({
-          title: "Success",
-          description: `${type.charAt(0).toUpperCase() + type.slice(1)} imported successfully!`,
-        });
-        onClose();
-        window.location.reload();
+        parsedData = JSON.parse(jsonStr);
       } else {
         // Try to parse as regular JSON
-        const parsedData = JSON.parse(content);
+        parsedData = JSON.parse(content);
+      }
+      
+      console.log('Parsed data:', parsedData);
+      
+      // Create the imported data using Firebase hooks
+      if (type === 'note' && parsedData) {
+        const newNote = {
+          title: parsedData.title || '',
+          content: parsedData.content || '',
+          tag: parsedData.tag || '',
+          isBlurred: parsedData.isBlurred || false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
         
-        if (type === 'note' && (parsedData.title !== undefined || parsedData.content !== undefined)) {
+        if (user) {
+          await createNote(newNote);
+        } else {
+          // Fallback to localStorage if not authenticated
           const existingNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
-          const newNote = {
-            id: Date.now().toString(),
-            title: parsedData.title || '',
-            content: parsedData.content || '',
-            tag: parsedData.tag || '',
-            isBlurred: parsedData.isBlurred || false,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          existingNotes.unshift(newNote);
+          const noteWithId = { ...newNote, id: Date.now().toString() };
+          existingNotes.unshift(noteWithId);
           localStorage.setItem('casual-notes', JSON.stringify(existingNotes));
-        } else if (type === 'list' && (parsedData.title !== undefined || parsedData.items !== undefined)) {
+        }
+      } else if (type === 'list' && parsedData) {
+        const newList = {
+          title: parsedData.title || '',
+          items: parsedData.items || [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        if (user) {
+          await createList(newList);
+        } else {
+          // Fallback to localStorage if not authenticated
           const existingLists = JSON.parse(localStorage.getItem('shopping-lists') || '[]');
-          const newList = {
-            id: Date.now().toString(),
-            title: parsedData.title || '',
-            items: parsedData.items || [],
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          existingLists.unshift(newList);
+          const listWithId = { ...newList, id: Date.now().toString() };
+          existingLists.unshift(listWithId);
           localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
-        } else if (type === 'password' && (parsedData.title !== undefined || parsedData.password !== undefined)) {
+        }
+      } else if (type === 'password' && parsedData) {
+        const newPassword = {
+          title: parsedData.title || '',
+          password: parsedData.password || '',
+          fields: parsedData.fields || [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        if (user) {
+          await createPassword(newPassword);
+        } else {
+          // Fallback to localStorage if not authenticated
           const existingPasswords = JSON.parse(localStorage.getItem('passwords') || '[]');
-          const newPassword = {
-            id: Date.now().toString(),
-            title: parsedData.title || '',
-            password: parsedData.password || '',
-            fields: parsedData.fields || [],
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          existingPasswords.unshift(newPassword);
+          const passwordWithId = { ...newPassword, id: Date.now().toString() };
+          existingPasswords.unshift(passwordWithId);
           localStorage.setItem('passwords', JSON.stringify(existingPasswords));
         }
-
-        toast({
-          title: "Success",
-          description: `${type.charAt(0).toUpperCase() + type.slice(1)} imported successfully!`,
-        });
-        onClose();
-        window.location.reload();
       }
+
+      toast({
+        title: "Success",
+        description: `${type.charAt(0).toUpperCase() + type.slice(1)} imported successfully!`,
+      });
+      onClose();
+      
+      // Refresh the page to show new data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
     } catch (error) {
       console.error('Import error:', error);
       toast({
@@ -344,7 +337,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
     );
   }
 
-  // Import mode - shows scan QR and import options
+  // Import mode
   if (mode === 'import') {
     return (
       <div 
@@ -391,7 +384,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
     );
   }
 
-  // Share mode - shows limited options for note and list details
+  // Share mode
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
