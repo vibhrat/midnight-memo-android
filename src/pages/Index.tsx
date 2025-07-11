@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
@@ -69,6 +68,14 @@ const Index = () => {
   };
 
   const handleFloatingActionClick = () => {
+    // Don't allow creation during Firebase loading
+    if (user && ((currentPage === 'notes' && loading) || 
+                 (currentPage === 'shopping' && loading) || 
+                 (currentPage === 'passwords' && loading))) {
+      console.log('Still loading Firebase data, please wait...');
+      return;
+    }
+
     if (currentPage === 'notes') {
       casualNotesRef.current?.triggerCreate();
     } else if (currentPage === 'shopping') {

@@ -38,6 +38,12 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
 
   useImperativeHandle(ref, () => ({
     triggerCreate: () => {
+      // Only create if not in loading state
+      if (user && firebaseLoading) {
+        console.log('Still loading Firebase data, skipping create');
+        return;
+      }
+
       // Create a new blank note and navigate to it
       const now = new Date();
       const newNote: CasualNote = {
@@ -85,17 +91,6 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
     ? notes.filter(note => note.tag === selectedTag)
     : notes;
 
-  if (user && firebaseLoading) {
-    return (
-      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-[#9B9B9B]">Loading your notes...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#000000]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
@@ -105,18 +100,29 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
           onImportClick={handleImportClick}
         />
 
-        <TagFilter 
-          availableTags={availableTags}
-          selectedTag={selectedTag}
-          onTagSelect={setSelectedTag}
-        />
+        {user && firebaseLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-[#9B9B9B]">Loading your notes...</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <TagFilter 
+              availableTags={availableTags}
+              selectedTag={selectedTag}
+              onTagSelect={setSelectedTag}
+            />
 
-        <NotesList 
-          notes={notes}
-          filteredNotes={filteredNotes}
-          selectedTag={selectedTag}
-          onNoteClick={handleCardClick}
-        />
+            <NotesList 
+              notes={notes}
+              filteredNotes={filteredNotes}
+              selectedTag={selectedTag}
+              onNoteClick={handleCardClick}
+            />
+          </>
+        )}
       </div>
 
       <ShareDialog
