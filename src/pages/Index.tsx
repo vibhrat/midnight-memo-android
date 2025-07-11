@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
@@ -68,19 +69,17 @@ const Index = () => {
   };
 
   const handleFloatingActionClick = () => {
-    // Don't allow creation during Firebase loading
-    if (user && ((currentPage === 'notes' && loading) || 
-                 (currentPage === 'shopping' && loading) || 
-                 (currentPage === 'passwords' && loading))) {
-      console.log('Still loading Firebase data, please wait...');
-      return;
-    }
-
+    console.log('Floating action clicked, currentPage:', currentPage);
+    
+    // Create new items regardless of loading state for better UX
     if (currentPage === 'notes') {
+      console.log('Triggering note creation');
       casualNotesRef.current?.triggerCreate();
     } else if (currentPage === 'shopping') {
+      console.log('Triggering list creation');
       shoppingListsRef.current?.triggerCreate();
     } else if (currentPage === 'passwords') {
+      console.log('Triggering password creation');
       passwordsRef.current?.triggerCreate();
     }
   };

@@ -29,6 +29,7 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
   // Use Firebase notes if user is authenticated, otherwise use localStorage
   const notes = user ? firebaseNotes : localNotes;
   const setNotes = user ? () => {} : setLocalNotes; // Firebase notes are managed by the hook
+  const loading = user ? firebaseLoading : false;
 
   // Preload settings image when component mounts
   useEffect(() => {
@@ -100,29 +101,19 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
           onImportClick={handleImportClick}
         />
 
-        {user && firebaseLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-[#9B9B9B]">Loading your notes...</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            <TagFilter 
-              availableTags={availableTags}
-              selectedTag={selectedTag}
-              onTagSelect={setSelectedTag}
-            />
+        <TagFilter 
+          availableTags={availableTags}
+          selectedTag={selectedTag}
+          onTagSelect={setSelectedTag}
+        />
 
-            <NotesList 
-              notes={notes}
-              filteredNotes={filteredNotes}
-              selectedTag={selectedTag}
-              onNoteClick={handleCardClick}
-            />
-          </>
-        )}
+        <NotesList 
+          notes={notes}
+          filteredNotes={filteredNotes}
+          selectedTag={selectedTag}
+          onNoteClick={handleCardClick}
+          loading={loading}
+        />
       </div>
 
       <ShareDialog

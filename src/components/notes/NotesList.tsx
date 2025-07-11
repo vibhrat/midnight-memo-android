@@ -8,13 +8,28 @@ interface NotesListProps {
   filteredNotes: CasualNote[];
   selectedTag: string;
   onNoteClick: (noteId: string) => void;
+  loading?: boolean;
 }
 
-const NotesList = ({ notes, filteredNotes, selectedTag, onNoteClick }: NotesListProps) => {
+const NotesList = ({ notes, filteredNotes, selectedTag, onNoteClick, loading }: NotesListProps) => {
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-[#9B9B9B]">Loading your notes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state when no notes exist at all
   if (notes.length === 0) {
     return <EmptyState />;
   }
 
+  // Show filtered empty state when tag filter returns no results
   if (filteredNotes.length === 0 && selectedTag) {
     return (
       <div className="text-center py-8">
