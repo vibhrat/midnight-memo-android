@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Clock, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ReminderDialogProps {
@@ -67,58 +67,90 @@ const ReminderDialog = ({ isOpen, onClose, onSave, onDelete, existingReminder }:
       }}
     >
       <div 
-        className="w-full max-w-xs mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
+        className="w-full max-w-md mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
         style={{
           background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
         }}
       >
-        <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Set Reminder</h2>
+        <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-8">Set Reminder</h2>
         
-        <div className="flex justify-center items-center gap-4 mb-6">
+        {/* Time Display */}
+        <div className="text-center mb-8">
+          <div className="text-4xl font-bold text-[#DBDBDB] mb-2">
+            {hour.toString().padStart(2, '0')}:{minute.toString().padStart(2, '0')} {ampm}
+          </div>
+        </div>
+
+        {/* Time Selectors */}
+        <div className="flex justify-center items-start gap-4 mb-8">
           {/* Hour Selector */}
           <div className="flex flex-col items-center">
-            <label className="text-sm text-[#9B9B9B] mb-2">Hour</label>
-            <select
-              value={hour}
-              onChange={(e) => setHour(Number(e.target.value))}
-              className="bg-[#181818] text-[#DBDBDB] border border-[#2A2A2A] rounded-lg px-3 py-2 text-center"
-            >
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
-                <option key={h} value={h}>{h}</option>
-              ))}
-            </select>
+            <label className="text-sm text-[#9B9B9B] mb-3">Hour</label>
+            <div className="bg-[#181818] border border-[#2A2A2A] rounded-lg overflow-hidden">
+              <div className="h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-[#2A2A2A]">
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
+                  <div
+                    key={h}
+                    onClick={() => setHour(h)}
+                    className={`px-4 py-2 cursor-pointer text-center transition-colors ${
+                      hour === h 
+                        ? 'bg-[#272727] text-[#DBDBDB]' 
+                        : 'text-[#9B9B9B] hover:bg-[#1F1F1F] hover:text-[#DBDBDB]'
+                    }`}
+                  >
+                    {h.toString().padStart(2, '0')}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-
-          <div className="text-[#DBDBDB] text-xl font-bold mt-6">:</div>
 
           {/* Minute Selector */}
           <div className="flex flex-col items-center">
-            <label className="text-sm text-[#9B9B9B] mb-2">Minute</label>
-            <select
-              value={minute}
-              onChange={(e) => setMinute(Number(e.target.value))}
-              className="bg-[#181818] text-[#DBDBDB] border border-[#2A2A2A] rounded-lg px-3 py-2 text-center"
-            >
-              {Array.from({ length: 60 }, (_, i) => i).map((m) => (
-                <option key={m} value={m}>{m.toString().padStart(2, '0')}</option>
-              ))}
-            </select>
+            <label className="text-sm text-[#9B9B9B] mb-3">Minute</label>
+            <div className="bg-[#181818] border border-[#2A2A2A] rounded-lg overflow-hidden">
+              <div className="h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-[#2A2A2A]">
+                {Array.from({ length: 60 }, (_, i) => i).map((m) => (
+                  <div
+                    key={m}
+                    onClick={() => setMinute(m)}
+                    className={`px-4 py-2 cursor-pointer text-center transition-colors ${
+                      minute === m 
+                        ? 'bg-[#272727] text-[#DBDBDB]' 
+                        : 'text-[#9B9B9B] hover:bg-[#1F1F1F] hover:text-[#DBDBDB]'
+                    }`}
+                  >
+                    {m.toString().padStart(2, '0')}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* AM/PM Selector */}
           <div className="flex flex-col items-center">
-            <label className="text-sm text-[#9B9B9B] mb-2">Period</label>
-            <select
-              value={ampm}
-              onChange={(e) => setAmpm(e.target.value as 'AM' | 'PM')}
-              className="bg-[#181818] text-[#DBDBDB] border border-[#2A2A2A] rounded-lg px-3 py-2 text-center"
-            >
-              <option value="AM">AM</option>
-              <option value="PM">PM</option>
-            </select>
+            <label className="text-sm text-[#9B9B9B] mb-3">Period</label>
+            <div className="bg-[#181818] border border-[#2A2A2A] rounded-lg overflow-hidden">
+              <div className="flex flex-col">
+                {['AM', 'PM'].map((period) => (
+                  <div
+                    key={period}
+                    onClick={() => setAmpm(period as 'AM' | 'PM')}
+                    className={`px-4 py-3 cursor-pointer text-center transition-colors ${
+                      ampm === period 
+                        ? 'bg-[#272727] text-[#DBDBDB]' 
+                        : 'text-[#9B9B9B] hover:bg-[#1F1F1F] hover:text-[#DBDBDB]'
+                    }`}
+                  >
+                    {period}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Action Buttons */}
         <div className="flex flex-col gap-3">
           <button
             onClick={handleSave}

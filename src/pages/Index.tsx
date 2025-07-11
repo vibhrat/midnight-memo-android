@@ -14,6 +14,8 @@ import AppMenu from '@/components/AppMenu';
 import Auth from '@/components/Auth';
 import Navigation from '@/components/Navigation';
 import PinProtection from '@/components/PinProtection';
+import PinManagement from '@/components/PinManagement';
+import BadgePage from '@/components/BadgePage';
 
 const Index = () => {
   const { user, loading } = useFirebaseAuth();
@@ -29,6 +31,7 @@ const Index = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [currentMenuPage, setCurrentMenuPage] = useState<string>('');
   const [isPinProtected, setIsPinProtected] = useLocalStorage('pin-protected', false);
   const [isPinVerified, setIsPinVerified] = useState(false);
 
@@ -47,6 +50,76 @@ const Index = () => {
   // Show PIN protection if enabled and not verified
   if (isPinProtected && !isPinVerified) {
     return <PinProtection onUnlock={() => setIsPinVerified(true)} />;
+  }
+
+  // Show auth page if not authenticated and trying to sign in
+  if (showAuth) {
+    return <Auth onAuthSuccess={() => setShowAuth(false)} />;
+  }
+
+  // Show menu pages
+  if (showMenu) {
+    if (currentMenuPage === 'pin-management') {
+      return (
+        <PinManagement 
+          onBack={() => {
+            setShowMenu(false);
+            setCurrentMenuPage('');
+          }}
+        />
+      );
+    }
+    
+    if (currentMenuPage === 'badge') {
+      return (
+        <BadgePage 
+          onBack={() => {
+            setShowMenu(false);
+            setCurrentMenuPage('');
+          }}
+        />
+      );
+    }
+
+    return (
+      <AppMenu 
+        onBack={() => {
+          setShowMenu(false);
+          setCurrentMenuPage('');
+        }}
+        onNavigate={(page) => {
+          if (page === 'auth') {
+            setShowMenu(false);
+            setCurrentMenuPage('');
+            setShowAuth(true);
+          } else {
+            setCurrentMenuPage(page);
+          }
+        }}
+      />
+    );
+  }
+
+  if (showSearch) {
+    return (
+      <Search 
+        onBack={() => setShowSearch(false)}
+        onNoteSelect={handleNoteSelect}
+        onListSelect={handleListSelect}
+      />
+    );
+  }
+
+  if (selectedNoteId) {
+    return <NoteDetail noteId={selectedNoteId} onBack={handleBack} />;
+  }
+
+  if (selectedListId) {
+    return <ListDetail listId={selectedListId} onBack={handleBack} />;
+  }
+
+  if (selectedPasswordId) {
+    return <PasswordDetail passwordId={selectedPasswordId} onBack={handleBack} />;
   }
 
   const handleNoteSelect = (noteId: string) => {
@@ -90,54 +163,6 @@ const Index = () => {
       passwordsRef.current?.triggerCreate();
     }
   };
-
-  const handleAuthSuccess = () => {
-    setShowAuth(false);
-  };
-
-  const handleMenuNavigate = (page: string) => {
-    setShowMenu(false);
-    if (page === 'auth') {
-      setShowAuth(true);
-    } else if (page === 'badge' || page === 'pin-management') {
-      // Handle navigation to other pages if needed
-    }
-  };
-
-  if (showAuth) {
-    return <Auth onAuthSuccess={handleAuthSuccess} />;
-  }
-
-  if (showMenu) {
-    return (
-      <AppMenu 
-        onBack={() => setShowMenu(false)}
-        onNavigate={handleMenuNavigate}
-      />
-    );
-  }
-
-  if (showSearch) {
-    return (
-      <Search 
-        onBack={() => setShowSearch(false)}
-        onNoteSelect={handleNoteSelect}
-        onListSelect={handleListSelect}
-      />
-    );
-  }
-
-  if (selectedNoteId) {
-    return <NoteDetail noteId={selectedNoteId} onBack={handleBack} />;
-  }
-
-  if (selectedListId) {
-    return <ListDetail listId={selectedListId} onBack={handleBack} />;
-  }
-
-  if (selectedPasswordId) {
-    return <PasswordDetail passwordId={selectedPasswordId} onBack={handleBack} />;
-  }
 
   return (
     <div className="min-h-screen bg-[#000000] relative">

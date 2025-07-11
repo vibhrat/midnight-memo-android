@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
+import { signIn, signUp } from '@/integrations/firebase/auth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
 interface AuthProps {
@@ -10,6 +10,7 @@ interface AuthProps {
 }
 
 const Auth = ({ onAuthSuccess }: AuthProps) => {
+  const { user } = useFirebaseAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -18,60 +19,41 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        onAuthSuccess();
-      }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        onAuthSuccess();
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [onAuthSuccess]);
+    // If user is already authenticated, redirect
+    if (user) {
+      onAuthSuccess();
+    }
+  }, [user, onAuthSuccess]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      if (isForgotPassword) {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/`
-        });
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Password reset email sent! Check your inbox.",
-        });
-        setIsForgotPassword(false);
-      } else if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Logged in successfully!",
-        });
+      if (isLogin) {
+        const { user: signedInUser, error } = await signIn(email, password);
+        if (error) {
+          throw new Error(error);
+        }
+        if (signedInUser) {
+          toast({
+            title: "Success",
+            description: "Logged in successfully!",
+          });
+          onAuthSuccess();
+        }
       } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`
-          }
-        });
-        if (error) throw error;
-        toast({
-          title: "Success",
-          description: "Account created successfully! Please check your email for verification.",
-        });
+        const { user: signedUpUser, error } = await signUp(email, password);
+        if (error) {
+          throw new Error(error);
+        }
+        if (signedUpUser) {
+          toast({
+            title: "Success",
+            description: "Account created successfully!",
+          });
+          onAuthSuccess();
+        }
       }
     } catch (error: any) {
       toast({
@@ -110,57 +92,34 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
               className="w-full bg-transparent border-0 border-b border-[#9B9B9B] pb-2 text-[#DBDBDB] placeholder:text-[#9B9B9B] focus:outline-none focus:border-[#DBDBDB] transition-colors"
             />
           </div>
-          {!isForgotPassword && (
-            <div>
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full bg-transparent border-0 border-b border-[#9B9B9B] pb-2 text-[#DBDBDB] placeholder:text-[#9B9B9B] focus:outline-none focus:border-[#DBDBDB] transition-colors"
-              />
-            </div>
-          )}
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full bg-transparent border-0 border-b border-[#9B9B9B] pb-2 text-[#DBDBDB] placeholder:text-[#9B9B9B] focus:outline-none focus:border-[#DBDBDB] transition-colors"
+            />
+          </div>
           <Button
             type="submit"
             disabled={loading}
             className="w-full bg-[#DBDBDB] hover:bg-[#9B9B9B] text-[#000000] mt-8"
           >
             {loading ? 'Loading...' : (
-              isForgotPassword ? 'Send Reset Email' : 
               isLogin ? 'Sign In' : 'Sign Up'
             )}
           </Button>
         </form>
 
         <div className="text-center mt-6 space-y-2">
-          {!isForgotPassword && (
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="block w-full text-[#DBDBDB] hover:text-[#9B9B9B]"
-            >
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-            </button>
-          )}
-          
-          {isLogin && !isForgotPassword && (
-            <button
-              onClick={() => setIsForgotPassword(true)}
-              className="block w-full text-[#9B9B9B] hover:text-[#DBDBDB]"
-            >
-              Forgot your password?
-            </button>
-          )}
-          
-          {isForgotPassword && (
-            <button
-              onClick={() => setIsForgotPassword(false)}
-              className="block w-full text-[#DBDBDB] hover:text-[#9B9B9B]"
-            >
-              Back to sign in
-            </button>
-          )}
+          <button
+            onClick={() => setIsLogin(!isLogin)}
+            className="block w-full text-[#DBDBDB] hover:text-[#9B9B9B]"
+          >
+            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+          </button>
         </div>
       </div>
     </div>

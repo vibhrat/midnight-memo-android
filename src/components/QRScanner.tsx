@@ -63,12 +63,13 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
   const processQRData = (qrData: string) => {
     console.log('Processing QR data:', qrData);
     
-    // Check for our specific cipher prefixes
+    // Check for our specific cipher prefixes or valid JSON
     if (qrData.startsWith('CIPHER_NOTE:') || 
         qrData.startsWith('CIPHER_LIST:') || 
-        qrData.startsWith('CIPHER_PASSWORD:')) {
+        qrData.startsWith('CIPHER_PASSWORD:') ||
+        isValidJSON(qrData)) {
       
-      console.log('Valid cipher QR code detected');
+      console.log('Valid QR code detected');
       setIsScanning(false);
       cleanup();
       
@@ -85,33 +86,18 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
       return true;
     }
     
-    // Check for JSON data that might be valid
-    try {
-      const parsed = JSON.parse(qrData);
-      if (parsed && typeof parsed === 'object' && 
-          (parsed.title !== undefined || parsed.content !== undefined || 
-           parsed.items !== undefined || parsed.password !== undefined)) {
-        
-        console.log('Valid JSON QR code detected');
-        setIsScanning(false);
-        cleanup();
-        
-        toast({
-          title: "Success",
-          description: "QR code detected successfully!",
-        });
-        
-        setTimeout(() => {
-          onResult(qrData);
-        }, 500);
-        
-        return true;
-      }
-    } catch (e) {
-      // Not valid JSON, continue
-    }
-    
     return false;
+  };
+
+  const isValidJSON = (str: string) => {
+    try {
+      const parsed = JSON.parse(str);
+      return parsed && typeof parsed === 'object' && 
+             (parsed.title !== undefined || parsed.content !== undefined || 
+              parsed.items !== undefined || parsed.password !== undefined);
+    } catch (e) {
+      return false;
+    }
   };
 
   const startScanning = () => {
@@ -149,7 +135,7 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
           });
         }
       }
-    }, 200);
+    }, 100); // Reduced interval for better responsiveness
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -241,18 +227,18 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
             />
             <canvas ref={canvasRef} className="hidden" />
             
-            {/* Large scanning frame */}
+            {/* Scanning frame */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative">
                 <div 
                   className="border-2 border-white/80 rounded-2xl relative overflow-hidden"
-                  style={{ width: '420px', height: '420px' }}
+                  style={{ width: '280px', height: '280px' }}
                 >
                   {/* Corner indicators */}
-                  <div className="absolute top-2 left-2 w-8 h-8 border-l-4 border-t-4 border-blue-400 rounded-tl-lg"></div>
-                  <div className="absolute top-2 right-2 w-8 h-8 border-r-4 border-t-4 border-blue-400 rounded-tr-lg"></div>
-                  <div className="absolute bottom-2 left-2 w-8 h-8 border-l-4 border-b-4 border-blue-400 rounded-bl-lg"></div>
-                  <div className="absolute bottom-2 right-2 w-8 h-8 border-r-4 border-b-4 border-blue-400 rounded-br-lg"></div>
+                  <div className="absolute top-2 left-2 w-6 h-6 border-l-4 border-t-4 border-blue-400 rounded-tl-lg"></div>
+                  <div className="absolute top-2 right-2 w-6 h-6 border-r-4 border-t-4 border-blue-400 rounded-tr-lg"></div>
+                  <div className="absolute bottom-2 left-2 w-6 h-6 border-l-4 border-b-4 border-blue-400 rounded-bl-lg"></div>
+                  <div className="absolute bottom-2 right-2 w-6 h-6 border-r-4 border-b-4 border-blue-400 rounded-br-lg"></div>
                   
                   {/* Scanning line animation */}
                   {isScanning && (
@@ -271,12 +257,12 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
 
             {/* Bottom controls */}
             <div className="absolute bottom-8 left-0 right-0 flex flex-col items-center space-y-4">
-              <p className="text-white text-lg font-medium bg-black/50 backdrop-blur-sm px-6 py-3 rounded-xl">
+              <p className="text-white text-base font-medium bg-black/50 backdrop-blur-sm px-4 py-2 rounded-xl">
                 Point camera at QR code
               </p>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+                className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
               >
                 Upload Image
               </button>
@@ -306,7 +292,7 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
               opacity: 0.6;
             }
             100% { 
-              transform: translateY(416px);
+              transform: translateY(276px);
               opacity: 1;
             }
           }

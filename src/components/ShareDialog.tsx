@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
@@ -25,6 +24,8 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
   const [showQR, setShowQR] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [showScanner, setShowScanner] = useState(false);
+  const [showTextImport, setShowTextImport] = useState(false);
+  const [textInput, setTextInput] = useState('');
 
   if (!isOpen) return null;
 
@@ -155,6 +156,18 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
   const handleScanQR = () => {
     console.log('Opening QR scanner');
     setShowScanner(true);
+  };
+
+  const handleTextImport = () => {
+    if (!textInput.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter some data to import",
+        variant: "destructive",
+      });
+      return;
+    }
+    processImportData(textInput);
   };
 
   const handleQRScanResult = (result: string) => {
@@ -337,6 +350,49 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
     );
   }
 
+  if (showTextImport) {
+    return (
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{
+          background: 'rgba(19, 16, 16, 0.60)',
+          backdropFilter: 'blur(5px)',
+        }}
+      >
+        <div 
+          className="w-full max-w-sm mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
+          style={{
+            background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
+          }}
+        >
+          <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Import from Text</h2>
+          <textarea
+            value={textInput}
+            onChange={(e) => setTextInput(e.target.value)}
+            placeholder="Paste your data here..."
+            className="w-full h-32 bg-[#181818] text-[#DBDBDB] p-3 rounded-lg border border-[#2A2A2A] resize-none mb-4"
+          />
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleTextImport}
+              className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
+              style={{ backgroundColor: '#272727' }}
+            >
+              Import
+            </button>
+            <button
+              onClick={() => setShowTextImport(false)}
+              className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
+              style={{ backgroundColor: '#191919' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Import mode
   if (mode === 'import') {
     return (
@@ -371,6 +427,13 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
                 className="hidden"
               />
             </label>
+            <button
+              onClick={() => setShowTextImport(true)}
+              className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
+              style={{ backgroundColor: '#272727' }}
+            >
+              Import from Text
+            </button>
             <button
               onClick={onClose}
               className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
