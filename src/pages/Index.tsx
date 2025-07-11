@@ -1,7 +1,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
+import { useLocalFileSystem } from '@/hooks/useLocalFileSystem';
+import { useBiometricAuth } from '@/contexts/BiometricAuthContext';
+import { useLocalNotifications } from '@/hooks/useLocalNotifications';
 import CasualNotes from '@/components/CasualNotes';
 import ShoppingLists from '@/components/ShoppingLists';
 import Passwords from '@/components/Passwords';
@@ -11,14 +13,17 @@ import ListDetail from '@/components/ListDetail';
 import PasswordDetail from '@/components/PasswordDetail';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import AppMenu from '@/components/AppMenu';
-import Auth from '@/components/Auth';
+import BiometricLogin from '@/components/BiometricLogin';
 import Navigation from '@/components/Navigation';
 import PinProtection from '@/components/PinProtection';
 import PinManagement from '@/components/PinManagement';
 import BadgePage from '@/components/BadgePage';
 
 const Index = () => {
-  const { user, loading } = useFirebaseAuth();
+  const { isAuthenticated } = useBiometricAuth();
+  const { data, saveData } = useLocalFileSystem();
+  const { scheduleReminder } = useLocalNotifications();
+  
   const casualNotesRef = useRef<{ triggerCreate: () => void }>(null);
   const shoppingListsRef = useRef<{ triggerCreate: () => void }>(null);
   const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
@@ -27,15 +32,13 @@ const Index = () => {
   const [selectedNoteId, setSelectedNoteId] = useLocalStorage<string | null>('selected-note-id', null);
   const [selectedListId, setSelectedListId] = useLocalStorage<string | null>('selected-list-id', null);
   const [selectedPasswordId, setSelectedPasswordId] = useLocalStorage<string | null>('selected-password-id', null);
-  const [searchQuery, setSearchQuery] = useLocalStorage('search-query', '');
   const [showSearch, setShowSearch] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [showAuth, setShowAuth] = useState(false);
   const [currentMenuPage, setCurrentMenuPage] = useState<string>('');
   const [isPinProtected, setIsPinProtected] = useLocalStorage('pin-protected', false);
   const [isPinVerified, setIsPinVerified] = useState(false);
 
-  // Handler functions declared before they're used
+  // Handler functions
   const handleNoteSelect = (noteId: string) => {
     setSelectedNoteId(noteId);
     setSelectedListId(null);
@@ -60,55 +63,24 @@ const Index = () => {
     setSelectedPasswordId(null);
   };
 
-  const handleSearchClick = () => {
-    setShowSearch(true);
-  };
-
-  const handleMenuClick = () => {
-    setShowMenu(true);
-  };
-
   const handleFloatingActionClick = () => {
-    console.log('Floating action clicked, currentPage:', currentPage);
-    
-    // Create new items regardless of loading state for better UX
     if (currentPage === 'notes') {
-      console.log('Triggering note creation');
       casualNotesRef.current?.triggerCreate();
     } else if (currentPage === 'shopping') {
-      console.log('Triggering list creation');
       shoppingListsRef.current?.triggerCreate();
     } else if (currentPage === 'passwords') {
-      console.log('Triggering password creation');
       passwordsRef.current?.triggerCreate();
     }
   };
 
-  // Show loading state while Firebase is initializing
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-[#9B9B9B]">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Show PIN protection if enabled and not verified
-  if (isPinProtected && !isPinVerified) {
+  if (isPinProtected && !isPinVerified && isAuthenticated) {
     return <PinProtection onUnlock={() => setIsPinVerified(true)} />;
   }
 
-  // Show auth page if not authenticated
-  if (!user) {
-    return <Auth onAuthSuccess={() => setShowAuth(false)} />;
-  }
-
-  // Show auth page if explicitly requested
-  if (showAuth) {
-    return <Auth onAuthSuccess={() => setShowAuth(false)} />;
+  // Show biometric login if not authenticated
+  if (!isAuthenticated) {
+    return <BiometricLogin onSuccess={() => {}} />;
   }
 
   // Show menu pages
@@ -142,14 +114,10 @@ const Index = () => {
           setCurrentMenuPage('');
         }}
         onNavigate={(page) => {
-          if (page === 'auth') {
-            setShowMenu(false);
-            setCurrentMenuPage('');
-            setShowAuth(true);
-          } else {
-            setCurrentMenuPage(page);
-          }
+          setCurrentMenuPage(page);
         }}
+        data={data}
+        saveData={saveData}
       />
     );
   }
@@ -160,20 +128,44 @@ const Index = () => {
         onBack={() => setShowSearch(false)}
         onNoteSelect={handleNoteSelect}
         onListSelect={handleListSelect}
+        notes={data.notes}
+        lists={data.lists}
       />
     );
   }
 
   if (selectedNoteId) {
-    return <NoteDetail noteId={selectedNoteId} onBack={handleBack} />;
+    return (
+      <NoteDetail 
+        noteId={selectedNoteId} 
+        onBack={handleBack}
+        notes={data.notes}
+        saveData={saveData}
+        scheduleReminder={scheduleReminder}
+      />
+    );
   }
 
   if (selectedListId) {
-    return <ListDetail listId={selectedListId} onBack={handleBack} />;
+    return (
+      <ListDetail 
+        listId={selectedListId} 
+        onBack={handleBack}
+        lists={data.lists}
+        saveData={saveData}
+      />
+    );
   }
 
   if (selectedPasswordId) {
-    return <PasswordDetail passwordId={selectedPasswordId} onBack={handleBack} />;
+    return (
+      <PasswordDetail 
+        passwordId={selectedPasswordId} 
+        onBack={handleBack}
+        passwords={data.passwords}
+        saveData={saveData}
+      />
+    );
   }
 
   return (
@@ -182,8 +174,10 @@ const Index = () => {
         <CasualNotes 
           ref={casualNotesRef}
           onNoteSelect={handleNoteSelect}
-          onSearchClick={handleSearchClick}
-          onMenuClick={handleMenuClick}
+          onSearchClick={() => setShowSearch(true)}
+          onMenuClick={() => setShowMenu(true)}
+          notes={data.notes}
+          saveData={saveData}
         />
       )}
       
@@ -191,7 +185,9 @@ const Index = () => {
         <ShoppingLists 
           ref={shoppingListsRef}
           onListSelect={handleListSelect}
-          onSearchClick={handleSearchClick}
+          onSearchClick={() => setShowSearch(true)}
+          lists={data.lists}
+          saveData={saveData}
         />
       )}
       
@@ -199,7 +195,9 @@ const Index = () => {
         <Passwords 
           ref={passwordsRef}
           onPasswordSelect={handlePasswordSelect}
-          onSearchClick={handleSearchClick}
+          onSearchClick={() => setShowSearch(true)}
+          passwords={data.passwords}
+          saveData={saveData}
         />
       )}
 
