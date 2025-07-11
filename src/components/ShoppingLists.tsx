@@ -1,7 +1,8 @@
+
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList } from '@/types';
-import { Upload, Search } from 'lucide-react';
+import { Download, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import ShareDialog from '@/components/ShareDialog';
 import EmptyState from '@/components/EmptyState';
@@ -56,13 +57,13 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
           <div className="flex items-center gap-3">
             <button
               onClick={handleImportClick}
-              className="p-2 bg-[#2A2A2A] rounded-lg text-[#DBDBDB] hover:bg-[#3A3A3A] transition-colors"
+              className="p-2 text-[#DBDBDB] hover:text-white transition-colors"
             >
-              <Upload size={20} />
+              <Download size={20} />
             </button>
             <button
               onClick={onSearchClick}
-              className="p-2 bg-[#2A2A2A] rounded-lg text-[#DBDBDB] hover:bg-[#3A3A3A] transition-colors"
+              className="p-2 text-[#DBDBDB] hover:text-white transition-colors"
             >
               <Search size={20} />
             </button>

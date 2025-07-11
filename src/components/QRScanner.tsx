@@ -1,6 +1,6 @@
 
 import { useRef, useEffect, useState } from 'react';
-import { X, Upload } from 'lucide-react';
+import { X } from 'lucide-react';
 import jsQR from 'jsqr';
 
 interface QRScannerProps {
@@ -84,15 +84,20 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
       if (qrCode && qrCode.data) {
         console.log('QR Code detected:', qrCode.data);
         
+        // Check for our specific cipher prefixes OR any valid JSON data
         if (qrCode.data.includes('CIPHER_NOTE:') || 
             qrCode.data.includes('CIPHER_LIST:') || 
-            qrCode.data.includes('CIPHER_PASSWORD:')) {
+            qrCode.data.includes('CIPHER_PASSWORD:') ||
+            qrCode.data.startsWith('{')) {
+          console.log('Valid QR code found, processing...');
           setIsScanning(false);
           cleanup();
           onResult(qrCode.data);
+        } else {
+          console.log('QR code found but not our format:', qrCode.data);
         }
       }
-    }, 100);
+    }, 200); // Reduced scanning frequency for better performance
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,10 +124,13 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
           
           if (qrCode.data.includes('CIPHER_NOTE:') || 
               qrCode.data.includes('CIPHER_LIST:') || 
-              qrCode.data.includes('CIPHER_PASSWORD:')) {
+              qrCode.data.includes('CIPHER_PASSWORD:') ||
+              qrCode.data.startsWith('{')) {
             setIsScanning(false);
             cleanup();
             onResult(qrCode.data);
+          } else {
+            console.log('QR code found but not our format');
           }
         } else {
           console.log('No QR code found in image');
@@ -190,7 +198,7 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
                   {isScanning && (
                     <div className="absolute inset-0">
                       <div 
-                        className="w-full h-0.5 bg-blue-400 opacity-80"
+                        className="w-full h-0.5 bg-blue-400 opacity-80 animate-pulse"
                         style={{
                           animation: 'scanLine 2s linear infinite'
                         }}

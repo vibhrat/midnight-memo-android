@@ -6,230 +6,242 @@ import {
   addDoc, 
   updateDoc, 
   deleteDoc, 
-  query, 
-  orderBy, 
-  where,
   onSnapshot,
+  query,
+  orderBy,
+  where,
   Timestamp 
-} from "firebase/firestore";
-import { db } from "./config";
-import { CasualNote, ShoppingList, Password } from "@/types";
+} from 'firebase/firestore';
+import { db, auth } from './config';
+import { CasualNote, ShoppingList, Password } from '@/types';
 
-// Notes operations
-export const notesCollection = collection(db, "notes");
+// Helper function to get current user ID
+const getCurrentUserId = () => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+  return user.uid;
+};
+
+// Convert Firestore timestamps to Date objects
+const convertTimestamps = (data: any) => {
+  return {
+    ...data,
+    createdAt: data.createdAt?.toDate() || new Date(),
+    updatedAt: data.updatedAt?.toDate() || new Date(),
+  };
+};
+
+// CASUAL NOTES
+export const subscribeToNotes = (callback: (notes: CasualNote[]) => void) => {
+  try {
+    const userId = getCurrentUserId();
+    const notesRef = collection(db, 'casualNotes');
+    const q = query(
+      notesRef, 
+      where('userId', '==', userId),
+      orderBy('updatedAt', 'desc')
+    );
+    
+    return onSnapshot(q, (snapshot) => {
+      const notes: CasualNote[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        notes.push({
+          id: doc.id,
+          ...convertTimestamps(data),
+        } as CasualNote);
+      });
+      callback(notes);
+    });
+  } catch (error) {
+    console.error('Error subscribing to notes:', error);
+    return () => {}; // Return empty unsubscribe function
+  }
+};
 
 export const addNote = async (note: Omit<CasualNote, 'id'>) => {
   try {
-    const docRef = await addDoc(notesCollection, {
+    const userId = getCurrentUserId();
+    const notesRef = collection(db, 'casualNotes');
+    const docRef = await addDoc(notesRef, {
       ...note,
-      createdAt: Timestamp.fromDate(new Date(note.createdAt)),
-      updatedAt: Timestamp.fromDate(new Date(note.updatedAt))
+      userId,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
     });
+    console.log('Note added with ID:', docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error("Error adding note:", error);
+    console.error('Error adding note:', error);
     throw error;
   }
 };
 
 export const updateNote = async (id: string, note: Partial<CasualNote>) => {
   try {
-    const noteRef = doc(db, "notes", id);
-    const updateData = {
+    const noteRef = doc(db, 'casualNotes', id);
+    await updateDoc(noteRef, {
       ...note,
-      updatedAt: Timestamp.fromDate(new Date())
-    };
-    await updateDoc(noteRef, updateData);
+      updatedAt: Timestamp.now(),
+    });
+    console.log('Note updated:', id);
   } catch (error) {
-    console.error("Error updating note:", error);
+    console.error('Error updating note:', error);
     throw error;
   }
 };
 
 export const deleteNote = async (id: string) => {
   try {
-    const noteRef = doc(db, "notes", id);
+    const noteRef = doc(db, 'casualNotes', id);
     await deleteDoc(noteRef);
+    console.log('Note deleted:', id);
   } catch (error) {
-    console.error("Error deleting note:", error);
+    console.error('Error deleting note:', error);
     throw error;
   }
 };
 
-export const getNotes = async () => {
+// SHOPPING LISTS
+export const subscribeToLists = (callback: (lists: ShoppingList[]) => void) => {
   try {
-    const q = query(notesCollection, orderBy("updatedAt", "desc"));
-    const querySnapshot = await getDocs(q);
+    const userId = getCurrentUserId();
+    const listsRef = collection(db, 'shoppingLists');
+    const q = query(
+      listsRef, 
+      where('userId', '==', userId),
+      orderBy('updatedAt', 'desc')
+    );
     
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt.toDate(),
-      updatedAt: doc.data().updatedAt.toDate()
-    })) as CasualNote[];
+    return onSnapshot(q, (snapshot) => {
+      const lists: ShoppingList[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        lists.push({
+          id: doc.id,
+          ...convertTimestamps(data),
+        } as ShoppingList);
+      });
+      callback(lists);
+    });
   } catch (error) {
-    console.error("Error getting notes:", error);
-    throw error;
+    console.error('Error subscribing to lists:', error);
+    return () => {}; // Return empty unsubscribe function
   }
 };
-
-export const subscribeToNotes = (callback: (notes: CasualNote[]) => void) => {
-  const q = query(notesCollection, orderBy("updatedAt", "desc"));
-  
-  return onSnapshot(q, (querySnapshot) => {
-    const notes = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt.toDate(),
-      updatedAt: doc.data().updatedAt.toDate()
-    })) as CasualNote[];
-    
-    callback(notes);
-  });
-};
-
-// Shopping Lists operations
-export const listsCollection = collection(db, "shopping-lists");
 
 export const addList = async (list: Omit<ShoppingList, 'id'>) => {
   try {
-    const docRef = await addDoc(listsCollection, {
+    const userId = getCurrentUserId();
+    const listsRef = collection(db, 'shoppingLists');
+    const docRef = await addDoc(listsRef, {
       ...list,
-      createdAt: Timestamp.fromDate(new Date(list.createdAt)),
-      updatedAt: Timestamp.fromDate(new Date(list.updatedAt))
+      userId,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
     });
+    console.log('List added with ID:', docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error("Error adding list:", error);
+    console.error('Error adding list:', error);
     throw error;
   }
 };
 
 export const updateList = async (id: string, list: Partial<ShoppingList>) => {
   try {
-    const listRef = doc(db, "shopping-lists", id);
-    const updateData = {
+    const listRef = doc(db, 'shoppingLists', id);
+    await updateDoc(listRef, {
       ...list,
-      updatedAt: Timestamp.fromDate(new Date())
-    };
-    await updateDoc(listRef, updateData);
+      updatedAt: Timestamp.now(),
+    });
+    console.log('List updated:', id);
   } catch (error) {
-    console.error("Error updating list:", error);
+    console.error('Error updating list:', error);
     throw error;
   }
 };
 
 export const deleteList = async (id: string) => {
   try {
-    const listRef = doc(db, "shopping-lists", id);
+    const listRef = doc(db, 'shoppingLists', id);
     await deleteDoc(listRef);
+    console.log('List deleted:', id);
   } catch (error) {
-    console.error("Error deleting list:", error);
+    console.error('Error deleting list:', error);
     throw error;
   }
 };
 
-export const getLists = async () => {
+// PASSWORDS
+export const subscribeToPasswords = (callback: (passwords: Password[]) => void) => {
   try {
-    const q = query(listsCollection, orderBy("updatedAt", "desc"));
-    const querySnapshot = await getDocs(q);
+    const userId = getCurrentUserId();
+    const passwordsRef = collection(db, 'passwords');
+    const q = query(
+      passwordsRef, 
+      where('userId', '==', userId),
+      orderBy('updatedAt', 'desc')
+    );
     
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt.toDate(),
-      updatedAt: doc.data().updatedAt.toDate()
-    })) as ShoppingList[];
+    return onSnapshot(q, (snapshot) => {
+      const passwords: Password[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        passwords.push({
+          id: doc.id,
+          ...convertTimestamps(data),
+        } as Password);
+      });
+      callback(passwords);
+    });
   } catch (error) {
-    console.error("Error getting lists:", error);
-    throw error;
+    console.error('Error subscribing to passwords:', error);
+    return () => {}; // Return empty unsubscribe function
   }
 };
-
-export const subscribeToLists = (callback: (lists: ShoppingList[]) => void) => {
-  const q = query(listsCollection, orderBy("updatedAt", "desc"));
-  
-  return onSnapshot(q, (querySnapshot) => {
-    const lists = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt.toDate(),
-      updatedAt: doc.data().updatedAt.toDate()
-    })) as ShoppingList[];
-    
-    callback(lists);
-  });
-};
-
-// Passwords operations
-export const passwordsCollection = collection(db, "passwords");
 
 export const addPassword = async (password: Omit<Password, 'id'>) => {
   try {
-    const docRef = await addDoc(passwordsCollection, {
+    const userId = getCurrentUserId();
+    const passwordsRef = collection(db, 'passwords');
+    const docRef = await addDoc(passwordsRef, {
       ...password,
-      createdAt: Timestamp.fromDate(new Date(password.createdAt)),
-      updatedAt: Timestamp.fromDate(new Date(password.updatedAt))
+      userId,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
     });
+    console.log('Password added with ID:', docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error("Error adding password:", error);
+    console.error('Error adding password:', error);
     throw error;
   }
 };
 
 export const updatePassword = async (id: string, password: Partial<Password>) => {
   try {
-    const passwordRef = doc(db, "passwords", id);
-    const updateData = {
+    const passwordRef = doc(db, 'passwords', id);
+    await updateDoc(passwordRef, {
       ...password,
-      updatedAt: Timestamp.fromDate(new Date())
-    };
-    await updateDoc(passwordRef, updateData);
+      updatedAt: Timestamp.now(),
+    });
+    console.log('Password updated:', id);
   } catch (error) {
-    console.error("Error updating password:", error);
+    console.error('Error updating password:', error);
     throw error;
   }
 };
 
 export const deletePassword = async (id: string) => {
   try {
-    const passwordRef = doc(db, "passwords", id);
+    const passwordRef = doc(db, 'passwords', id);
     await deleteDoc(passwordRef);
+    console.log('Password deleted:', id);
   } catch (error) {
-    console.error("Error deleting password:", error);
+    console.error('Error deleting password:', error);
     throw error;
   }
-};
-
-export const getPasswords = async () => {
-  try {
-    const q = query(passwordsCollection, orderBy("updatedAt", "desc"));
-    const querySnapshot = await getDocs(q);
-    
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt.toDate(),
-      updatedAt: doc.data().updatedAt.toDate()
-    })) as Password[];
-  } catch (error) {
-    console.error("Error getting passwords:", error);
-    throw error;
-  }
-};
-
-export const subscribeToPasswords = (callback: (passwords: Password[]) => void) => {
-  const q = query(passwordsCollection, orderBy("updatedAt", "desc"));
-  
-  return onSnapshot(q, (querySnapshot) => {
-    const passwords = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt.toDate(),
-      updatedAt: doc.data().updatedAt.toDate()
-    })) as Password[];
-    
-    callback(passwords);
-  });
 };

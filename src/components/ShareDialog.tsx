@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import QRCode from 'qrcode';
@@ -45,26 +46,28 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
     switch (type) {
       case 'note':
         textData = `CIPHER_NOTE:${JSON.stringify({
-          title: data.title,
-          content: data.content,
-          tag: data.tag,
-          isBlurred: data.isBlurred
+          title: data.title || '',
+          content: data.content || '',
+          tag: data.tag || '',
+          isBlurred: data.isBlurred || false
         })}`;
         break;
       case 'list':
         textData = `CIPHER_LIST:${JSON.stringify({
-          title: data.title,
-          items: data.items
+          title: data.title || '',
+          items: data.items || []
         })}`;
         break;
       case 'password':
         textData = `CIPHER_PASSWORD:${JSON.stringify({
-          title: data.title,
-          password: data.password,
-          fields: data.fields
+          title: data.title || '',
+          password: data.password || '',
+          fields: data.fields || []
         })}`;
         break;
     }
+
+    console.log('Sharing text data:', textData);
 
     navigator.clipboard.writeText(textData).then(() => {
       toast({
@@ -87,28 +90,29 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
     switch (type) {
       case 'note':
         qrData = `CIPHER_NOTE:${JSON.stringify({
-          title: data.title,
-          content: data.content,
-          tag: data.tag,
-          isBlurred: data.isBlurred
+          title: data.title || '',
+          content: data.content || '',
+          tag: data.tag || '',
+          isBlurred: data.isBlurred || false
         })}`;
         break;
       case 'list':
         qrData = `CIPHER_LIST:${JSON.stringify({
-          title: data.title,
-          items: data.items
+          title: data.title || '',
+          items: data.items || []
         })}`;
         break;
       case 'password':
         qrData = `CIPHER_PASSWORD:${JSON.stringify({
-          title: data.title,
-          password: data.password,
-          fields: data.fields
+          title: data.title || '',
+          password: data.password || '',
+          fields: data.fields || []
         })}`;
         break;
     }
 
     console.log('Generating QR code for data:', qrData);
+    console.log('QR data length:', qrData.length);
 
     if (qrData.length > 2900) {
       toast({
@@ -122,13 +126,13 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
     try {
       const qrCodeUrl = await QRCode.toDataURL(qrData, {
         errorCorrectionLevel: 'M',
-        type: 'image/png',
-        margin: 1,
+        margin: 2,
         color: {
           dark: '#000000',
           light: '#FFFFFF'
         },
-        width: 512
+        width: 400,
+        scale: 8
       });
       console.log('QR code generated successfully');
       setQrCodeDataUrl(qrCodeUrl);
@@ -144,11 +148,12 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
   };
 
   const handleScanQR = () => {
+    console.log('Opening QR scanner');
     setShowScanner(true);
   };
 
   const handleQRScanResult = (result: string) => {
-    console.log('QR scan result:', result);
+    console.log('QR scan result received:', result);
     setShowScanner(false);
     processImportData(result);
   };
@@ -192,6 +197,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
           jsonStr = content.substring(prefix.length);
         }
         
+        console.log('Extracted JSON string:', jsonStr);
         const parsedData = JSON.parse(jsonStr);
         console.log('Parsed data:', parsedData);
         
@@ -317,23 +323,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
 
   if (showScanner) {
     return (
-      <div 
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{
-          background: 'rgba(19, 16, 16, 0.60)',
-          backdropFilter: 'blur(5px)',
-        }}
-      >
-        <div 
-          className="w-full max-w-sm mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
-          style={{
-            background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
-          }}
-        >
-          <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Scan QR Code</h2>
-          <QRScanner onResult={handleQRScanResult} onClose={() => setShowScanner(false)} />
-        </div>
-      </div>
+      <QRScanner onResult={handleQRScanResult} onClose={() => setShowScanner(false)} />
     );
   }
 
