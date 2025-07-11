@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
@@ -45,7 +46,7 @@ const Index = () => {
 
   // Show PIN protection if enabled and not verified
   if (isPinProtected && !isPinVerified) {
-    return <PinProtection onSuccess={() => setIsPinVerified(true)} />;
+    return <PinProtection onUnlock={() => setIsPinVerified(true)} />;
   }
 
   // Show authentication if user is not logged in
@@ -97,7 +98,7 @@ const Index = () => {
   const handleFloatingActionClick = () => {
     if (currentPage === 'notes') {
       casualNotesRef.current?.triggerCreate();
-    } else if (currentPage === 'lists') {
+    } else if (currentPage === 'shopping') {
       shoppingListsRef.current?.triggerCreate();
     } else if (currentPage === 'passwords') {
       passwordsRef.current?.triggerCreate();
@@ -109,16 +110,15 @@ const Index = () => {
   };
 
   if (showAuth && !user) {
-    return <Auth onSuccess={handleAuthSuccess} onClose={() => setShowAuth(false)} />;
+    return <Auth onAuthSuccess={handleAuthSuccess} />;
   }
 
   if (showSearch) {
     return (
       <Search 
-        query={searchQuery}
-        onQueryChange={setSearchQuery}
-        onClose={() => setShowSearch(false)}
-        currentPage={currentPage}
+        onBack={() => setShowSearch(false)}
+        onNoteSelect={handleNoteSelect}
+        onListSelect={handleListSelect}
       />
     );
   }
@@ -146,12 +146,11 @@ const Index = () => {
         />
       )}
       
-      {currentPage === 'lists' && (
+      {currentPage === 'shopping' && (
         <ShoppingLists 
           ref={shoppingListsRef}
           onListSelect={handleListSelect}
           onSearchClick={handleSearchClick}
-          onMenuClick={handleMenuClick}
         />
       )}
       
@@ -160,25 +159,24 @@ const Index = () => {
           ref={passwordsRef}
           onPasswordSelect={handlePasswordSelect}
           onSearchClick={handleSearchClick}
-          onMenuClick={handleMenuClick}
         />
       )}
 
       <FloatingActionButton onClick={handleFloatingActionClick} />
       
       <Navigation 
-        currentPage={currentPage} 
-        onPageChange={setCurrentPage}
+        activeTab={currentPage} 
+        onTabChange={setCurrentPage}
       />
 
       <AppMenu 
-        isOpen={showMenu}
-        onClose={() => setShowMenu(false)}
-        onAuthClick={() => setShowAuth(true)}
-        user={user}
-        isPinProtected={isPinProtected}
-        onPinProtectionChange={setIsPinProtected}
-        onPinVerificationChange={setIsPinVerified}
+        onBack={() => setShowMenu(false)}
+        onNavigate={(page) => {
+          setShowMenu(false);
+          if (page === 'badge' || page === 'pin-management') {
+            // Handle navigation to other pages if needed
+          }
+        }}
       />
     </div>
   );
