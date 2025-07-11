@@ -43,6 +43,7 @@ const Index = () => {
       setShowMenu(false);
       setShowBadge(false);
       setShowPinManagement(false);
+      setShowQRScanner(false);
       setNavigationHistory(['main']);
     };
 
@@ -50,10 +51,12 @@ const Index = () => {
     return () => window.removeEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
   }, []);
 
-  // Handle Android back button
+  // Enhanced Android back button handling
   useEffect(() => {
-    const handleBackButton = () => {
+    const handleBackButton = (event?: PopStateEvent) => {
       if (navigationHistory.length > 1) {
+        event?.preventDefault();
+        
         const newHistory = [...navigationHistory];
         newHistory.pop();
         const previousPage = newHistory[newHistory.length - 1];
@@ -69,16 +72,19 @@ const Index = () => {
             setShowMenu(false);
             setShowBadge(false);
             setShowPinManagement(false);
+            setShowQRScanner(false);
             break;
           case 'menu':
             setShowMenu(true);
             setShowBadge(false);
             setShowPinManagement(false);
+            setShowQRScanner(false);
             break;
           case 'search':
             setShowSearch(true);
             setSelectedListId(null);
             setSelectedNoteId(null);
+            setShowQRScanner(false);
             break;
         }
         return true;
@@ -92,13 +98,20 @@ const Index = () => {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    
-    // For mobile back gesture
-    const handlePopState = () => {
-      handleBackButton();
+    // Add history state to enable proper back navigation
+    if (navigationHistory.length === 1) {
+      window.history.pushState({ page: 'main' }, '', window.location.href);
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      const handled = handleBackButton(event);
+      if (!handled && navigationHistory.length <= 1) {
+        // If we're at the root and can't go back further, let the browser handle it
+        return;
+      }
     };
-    
+
+    document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('popstate', handlePopState);
     
     return () => {
@@ -238,15 +251,15 @@ const Index = () => {
       if (result.startsWith('CIPHER_NOTE:')) {
         const noteData = JSON.parse(result.replace('CIPHER_NOTE:', ''));
         console.log('Scanned note:', noteData);
-        // Handle note import
+        // Handle note import - you can add the actual import logic here
       } else if (result.startsWith('CIPHER_LIST:')) {
         const listData = JSON.parse(result.replace('CIPHER_LIST:', ''));
         console.log('Scanned list:', listData);
-        // Handle list import
+        // Handle list import - you can add the actual import logic here
       } else if (result.startsWith('CIPHER_PASSWORD:')) {
         const passwordData = JSON.parse(result.replace('CIPHER_PASSWORD:', ''));
         console.log('Scanned password:', passwordData);
-        // Handle password import
+        // Handle password import - you can add the actual import logic here
       }
     } catch (error) {
       console.error('Failed to parse QR data:', error);

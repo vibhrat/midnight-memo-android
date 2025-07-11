@@ -1,12 +1,10 @@
-
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { ShoppingList, ShoppingListItem } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Clock, Search, Download } from 'lucide-react';
+import { ShoppingList } from '@/types';
+import { Upload, Search } from 'lucide-react';
+import { format } from 'date-fns';
 import ShareDialog from '@/components/ShareDialog';
+import EmptyState from '@/components/EmptyState';
 
 interface ShoppingListsRef {
   triggerCreate: () => void;
@@ -23,6 +21,7 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
 
   useImperativeHandle(ref, () => ({
     triggerCreate: () => {
+      // Create a new blank list and navigate to it
       const now = new Date();
       const newList: ShoppingList = {
         id: Date.now().toString(),
@@ -38,13 +37,6 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
     }
   }));
 
-  const getDaysAgo = (date: Date) => {
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - new Date(date).getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
   const handleCardClick = (listId: string) => {
     if (onListSelect) {
       onListSelect(listId);
@@ -58,50 +50,45 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
   return (
     <div className="min-h-screen bg-[#000000]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-extrabold text-[#DBDBDB]" style={{ fontFamily: 'IBM Plex Mono' }}>Lists</h1>
-          <div className="flex gap-2">
-            <button onClick={handleImportClick} className="p-2 hover:bg-[#181818] rounded-lg">
-              <Download size={20} className="text-[#9B9B9B]" />
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-[#DBDBDB]">Lists</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleImportClick}
+              className="p-2 bg-[#2A2A2A] rounded-lg text-[#DBDBDB] hover:bg-[#3A3A3A] transition-colors"
+            >
+              <Upload size={20} />
             </button>
-            <button onClick={onSearchClick} className="p-2 hover:bg-[#181818] rounded-lg">
-              <Search size={20} className="text-[#9B9B9B]" />
+            <button
+              onClick={onSearchClick}
+              className="p-2 bg-[#2A2A2A] rounded-lg text-[#DBDBDB] hover:bg-[#3A3A3A] transition-colors"
+            >
+              <Search size={20} />
             </button>
           </div>
         </div>
 
-        <div className="space-y-4">
-          {lists.map((list) => (
-            <Card 
-              key={list.id} 
-              className="cursor-pointer hover:bg-[#2A2A2A] transition-colors bg-[#181818] border-0 rounded-lg"
-              onClick={() => handleCardClick(list.id)}
-            >
-              <CardContent className="p-4 py-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full bg-[#F2CB2F]"></div>
-                      <h3 className="text-base font-bold text-[#DBDBDB]">{list.title || 'Untitled List'}</h3>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-1 text-sm font-medium text-[#9B9B9B]">
-                        <Clock className="w-3 h-3" />
-                        <span>{getDaysAgo(list.createdAt)}d</span>
-                      </div>
-                      <span className="text-sm font-medium text-[#9B9B9B]">{list.items.length} items</span>
-                    </div>
-                  </div>
+        {/* Lists */}
+        {lists.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="space-y-3">
+            {lists.map((list) => (
+              <div
+                key={list.id}
+                onClick={() => handleCardClick(list.id)}
+                className="bg-[#1A1A1A] rounded-lg p-4 cursor-pointer hover:bg-[#252525] transition-colors border border-[#2A2A2A]"
+              >
+                <h3 className="text-[#DBDBDB] font-medium mb-2">{list.title}</h3>
+                <div className="flex items-center justify-between text-sm text-[#9B9B9B]">
+                  <span>{list.items?.length || 0} items</span>
+                  <span>{format(new Date(list.updatedAt), 'MMM d, yyyy')}</span>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-          {lists.length === 0 && (
-            <div className="text-center py-12 text-[#9B9B9B]">
-              No shopping lists yet. Create your first list!
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <ShareDialog
