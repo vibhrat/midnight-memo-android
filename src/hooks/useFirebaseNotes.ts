@@ -36,17 +36,8 @@ export const useFirebaseNotes = () => {
   }, []);
 
   const createNote = async (note: Omit<CasualNote, 'id'>) => {
-    const noteWithId = {
-      ...note,
-      id: Date.now().toString(), // Temporary ID for optimistic updates
-    };
-    
     try {
       console.log('Creating Firebase note:', note);
-      
-      // Optimistic update
-      setNotes(prev => [noteWithId, ...prev]);
-      
       await addNote(note);
       toast({
         title: "Success",
@@ -54,13 +45,12 @@ export const useFirebaseNotes = () => {
       });
     } catch (error) {
       console.error('Error creating note:', error);
-      // Revert optimistic update on error
-      setNotes(prev => prev.filter(n => n.id !== noteWithId.id));
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Failed to create note",
         variant: "destructive",
       });
+      throw error; // Re-throw to let caller handle it
     }
   };
 

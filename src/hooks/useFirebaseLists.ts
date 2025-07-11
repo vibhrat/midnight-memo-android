@@ -20,7 +20,16 @@ export const useFirebaseLists = () => {
       setLoading(false);
     });
 
-    return unsubscribe;
+    // Set a timeout to stop loading if no response after 10 seconds
+    const timeout = setTimeout(() => {
+      console.log('Firebase lists subscription timeout, stopping loading');
+      setLoading(false);
+    }, 10000);
+
+    return () => {
+      unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   const createList = async (list: Omit<ShoppingList, 'id'>) => {
@@ -37,6 +46,7 @@ export const useFirebaseLists = () => {
         description: "Failed to create list",
         variant: "destructive",
       });
+      throw error; // Re-throw to let caller handle it
     }
   };
 

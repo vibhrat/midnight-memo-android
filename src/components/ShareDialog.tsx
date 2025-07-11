@@ -5,8 +5,6 @@ import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { useFirebaseNotes } from '@/hooks/useFirebaseNotes';
 import { useFirebaseLists } from '@/hooks/useFirebaseLists';
 import { useFirebasePasswords } from '@/hooks/useFirebasePasswords';
-import QRCode from 'qrcode';
-import QRScanner from './QRScanner';
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -22,9 +20,6 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
   const { createNote } = useFirebaseNotes();
   const { createList } = useFirebaseLists();
   const { createPassword } = useFirebasePasswords();
-  const [showQR, setShowQR] = useState(false);
-  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
-  const [showScanner, setShowScanner] = useState(false);
   const [showTextImport, setShowTextImport] = useState(false);
   const [textInput, setTextInput] = useState('');
 
@@ -94,71 +89,6 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
     });
   };
 
-  const handleGenerateQR = async () => {
-    let qrData = '';
-    
-    switch (type) {
-      case 'note':
-        qrData = `CIPHER_NOTE:${JSON.stringify({
-          title: data.title || '',
-          content: data.content || '',
-          tag: data.tag || '',
-          isBlurred: data.isBlurred || false
-        })}`;
-        break;
-      case 'list':
-        qrData = `CIPHER_LIST:${JSON.stringify({
-          title: data.title || '',
-          items: data.items || []
-        })}`;
-        break;
-      case 'password':
-        qrData = `CIPHER_PASSWORD:${JSON.stringify({
-          title: data.title || '',
-          password: data.password || '',
-          fields: data.fields || []
-        })}`;
-        break;
-    }
-
-    console.log('Generating QR code for data:', qrData);
-
-    if (qrData.length > 2900) {
-      toast({
-        title: "Error",
-        description: "Data is too big for QR code",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const qrCodeUrl = await QRCode.toDataURL(qrData, {
-        errorCorrectionLevel: 'M',
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF'
-        },
-        width: 400
-      });
-      setQrCodeDataUrl(qrCodeUrl);
-      setShowQR(true);
-    } catch (error) {
-      console.error('QR code generation error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate QR code",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleScanQR = () => {
-    console.log('Opening QR scanner');
-    setShowScanner(true);
-  };
-
   const handleTextImport = () => {
     if (!textInput.trim()) {
       toast({
@@ -169,12 +99,6 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
       return;
     }
     processImportData(textInput);
-  };
-
-  const handleQRScanResult = (result: string) => {
-    console.log('QR scan result received:', result);
-    setShowScanner(false);
-    processImportData(result);
   };
 
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -222,7 +146,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
         if (expectedType !== type) {
           toast({
             title: "Error",
-            description: `This QR code contains ${expectedType} data, but you're trying to import a ${type}`,
+            description: `This contains ${expectedType} data, but you're trying to import a ${type}`,
             variant: "destructive",
           });
           return;
@@ -236,7 +160,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
       
       console.log('Parsed data:', parsedData);
       
-      // Create the imported data using Firebase hooks
+      // Create the imported data
       if (type === 'note' && parsedData) {
         const newNote = {
           title: parsedData.title || '',
@@ -253,7 +177,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
         } else {
           // Fallback to localStorage if not authenticated
           const existingNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
-          const noteWithId = { ...newNote, id: Date.now().toString() };
+          const noteWithId = { ...newNote, id: Date.now().toString() + Math.random() };
           existingNotes.unshift(noteWithId);
           localStorage.setItem('casual-notes', JSON.stringify(existingNotes));
         }
@@ -271,7 +195,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
         } else {
           // Fallback to localStorage if not authenticated
           const existingLists = JSON.parse(localStorage.getItem('shopping-lists') || '[]');
-          const listWithId = { ...newList, id: Date.now().toString() };
+          const listWithId = { ...newList, id: Date.now().toString() + Math.random() };
           existingLists.unshift(listWithId);
           localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
         }
@@ -290,7 +214,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
         } else {
           // Fallback to localStorage if not authenticated
           const existingPasswords = JSON.parse(localStorage.getItem('passwords') || '[]');
-          const passwordWithId = { ...newPassword, id: Date.now().toString() };
+          const passwordWithId = { ...newPassword, id: Date.now().toString() + Math.random() };
           existingPasswords.unshift(passwordWithId);
           localStorage.setItem('passwords', JSON.stringify(existingPasswords));
         }
@@ -306,48 +230,11 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
       console.error('Import error:', error);
       toast({
         title: "Error",
-        description: "Invalid QR code or file format",
+        description: "Invalid format or file",
         variant: "destructive",
       });
     }
   };
-
-  if (showQR) {
-    return (
-      <div 
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{
-          background: 'rgba(19, 16, 16, 0.60)',
-          backdropFilter: 'blur(5px)',
-        }}
-      >
-        <div 
-          className="w-full max-w-sm mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
-          style={{
-            background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
-          }}
-        >
-          <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">QR Code</h2>
-          <div className="flex justify-center mb-6">
-            <img src={qrCodeDataUrl} alt="QR Code" className="rounded-lg" />
-          </div>
-          <button
-            onClick={() => setShowQR(false)}
-            className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-            style={{ backgroundColor: '#191919' }}
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (showScanner) {
-    return (
-      <QRScanner onResult={handleQRScanResult} onClose={() => setShowScanner(false)} />
-    );
-  }
 
   if (showTextImport) {
     return (
@@ -410,13 +297,6 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
         >
           <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Import {type.charAt(0).toUpperCase() + type.slice(1)}</h2>
           <div className="flex flex-col gap-4">
-            <button
-              onClick={handleScanQR}
-              className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-              style={{ backgroundColor: '#272727' }}
-            >
-              Scan QR
-            </button>
             <label className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer text-center" style={{ backgroundColor: '#272727' }}>
               Import File
               <input
@@ -463,15 +343,6 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
       >
         <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Share {type}</h2>
         <div className="flex flex-col gap-4">
-          {type !== 'password' && (
-            <button
-              onClick={handleGenerateQR}
-              className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-              style={{ backgroundColor: '#272727' }}
-            >
-              Generate QR
-            </button>
-          )}
           <button
             onClick={handleExportJSON}
             className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"

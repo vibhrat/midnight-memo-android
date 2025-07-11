@@ -28,33 +28,37 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
   const lists = user ? firebaseLists : localLists;
 
   useImperativeHandle(ref, () => ({
-    triggerCreate: () => {
-      // Only create if not in loading state
-      if (user && firebaseLoading) {
-        console.log('Still loading Firebase data, skipping create');
-        return;
-      }
+    triggerCreate: async () => {
+      try {
+        // Only create if not in loading state
+        if (user && firebaseLoading) {
+          console.log('Still loading Firebase data, skipping create');
+          return;
+        }
 
-      // Create a new blank list and navigate to it
-      const now = new Date();
-      const newList: ShoppingList = {
-        id: Date.now().toString(),
-        title: '',
-        items: [],
-        createdAt: now,
-        updatedAt: now,
-      };
-      
-      if (user) {
-        // Use Firebase
-        createList(newList);
-      } else {
-        // Use localStorage
-        setLocalLists([newList, ...localLists]);
-      }
-      
-      if (onListSelect) {
-        onListSelect(newList.id);
+        // Create a new blank list and navigate to it
+        const now = new Date();
+        const newList: Omit<ShoppingList, 'id'> = {
+          title: '',
+          items: [],
+          createdAt: now,
+          updatedAt: now,
+        };
+        
+        if (user) {
+          // Use Firebase
+          await createList(newList);
+        } else {
+          // Use localStorage
+          const listWithId = { ...newList, id: Date.now().toString() };
+          setLocalLists([listWithId, ...localLists]);
+          
+          if (onListSelect) {
+            onListSelect(listWithId.id);
+          }
+        }
+      } catch (error) {
+        console.error('Error creating list:', error);
       }
     }
   }));

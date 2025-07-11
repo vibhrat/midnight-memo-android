@@ -38,33 +38,37 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
   }, []);
 
   useImperativeHandle(ref, () => ({
-    triggerCreate: () => {
+    triggerCreate: async () => {
       console.log('CasualNotes triggerCreate called, user:', user, 'loading:', loading);
       
-      // Create a new blank note and navigate to it
-      const now = new Date();
-      const newNote: CasualNote = {
-        id: Date.now().toString(),
-        title: '',
-        tag: '',
-        content: '',
-        createdAt: now,
-        updatedAt: now,
-        isBlurred: false
-      };
-      
-      if (user) {
-        // Use Firebase
-        console.log('Creating Firebase note');
-        createNote(newNote);
-      } else {
-        // Use localStorage
-        console.log('Creating localStorage note');
-        setLocalNotes([newNote, ...localNotes]);
-      }
-      
-      if (onNoteSelect) {
-        onNoteSelect(newNote.id);
+      try {
+        // Create a new blank note and navigate to it
+        const now = new Date();
+        const newNote: Omit<CasualNote, 'id'> = {
+          title: '',
+          tag: '',
+          content: '',
+          createdAt: now,
+          updatedAt: now,
+          isBlurred: false
+        };
+        
+        if (user) {
+          // Use Firebase
+          console.log('Creating Firebase note');
+          await createNote(newNote);
+        } else {
+          // Use localStorage
+          console.log('Creating localStorage note');
+          const noteWithId = { ...newNote, id: Date.now().toString() };
+          setLocalNotes([noteWithId, ...localNotes]);
+          
+          if (onNoteSelect) {
+            onNoteSelect(noteWithId.id);
+          }
+        }
+      } catch (error) {
+        console.error('Error creating note:', error);
       }
     }
   }));
