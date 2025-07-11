@@ -95,8 +95,26 @@ const Index = () => {
     setShowAuth(false);
   };
 
+  const handleMenuNavigate = (page: string) => {
+    setShowMenu(false);
+    if (page === 'auth') {
+      setShowAuth(true);
+    } else if (page === 'badge' || page === 'pin-management') {
+      // Handle navigation to other pages if needed
+    }
+  };
+
   if (showAuth) {
     return <Auth onAuthSuccess={handleAuthSuccess} />;
+  }
+
+  if (showMenu) {
+    return (
+      <AppMenu 
+        onBack={() => setShowMenu(false)}
+        onNavigate={handleMenuNavigate}
+      />
+    );
   }
 
   if (showSearch) {
@@ -153,16 +171,6 @@ const Index = () => {
       <Navigation 
         activeTab={currentPage} 
         onTabChange={setCurrentPage}
-      />
-
-      <AppMenu 
-        onBack={() => setShowMenu(false)}
-        onNavigate={(page) => {
-          setShowMenu(false);
-          if (page === 'badge' || page === 'pin-management') {
-            // Handle navigation to other pages if needed
-          }
-        }}
       />
     </div>
   );

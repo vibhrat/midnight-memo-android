@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
+import { signOut } from '@/integrations/firebase/auth';
 import { CasualNote, ShoppingList, Password } from '@/types';
 import { ArrowLeft, Upload, LogOut, Award, Download, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -10,6 +12,7 @@ interface AppMenuProps {
 }
 
 const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
+  const { user } = useFirebaseAuth();
   const [notes] = useLocalStorage<CasualNote[]>('casual-notes', []);
   const [lists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
   const [passwords] = useLocalStorage<Password[]>('passwords', []);
@@ -48,9 +51,28 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
     setShowExportConfirm(false);
   };
 
-  const handleSignOut = () => {
-    localStorage.clear();
-    window.location.reload();
+  const handleSignOut = async () => {
+    if (user) {
+      // Firebase sign out
+      const { error } = await signOut();
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to sign out",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "Success",
+        description: "Signed out successfully",
+      });
+    } else {
+      // Local storage clear
+      localStorage.clear();
+      window.location.reload();
+    }
+    setShowSignOutConfirm(false);
   };
 
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,13 +256,25 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
             <span className="text-[#DBDBDB]">Export Data</span>
           </button>
 
-          <button
-            onClick={() => setShowSignOutConfirm(true)}
-            className="w-full bg-[#181818] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
-          >
-            <LogOut size={20} className="text-[#9B9B9B]" />
-            <span className="text-[#DBDBDB]">Sign Out</span>
-          </button>
+          {!user && (
+            <button
+              onClick={() => onNavigate('auth')}
+              className="w-full bg-[#181818] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
+            >
+              <LogOut size={20} className="text-[#9B9B9B]" />
+              <span className="text-[#DBDBDB]">Sign In</span>
+            </button>
+          )}
+
+          {user && (
+            <button
+              onClick={() => setShowSignOutConfirm(true)}
+              className="w-full bg-[#181818] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
+            >
+              <LogOut size={20} className="text-[#9B9B9B]" />
+              <span className="text-[#DBDBDB]">Sign Out</span>
+            </button>
+          )}
 
           <button
             onClick={() => onNavigate('badge')}

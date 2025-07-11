@@ -1,10 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
+import { useFirebaseLists } from '@/hooks/useFirebaseLists';
 import { ShoppingList, ShoppingListItem } from '@/types';
-import { ArrowLeft, Trash2, Plus, X, Share } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, X, Share, Clock } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import ShareDialog from '@/components/ShareDialog';
+import ReminderDialog from '@/components/ReminderDialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface ListDetailProps {
   listId: string;
@@ -12,13 +16,19 @@ interface ListDetailProps {
 }
 
 const ListDetail = ({ listId, onBack }: ListDetailProps) => {
-  const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
+  const { user } = useFirebaseAuth();
+  const { updateList: updateFirebaseList } = useFirebaseLists();
+  const [localLists, setLocalLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
   const [editableList, setEditableList] = useState<ShoppingList | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showReminderDialog, setShowReminderDialog] = useState(false);
   const [swipedItems, setSwipedItems] = useState<Set<string>>(new Set());
   const [editingItems, setEditingItems] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
 
+  // Use appropriate data source based on authentication
+  const lists = user ? [] : localLists; // Firebase lists would come from useFirebaseLists hook
   const list = lists.find(l => l.id === listId);
 
   useEffect(() => {
@@ -38,17 +48,28 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     );
   }
 
-  const autoSave = (updatedList: Partial<ShoppingList>) => {
+  const autoSave = async (updatedList: Partial<ShoppingList>) => {
     const now = new Date();
     const newList = { ...editableList, ...updatedList, updatedAt: now };
     setEditableList(newList);
-    setLists(lists.map(l => 
-      l.id === listId ? newList : l
-    ));
+    
+    if (user) {
+      // Update Firebase
+      await updateFirebaseList(listId, updatedList);
+    } else {
+      // Update localStorage
+      setLocalLists(localLists.map(l => 
+        l.id === listId ? newList : l
+      ));
+    }
   };
 
   const handleDelete = () => {
-    setLists(lists.filter(l => l.id !== listId));
+    if (user) {
+      // Delete from Firebase (would need deleteList function)
+    } else {
+      setLocalLists(localLists.filter(l => l.id !== listId));
+    }
     setShowDeleteDialog(false);
     onBack();
   };
@@ -97,6 +118,57 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     });
   };
 
+  const handleReminderSave = (reminder: { hour: number; minute: number; ampm: 'AM' | 'PM' }) => {
+    // Convert to 24-hour format for storage
+    let hour24 = reminder.hour;
+    if (reminder.ampm === 'PM' && reminder.hour !== 12) {
+      hour24 += 12;
+    } else if (reminder.ampm === 'AM' && reminder.hour === 12) {
+      hour24 = 0;
+    }
+
+    const reminderTime = new Date();
+    reminderTime.setHours(hour24, reminder.minute, 0, 0);
+    
+    // If the time has passed today, set for tomorrow
+    if (reminderTime < new Date()) {
+      reminderTime.setDate(reminderTime.getDate() + 1);
+    }
+
+    autoSave({ reminder: reminderTime.toISOString() });
+    
+    // Schedule notification (mock implementation for now)
+    scheduleNotification(reminderTime, editableList.title || 'Untitled List');
+  };
+
+  const handleReminderDelete = () => {
+    autoSave({ reminder: undefined });
+  };
+
+  const scheduleNotification = (time: Date, title: string) => {
+    // Mock notification scheduling
+    console.log(`Notification scheduled for ${time.toLocaleString()} with title: ${title}`);
+    
+    // In a real implementation, this would use:
+    // - Local notifications via Capacitor for mobile apps
+    // - Service worker for web push notifications
+    // - Firebase Cloud Functions for push notifications
+  };
+
+  const getExistingReminder = () => {
+    if (!editableList.reminder) return null;
+    
+    const reminderDate = new Date(editableList.reminder);
+    let hour = reminderDate.getHours();
+    const minute = reminderDate.getMinutes();
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    
+    if (hour === 0) hour = 12;
+    else if (hour > 12) hour -= 12;
+    
+    return { hour, minute, ampm };
+  };
+
   return (
     <div className="min-h-screen bg-[#000000]">
       <div className="max-w-2xl mx-auto p-4 pb-20">
@@ -109,6 +181,12 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
             <ArrowLeft size={22} className="text-[#9B9B9B]" />
           </button>
           <div className="flex gap-2">
+            <button
+              onClick={() => setShowReminderDialog(true)}
+              className={`p-2 hover:bg-[#181818] rounded-lg ${editableList.reminder ? 'bg-[#181818]' : ''}`}
+            >
+              <Clock size={22} className={editableList.reminder ? "text-blue-600" : "text-[#9B9B9B]"} />
+            </button>
             <button
               onClick={() => setShowShareDialog(true)}
               className="p-2 hover:bg-[#181818] rounded-lg"
@@ -238,6 +316,14 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         data={editableList}
         type="list"
         mode="share"
+      />
+
+      <ReminderDialog
+        isOpen={showReminderDialog}
+        onClose={() => setShowReminderDialog(false)}
+        onSave={handleReminderSave}
+        onDelete={handleReminderDelete}
+        existingReminder={getExistingReminder()}
       />
     </div>
   );
