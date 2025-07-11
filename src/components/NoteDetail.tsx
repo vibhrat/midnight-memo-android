@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
@@ -20,7 +19,7 @@ interface NoteDetailProps {
 
 const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   const { user } = useFirebaseAuth();
-  const { updateNote: updateFirebaseNote } = useFirebaseNotes();
+  const { editNote: updateFirebaseNote } = useFirebaseNotes();
   const [localNotes, setLocalNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
   const [editableNote, setEditableNote] = useState<CasualNote | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -128,7 +127,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
     const reminderDate = new Date(editableNote.reminder);
     let hour = reminderDate.getHours();
     const minute = reminderDate.getMinutes();
-    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const ampm: 'AM' | 'PM' = hour >= 12 ? 'PM' : 'AM';
     
     if (hour === 0) hour = 12;
     else if (hour > 12) hour -= 12;

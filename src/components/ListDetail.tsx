@@ -17,7 +17,7 @@ interface ListDetailProps {
 
 const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const { user } = useFirebaseAuth();
-  const { updateList: updateFirebaseList } = useFirebaseLists();
+  const { editList: updateFirebaseList } = useFirebaseLists();
   const [localLists, setLocalLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
   const [editableList, setEditableList] = useState<ShoppingList | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -161,7 +161,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     const reminderDate = new Date(editableList.reminder);
     let hour = reminderDate.getHours();
     const minute = reminderDate.getMinutes();
-    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const ampm: 'AM' | 'PM' = hour >= 12 ? 'PM' : 'AM';
     
     if (hour === 0) hour = 12;
     else if (hour > 12) hour -= 12;

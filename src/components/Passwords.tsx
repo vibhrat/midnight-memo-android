@@ -27,6 +27,7 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onP
         id: Date.now().toString(),
         title: '',
         password: '',
+        fields: [],
         createdAt: now,
         updatedAt: now,
       };
