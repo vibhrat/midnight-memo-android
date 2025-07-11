@@ -1,6 +1,5 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Password, PasswordField } from '@/types';
 import { ArrowLeft, Trash2, Eye, EyeOff, Copy, Plus, X } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
@@ -9,10 +8,11 @@ import { useToast } from '@/hooks/use-toast';
 interface PasswordDetailProps {
   passwordId: string;
   onBack: () => void;
+  passwords: Password[];
+  saveData: (data: any) => Promise<void>;
 }
 
-const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
-  const [passwords, setPasswords] = useLocalStorage<Password[]>('passwords', []);
+const PasswordDetail = ({ passwordId, onBack, passwords, saveData }: PasswordDetailProps) => {
   const [editablePassword, setEditablePassword] = useState<Password | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -38,17 +38,35 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
     );
   }
 
-  const autoSave = (updatedPassword: Partial<Password>) => {
+  const autoSave = async (updatedPassword: Partial<Password>) => {
     const now = new Date();
     const newPassword = { ...editablePassword, ...updatedPassword, updatedAt: now };
     setEditablePassword(newPassword);
-    setPasswords(passwords.map(p => 
+    
+    const updatedPasswords = passwords.map(p => 
       p.id === passwordId ? newPassword : p
-    ));
+    );
+    
+    const newData = {
+      notes: JSON.parse(localStorage.getItem('casual-notes') || '[]'),
+      lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
+      passwords: updatedPasswords,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    await saveData(newData);
   };
 
-  const handleDelete = () => {
-    setPasswords(passwords.filter(p => p.id !== passwordId));
+  const handleDelete = async () => {
+    const updatedPasswords = passwords.filter(p => p.id !== passwordId);
+    const newData = {
+      notes: JSON.parse(localStorage.getItem('casual-notes') || '[]'),
+      lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
+      passwords: updatedPasswords,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    await saveData(newData);
     setShowDeleteDialog(false);
     onBack();
   };

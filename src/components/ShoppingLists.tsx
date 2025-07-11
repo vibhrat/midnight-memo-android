@@ -1,8 +1,6 @@
 
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { useFirebaseLists } from '@/hooks/useFirebaseLists';
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { ShoppingList } from '@/types';
 import { Download, Search } from 'lucide-react';
 import { format } from 'date-fns';
@@ -16,46 +14,38 @@ interface ShoppingListsRef {
 interface ShoppingListsProps {
   onListSelect?: (listId: string) => void;
   onSearchClick?: () => void;
+  lists: ShoppingList[];
+  saveData: (data: any) => Promise<void>;
 }
 
-const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onListSelect, onSearchClick }, ref) => {
-  const { user } = useFirebaseAuth();
-  const [localLists, setLocalLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
-  const { lists: firebaseLists, loading: firebaseLoading, createList } = useFirebaseLists();
+const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onListSelect, onSearchClick, lists, saveData }, ref) => {
   const [showImportDialog, setShowImportDialog] = useState(false);
-
-  // Use Firebase lists if user is authenticated, otherwise use localStorage
-  const lists = user ? firebaseLists : localLists;
 
   useImperativeHandle(ref, () => ({
     triggerCreate: async () => {
       try {
-        // Only create if not in loading state
-        if (user && firebaseLoading) {
-          console.log('Still loading Firebase data, skipping create');
-          return;
-        }
-
         // Create a new blank list and navigate to it
         const now = new Date();
-        const newList: Omit<ShoppingList, 'id'> = {
+        const newList: ShoppingList = {
+          id: Date.now().toString(),
           title: '',
           items: [],
           createdAt: now,
           updatedAt: now,
         };
         
-        if (user) {
-          // Use Firebase
-          await createList(newList);
-        } else {
-          // Use localStorage
-          const listWithId = { ...newList, id: Date.now().toString() };
-          setLocalLists([listWithId, ...localLists]);
-          
-          if (onListSelect) {
-            onListSelect(listWithId.id);
-          }
+        // Update local data
+        const newData = {
+          notes: JSON.parse(localStorage.getItem('casual-notes') || '[]'),
+          lists: [newList, ...lists],
+          passwords: JSON.parse(localStorage.getItem('passwords') || '[]'),
+          lastUpdated: new Date().toISOString()
+        };
+        
+        await saveData(newData);
+        
+        if (onListSelect) {
+          onListSelect(newList.id);
         }
       } catch (error) {
         console.error('Error creating list:', error);
@@ -95,35 +85,25 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
           </div>
         </div>
 
-        {/* Loading State for Firebase */}
-        {user && firebaseLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-[#9B9B9B]">Loading your lists...</p>
-            </div>
-          </div>
+        {/* Lists */}
+        {lists.length === 0 ? (
+          <EmptyState />
         ) : (
-          /* Lists */
-          lists.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <div className="space-y-3">
-              {lists.map((list) => (
-                <div
-                  key={list.id}
-                  onClick={() => handleCardClick(list.id)}
-                  className="bg-[#1A1A1A] rounded-lg p-4 cursor-pointer hover:bg-[#252525] transition-colors border border-[#2A2A2A]"
-                >
-                  <h3 className="text-[#DBDBDB] font-medium mb-2">{list.title || 'Untitled List'}</h3>
-                  <div className="flex items-center justify-between text-sm text-[#9B9B9B]">
-                    <span>{list.items?.length || 0} items</span>
-                    <span>{format(new Date(list.updatedAt), 'MMM d, yyyy')}</span>
-                  </div>
+          <div className="space-y-3">
+            {lists.map((list) => (
+              <div
+                key={list.id}
+                onClick={() => handleCardClick(list.id)}
+                className="bg-[#1A1A1A] rounded-lg p-4 cursor-pointer hover:bg-[#252525] transition-colors border border-[#2A2A2A]"
+              >
+                <h3 className="text-[#DBDBDB] font-medium mb-2">{list.title || 'Untitled List'}</h3>
+                <div className="flex items-center justify-between text-sm text-[#9B9B9B]">
+                  <span>{list.items?.length || 0} items</span>
+                  <span>{format(new Date(list.updatedAt), 'MMM d, yyyy')}</span>
                 </div>
-              ))}
-            </div>
-          )
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
