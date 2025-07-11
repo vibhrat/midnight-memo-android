@@ -35,6 +35,49 @@ const Index = () => {
   const [isPinProtected, setIsPinProtected] = useLocalStorage('pin-protected', false);
   const [isPinVerified, setIsPinVerified] = useState(false);
 
+  // Handler functions declared before they're used
+  const handleNoteSelect = (noteId: string) => {
+    setSelectedNoteId(noteId);
+    setSelectedListId(null);
+    setSelectedPasswordId(null);
+  };
+
+  const handleListSelect = (listId: string) => {
+    setSelectedListId(listId);
+    setSelectedNoteId(null);
+    setSelectedPasswordId(null);
+  };
+
+  const handlePasswordSelect = (passwordId: string) => {
+    setSelectedPasswordId(passwordId);
+    setSelectedNoteId(null);
+    setSelectedListId(null);
+  };
+
+  const handleBack = () => {
+    setSelectedNoteId(null);
+    setSelectedListId(null);
+    setSelectedPasswordId(null);
+  };
+
+  const handleSearchClick = () => {
+    setShowSearch(true);
+  };
+
+  const handleMenuClick = () => {
+    setShowMenu(true);
+  };
+
+  const handleFloatingActionClick = () => {
+    if (currentPage === 'notes') {
+      casualNotesRef.current?.triggerCreate();
+    } else if (currentPage === 'shopping') {
+      shoppingListsRef.current?.triggerCreate();
+    } else if (currentPage === 'passwords') {
+      passwordsRef.current?.triggerCreate();
+    }
+  };
+
   // Show loading state while Firebase is initializing
   if (loading) {
     return (
@@ -52,7 +95,12 @@ const Index = () => {
     return <PinProtection onUnlock={() => setIsPinVerified(true)} />;
   }
 
-  // Show auth page if not authenticated and trying to sign in
+  // Show auth page if not authenticated
+  if (!user) {
+    return <Auth onAuthSuccess={() => setShowAuth(false)} />;
+  }
+
+  // Show auth page if explicitly requested
   if (showAuth) {
     return <Auth onAuthSuccess={() => setShowAuth(false)} />;
   }
@@ -121,48 +169,6 @@ const Index = () => {
   if (selectedPasswordId) {
     return <PasswordDetail passwordId={selectedPasswordId} onBack={handleBack} />;
   }
-
-  const handleNoteSelect = (noteId: string) => {
-    setSelectedNoteId(noteId);
-    setSelectedListId(null);
-    setSelectedPasswordId(null);
-  };
-
-  const handleListSelect = (listId: string) => {
-    setSelectedListId(listId);
-    setSelectedNoteId(null);
-    setSelectedPasswordId(null);
-  };
-
-  const handlePasswordSelect = (passwordId: string) => {
-    setSelectedPasswordId(passwordId);
-    setSelectedNoteId(null);
-    setSelectedListId(null);
-  };
-
-  const handleBack = () => {
-    setSelectedNoteId(null);
-    setSelectedListId(null);
-    setSelectedPasswordId(null);
-  };
-
-  const handleSearchClick = () => {
-    setShowSearch(true);
-  };
-
-  const handleMenuClick = () => {
-    setShowMenu(true);
-  };
-
-  const handleFloatingActionClick = () => {
-    if (currentPage === 'notes') {
-      casualNotesRef.current?.triggerCreate();
-    } else if (currentPage === 'shopping') {
-      shoppingListsRef.current?.triggerCreate();
-    } else if (currentPage === 'passwords') {
-      passwordsRef.current?.triggerCreate();
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[#000000] relative">
