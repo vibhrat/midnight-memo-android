@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import QRCode from 'qrcode';
@@ -9,7 +8,7 @@ interface ShareDialogProps {
   onClose: () => void;
   data: any;
   type: 'note' | 'list' | 'password';
-  mode?: 'share' | 'import'; // New prop to distinguish between share and import modes
+  mode?: 'share' | 'import';
 }
 
 const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialogProps) => {
@@ -100,7 +99,16 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
           items: data.items
         })}`;
         break;
+      case 'password':
+        qrData = `CIPHER_PASSWORD:${JSON.stringify({
+          title: data.title,
+          password: data.password,
+          fields: data.fields
+        })}`;
+        break;
     }
+
+    console.log('Generating QR code for data:', qrData);
 
     if (qrData.length > 2900) {
       toast({
@@ -113,16 +121,21 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
 
     try {
       const qrCodeUrl = await QRCode.toDataURL(qrData, {
-        width: 300,
-        margin: 2,
+        errorCorrectionLevel: 'M',
+        type: 'image/png',
+        quality: 0.92,
+        margin: 1,
         color: {
           dark: '#000000',
           light: '#FFFFFF'
-        }
+        },
+        width: 512
       });
+      console.log('QR code generated successfully');
       setQrCodeDataUrl(qrCodeUrl);
       setShowQR(true);
     } catch (error) {
+      console.error('QR code generation error:', error);
       toast({
         title: "Error",
         description: "Failed to generate QR code",
@@ -136,6 +149,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
   };
 
   const handleQRScanResult = (result: string) => {
+    console.log('QR scan result:', result);
     setShowScanner(false);
     processImportData(result);
   };
@@ -162,10 +176,25 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
 
   const processImportData = (content: string) => {
     try {
-      if (content.startsWith('CIPHER_NOTE:') || content.startsWith('CIPHER_LIST:')) {
-        const prefix = content.startsWith('CIPHER_NOTE:') ? 'CIPHER_NOTE:' : 'CIPHER_LIST:';
-        const jsonStr = content.substring(prefix.length);
+      console.log('Processing import data:', content);
+      
+      if (content.startsWith('CIPHER_NOTE:') || content.startsWith('CIPHER_LIST:') || content.startsWith('CIPHER_PASSWORD:')) {
+        let prefix = '';
+        let jsonStr = '';
+        
+        if (content.startsWith('CIPHER_NOTE:')) {
+          prefix = 'CIPHER_NOTE:';
+          jsonStr = content.substring(prefix.length);
+        } else if (content.startsWith('CIPHER_LIST:')) {
+          prefix = 'CIPHER_LIST:';
+          jsonStr = content.substring(prefix.length);
+        } else if (content.startsWith('CIPHER_PASSWORD:')) {
+          prefix = 'CIPHER_PASSWORD:';
+          jsonStr = content.substring(prefix.length);
+        }
+        
         const parsedData = JSON.parse(jsonStr);
+        console.log('Parsed data:', parsedData);
         
         if (type === 'note' && prefix === 'CIPHER_NOTE:') {
           const existingNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
@@ -187,6 +216,16 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
           };
           existingLists.unshift(newList);
           localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
+        } else if (type === 'password' && prefix === 'CIPHER_PASSWORD:') {
+          const existingPasswords = JSON.parse(localStorage.getItem('passwords') || '[]');
+          const newPassword = {
+            ...parsedData,
+            id: Date.now().toString(),
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          existingPasswords.unshift(newPassword);
+          localStorage.setItem('passwords', JSON.stringify(existingPasswords));
         }
       } else {
         const parsedData = JSON.parse(content);
@@ -215,6 +254,18 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
           };
           existingLists.unshift(newList);
           localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
+        } else if (type === 'password' && (parsedData.title !== undefined || parsedData.password !== undefined)) {
+          const existingPasswords = JSON.parse(localStorage.getItem('passwords') || '[]');
+          const newPassword = {
+            id: Date.now().toString(),
+            title: parsedData.title || '',
+            password: parsedData.password || '',
+            fields: parsedData.fields || [],
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          existingPasswords.unshift(newPassword);
+          localStorage.setItem('passwords', JSON.stringify(existingPasswords));
         }
       }
 
@@ -225,9 +276,10 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
       onClose();
       window.location.reload();
     } catch (error) {
+      console.error('Import error:', error);
       toast({
         title: "Error",
-        description: "Invalid file format",
+        description: "Invalid file format or data",
         variant: "destructive",
       });
     }
