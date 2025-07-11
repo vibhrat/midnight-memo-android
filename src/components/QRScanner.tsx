@@ -1,6 +1,6 @@
 
 import { useRef, useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 import jsQR from 'jsqr';
 
 interface QRScannerProps {
@@ -11,6 +11,7 @@ interface QRScannerProps {
 const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string>('');
   const [isScanning, setIsScanning] = useState(false);
@@ -73,23 +74,16 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
         return;
       }
 
-      // Set canvas size to match video
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
-      // Draw current frame
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Get image data for QR scanning
       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      
-      // Scan for QR code using jsQR
       const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
       
       if (qrCode && qrCode.data) {
         console.log('QR Code detected:', qrCode.data);
         
-        // Check if it's our app's QR format
         if (qrCode.data.includes('CIPHER_NOTE:') || 
             qrCode.data.includes('CIPHER_LIST:') || 
             qrCode.data.includes('CIPHER_PASSWORD:')) {
@@ -98,7 +92,45 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
           onResult(qrCode.data);
         }
       }
-    }, 100); // Scan every 100ms for better performance
+    }, 100);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        if (!context) return;
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+        context.drawImage(img, 0, 0);
+
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+
+        if (qrCode && qrCode.data) {
+          console.log('QR Code from image:', qrCode.data);
+          
+          if (qrCode.data.includes('CIPHER_NOTE:') || 
+              qrCode.data.includes('CIPHER_LIST:') || 
+              qrCode.data.includes('CIPHER_PASSWORD:')) {
+            setIsScanning(false);
+            cleanup();
+            onResult(qrCode.data);
+          }
+        } else {
+          console.log('No QR code found in image');
+        }
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleClose = () => {
@@ -144,9 +176,8 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
             {/* Large scanning frame - 420x420px */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative">
-                {/* Main scan frame - 420x420px */}
                 <div 
-                  className="border-2 border-white border-dashed rounded-2xl"
+                  className="border-2 border-white/80 rounded-2xl relative overflow-hidden"
                   style={{ width: '420px', height: '420px' }}
                 >
                   {/* Corner indicators */}
@@ -154,22 +185,25 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
                   <div className="absolute top-2 right-2 w-8 h-8 border-r-4 border-t-4 border-blue-400 rounded-tr-lg"></div>
                   <div className="absolute bottom-2 left-2 w-8 h-8 border-l-4 border-b-4 border-blue-400 rounded-bl-lg"></div>
                   <div className="absolute bottom-2 right-2 w-8 h-8 border-r-4 border-b-4 border-blue-400 rounded-br-lg"></div>
+                  
+                  {/* Scanning line animation */}
+                  {isScanning && (
+                    <div className="absolute inset-0">
+                      <div 
+                        className="w-full h-0.5 bg-blue-400 opacity-80"
+                        style={{
+                          animation: 'scanLine 2s linear infinite'
+                        }}
+                      ></div>
+                    </div>
+                  )}
                 </div>
-                
-                {/* Scanning line animation */}
-                {isScanning && (
-                  <div className="absolute inset-2 overflow-hidden rounded-xl">
-                    <div className="w-full h-0.5 bg-blue-400 animate-pulse" style={{
-                      animation: 'scan 2s linear infinite'
-                    }}></div>
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* Instruction text */}
-            <div className="absolute bottom-20 left-0 right-0 text-center">
-              <p className="text-white text-lg font-medium bg-black/50 backdrop-blur-sm mx-4 p-4 rounded-xl">
+            {/* Bottom controls */}
+            <div className="absolute bottom-8 left-0 right-0 flex flex-col items-center space-y-4">
+              <p className="text-white text-lg font-medium bg-black/50 backdrop-blur-sm px-6 py-3 rounded-xl">
                 Point camera at QR code
               </p>
             </div>
@@ -177,12 +211,33 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
         )}
       </div>
 
-      <style jsx>{`
-        @keyframes scan {
-          0% { transform: translateY(0); }
-          100% { transform: translateY(416px); }
-        }
-      `}</style>
+      {/* Hidden file input for upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+
+      {/* CSS for scan line animation */}
+      <style>
+        {`
+          @keyframes scanLine {
+            0% { 
+              transform: translateY(0);
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.6;
+            }
+            100% { 
+              transform: translateY(416px);
+              opacity: 1;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };
