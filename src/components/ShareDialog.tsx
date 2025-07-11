@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import QRCode from 'qrcode';
@@ -131,8 +130,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
           dark: '#000000',
           light: '#FFFFFF'
         },
-        width: 400,
-        scale: 8
+        width: 400
       });
       console.log('QR code generated successfully');
       setQrCodeDataUrl(qrCodeUrl);
@@ -182,26 +180,37 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
     try {
       console.log('Processing import data:', content);
       
-      if (content.startsWith('CIPHER_NOTE:') || content.startsWith('CIPHER_LIST:') || content.startsWith('CIPHER_PASSWORD:')) {
-        let prefix = '';
+      // Check if it's our cipher format
+      if (content.startsWith('CIPHER_')) {
         let jsonStr = '';
+        let expectedType = '';
         
         if (content.startsWith('CIPHER_NOTE:')) {
-          prefix = 'CIPHER_NOTE:';
-          jsonStr = content.substring(prefix.length);
+          jsonStr = content.substring(12); // Remove 'CIPHER_NOTE:'
+          expectedType = 'note';
         } else if (content.startsWith('CIPHER_LIST:')) {
-          prefix = 'CIPHER_LIST:';
-          jsonStr = content.substring(prefix.length);
+          jsonStr = content.substring(12); // Remove 'CIPHER_LIST:'
+          expectedType = 'list';
         } else if (content.startsWith('CIPHER_PASSWORD:')) {
-          prefix = 'CIPHER_PASSWORD:';
-          jsonStr = content.substring(prefix.length);
+          jsonStr = content.substring(16); // Remove 'CIPHER_PASSWORD:'
+          expectedType = 'password';
+        }
+        
+        if (expectedType !== type) {
+          toast({
+            title: "Error",
+            description: `This QR code contains ${expectedType} data, but you're trying to import a ${type}`,
+            variant: "destructive",
+          });
+          return;
         }
         
         console.log('Extracted JSON string:', jsonStr);
         const parsedData = JSON.parse(jsonStr);
         console.log('Parsed data:', parsedData);
         
-        if (type === 'note' && prefix === 'CIPHER_NOTE:') {
+        // Save to localStorage (the hooks will handle Firebase sync)
+        if (type === 'note') {
           const existingNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
           const newNote = {
             ...parsedData,
@@ -211,7 +220,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
           };
           existingNotes.unshift(newNote);
           localStorage.setItem('casual-notes', JSON.stringify(existingNotes));
-        } else if (type === 'list' && prefix === 'CIPHER_LIST:') {
+        } else if (type === 'list') {
           const existingLists = JSON.parse(localStorage.getItem('shopping-lists') || '[]');
           const newList = {
             ...parsedData,
@@ -221,7 +230,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
           };
           existingLists.unshift(newList);
           localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
-        } else if (type === 'password' && prefix === 'CIPHER_PASSWORD:') {
+        } else if (type === 'password') {
           const existingPasswords = JSON.parse(localStorage.getItem('passwords') || '[]');
           const newPassword = {
             ...parsedData,
@@ -232,7 +241,15 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
           existingPasswords.unshift(newPassword);
           localStorage.setItem('passwords', JSON.stringify(existingPasswords));
         }
+
+        toast({
+          title: "Success",
+          description: `${type.charAt(0).toUpperCase() + type.slice(1)} imported successfully!`,
+        });
+        onClose();
+        window.location.reload();
       } else {
+        // Try to parse as regular JSON
         const parsedData = JSON.parse(content);
         
         if (type === 'note' && (parsedData.title !== undefined || parsedData.content !== undefined)) {
@@ -272,19 +289,19 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
           existingPasswords.unshift(newPassword);
           localStorage.setItem('passwords', JSON.stringify(existingPasswords));
         }
-      }
 
-      toast({
-        title: "Success",
-        description: `${type.charAt(0).toUpperCase() + type.slice(1)} imported successfully!`,
-      });
-      onClose();
-      window.location.reload();
+        toast({
+          title: "Success",
+          description: `${type.charAt(0).toUpperCase() + type.slice(1)} imported successfully!`,
+        });
+        onClose();
+        window.location.reload();
+      }
     } catch (error) {
       console.error('Import error:', error);
       toast({
         title: "Error",
-        description: "Invalid file format or data",
+        description: "Invalid QR code or file format",
         variant: "destructive",
       });
     }
@@ -353,7 +370,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
               Scan QR
             </button>
             <label className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer text-center" style={{ backgroundColor: '#272727' }}>
-              Import
+              Import File
               <input
                 type="file"
                 accept=".json,.txt"

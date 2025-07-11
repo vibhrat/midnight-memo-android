@@ -1,5 +1,8 @@
+
 import { useState, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useFirebaseNotes } from '@/hooks/useFirebaseNotes';
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { CasualNote } from '@/types';
 import NotesHeader from './notes/NotesHeader';
 import TagFilter from './notes/TagFilter';
@@ -17,9 +20,15 @@ interface CasualNotesProps {
 }
 
 const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick, onMenuClick }, ref) => {
-  const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
+  const { user } = useFirebaseAuth();
+  const [localNotes, setLocalNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
+  const { notes: firebaseNotes, loading: firebaseLoading, createNote } = useFirebaseNotes();
   const [selectedTag, setSelectedTag] = useState<string>('');
   const [showImportDialog, setShowImportDialog] = useState(false);
+
+  // Use Firebase notes if user is authenticated, otherwise use localStorage
+  const notes = user ? firebaseNotes : localNotes;
+  const setNotes = user ? () => {} : setLocalNotes; // Firebase notes are managed by the hook
 
   // Preload settings image when component mounts
   useEffect(() => {
@@ -40,7 +49,15 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
         updatedAt: now,
         isBlurred: false
       };
-      setNotes([newNote, ...notes]);
+      
+      if (user) {
+        // Use Firebase
+        createNote(newNote);
+      } else {
+        // Use localStorage
+        setLocalNotes([newNote, ...localNotes]);
+      }
+      
       if (onNoteSelect) {
         onNoteSelect(newNote.id);
       }
@@ -67,6 +84,17 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
   const filteredNotes = selectedTag 
     ? notes.filter(note => note.tag === selectedTag)
     : notes;
+
+  if (user && firebaseLoading) {
+    return (
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-[#9B9B9B]">Loading your notes...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#000000]">

@@ -2,6 +2,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import jsQR from 'jsqr';
+import { useToast } from '@/hooks/use-toast';
 
 interface QRScannerProps {
   onResult: (result: string) => void;
@@ -16,6 +17,7 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
   const [error, setError] = useState<string>('');
   const [isScanning, setIsScanning] = useState(false);
   const scanIntervalRef = useRef<number | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     startCamera();
@@ -85,19 +87,35 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
         console.log('QR Code detected:', qrCode.data);
         
         // Check for our specific cipher prefixes OR any valid JSON data
-        if (qrCode.data.includes('CIPHER_NOTE:') || 
-            qrCode.data.includes('CIPHER_LIST:') || 
-            qrCode.data.includes('CIPHER_PASSWORD:') ||
-            qrCode.data.startsWith('{')) {
+        const isValidQR = qrCode.data.startsWith('CIPHER_NOTE:') || 
+                         qrCode.data.startsWith('CIPHER_LIST:') || 
+                         qrCode.data.startsWith('CIPHER_PASSWORD:') ||
+                         qrCode.data.startsWith('{');
+
+        if (isValidQR) {
           console.log('Valid QR code found, processing...');
           setIsScanning(false);
           cleanup();
-          onResult(qrCode.data);
+          
+          toast({
+            title: "Success",
+            description: "QR code detected successfully!",
+          });
+          
+          // Small delay to show the toast before processing
+          setTimeout(() => {
+            onResult(qrCode.data);
+          }, 500);
         } else {
           console.log('QR code found but not our format:', qrCode.data);
+          toast({
+            title: "Invalid QR Code",
+            description: "This QR code is not compatible with this app",
+            variant: "destructive",
+          });
         }
       }
-    }, 200); // Reduced scanning frequency for better performance
+    }, 200);
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,18 +140,36 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
         if (qrCode && qrCode.data) {
           console.log('QR Code from image:', qrCode.data);
           
-          if (qrCode.data.includes('CIPHER_NOTE:') || 
-              qrCode.data.includes('CIPHER_LIST:') || 
-              qrCode.data.includes('CIPHER_PASSWORD:') ||
-              qrCode.data.startsWith('{')) {
+          const isValidQR = qrCode.data.startsWith('CIPHER_NOTE:') || 
+                           qrCode.data.startsWith('CIPHER_LIST:') || 
+                           qrCode.data.startsWith('CIPHER_PASSWORD:') ||
+                           qrCode.data.startsWith('{');
+
+          if (isValidQR) {
             setIsScanning(false);
             cleanup();
-            onResult(qrCode.data);
+            
+            toast({
+              title: "Success",
+              description: "QR code from image detected successfully!",
+            });
+            
+            setTimeout(() => {
+              onResult(qrCode.data);
+            }, 500);
           } else {
-            console.log('QR code found but not our format');
+            toast({
+              title: "Invalid QR Code",
+              description: "This QR code is not compatible with this app",
+              variant: "destructive",
+            });
           }
         } else {
-          console.log('No QR code found in image');
+          toast({
+            title: "No QR Code Found",
+            description: "No valid QR code found in the image",
+            variant: "destructive",
+          });
         }
       };
       img.src = e.target?.result as string;
@@ -168,6 +204,12 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-white p-8">
               <p className="text-lg mb-6">{error}</p>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Upload Image Instead
+              </button>
             </div>
           </div>
         ) : (
@@ -214,6 +256,12 @@ const QRScanner = ({ onResult, onClose }: QRScannerProps) => {
               <p className="text-white text-lg font-medium bg-black/50 backdrop-blur-sm px-6 py-3 rounded-xl">
                 Point camera at QR code
               </p>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+              >
+                Upload Image
+              </button>
             </div>
           </>
         )}
