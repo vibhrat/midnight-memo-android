@@ -247,6 +247,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
         };
         
         if (user) {
+          console.log('Importing note to Firebase:', newNote);
           await createNote(newNote);
         } else {
           // Fallback to localStorage if not authenticated
@@ -264,6 +265,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
         };
         
         if (user) {
+          console.log('Importing list to Firebase:', newList);
           await createList(newList);
         } else {
           // Fallback to localStorage if not authenticated
@@ -282,6 +284,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
         };
         
         if (user) {
+          console.log('Importing password to Firebase:', newPassword);
           await createPassword(newPassword);
         } else {
           // Fallback to localStorage if not authenticated
@@ -298,11 +301,6 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
       });
       onClose();
       
-      // Refresh the page to show new data
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-      
     } catch (error) {
       console.error('Import error:', error);
       toast({
@@ -311,6 +309,135 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
         variant: "destructive",
       });
     }
+  };
+
+  const handleExportJSON = () => {
+    const jsonData = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${type}-${data.id || Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Success",
+      description: "JSON exported successfully!",
+    });
+    onClose();
+  };
+
+  const handleShareText = () => {
+    let textData = '';
+    
+    switch (type) {
+      case 'note':
+        textData = `CIPHER_NOTE:${JSON.stringify({
+          title: data.title || '',
+          content: data.content || '',
+          tag: data.tag || '',
+          isBlurred: data.isBlurred || false
+        })}`;
+        break;
+      case 'list':
+        textData = `CIPHER_LIST:${JSON.stringify({
+          title: data.title || '',
+          items: data.items || []
+        })}`;
+        break;
+      case 'password':
+        textData = `CIPHER_PASSWORD:${JSON.stringify({
+          title: data.title || '',
+          password: data.password || '',
+          fields: data.fields || []
+        })}`;
+        break;
+    }
+
+    console.log('Sharing text data:', textData);
+
+    navigator.clipboard.writeText(textData).then(() => {
+      toast({
+        title: "Success",
+        description: "Text copied to clipboard!",
+      });
+      onClose();
+    }).catch(() => {
+      toast({
+        title: "Error",
+        description: "Failed to copy to clipboard",
+        variant: "destructive",
+      });
+    });
+  };
+
+  const handleGenerateQR = async () => {
+    let qrData = '';
+    
+    switch (type) {
+      case 'note':
+        qrData = `CIPHER_NOTE:${JSON.stringify({
+          title: data.title || '',
+          content: data.content || '',
+          tag: data.tag || '',
+          isBlurred: data.isBlurred || false
+        })}`;
+        break;
+      case 'list':
+        qrData = `CIPHER_LIST:${JSON.stringify({
+          title: data.title || '',
+          items: data.items || []
+        })}`;
+        break;
+      case 'password':
+        qrData = `CIPHER_PASSWORD:${JSON.stringify({
+          title: data.title || '',
+          password: data.password || '',
+          fields: data.fields || []
+        })}`;
+        break;
+    }
+
+    console.log('Generating QR code for data:', qrData);
+
+    if (qrData.length > 2900) {
+      toast({
+        title: "Error",
+        description: "Data is too big for QR code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const qrCodeUrl = await QRCode.toDataURL(qrData, {
+        errorCorrectionLevel: 'M',
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        },
+        width: 400
+      });
+      setQrCodeDataUrl(qrCodeUrl);
+      setShowQR(true);
+    } catch (error) {
+      console.error('QR code generation error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate QR code",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleScanQR = () => {
+    console.log('Opening QR scanner');
+    setShowScanner(true);
   };
 
   if (showQR) {

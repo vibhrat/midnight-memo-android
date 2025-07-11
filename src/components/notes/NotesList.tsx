@@ -12,8 +12,8 @@ interface NotesListProps {
 }
 
 const NotesList = ({ notes, filteredNotes, selectedTag, onNoteClick, loading }: NotesListProps) => {
-  // Show loading state
-  if (loading) {
+  // Show loading state only for the first few seconds
+  if (loading && notes.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">

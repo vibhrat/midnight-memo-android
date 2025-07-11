@@ -15,16 +15,37 @@ export const useFirebaseNotes = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('Setting up Firebase notes subscription');
+    
     const unsubscribe = subscribeToNotes((newNotes) => {
+      console.log('Firebase notes received:', newNotes);
       setNotes(newNotes);
       setLoading(false);
     });
 
-    return unsubscribe;
+    // Set a timeout to stop loading if no response after 10 seconds
+    const timeout = setTimeout(() => {
+      console.log('Firebase notes subscription timeout, stopping loading');
+      setLoading(false);
+    }, 10000);
+
+    return () => {
+      unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   const createNote = async (note: Omit<CasualNote, 'id'>) => {
     try {
+      console.log('Creating Firebase note:', note);
+      const noteWithId = {
+        ...note,
+        id: Date.now().toString(), // Temporary ID for optimistic updates
+      };
+      
+      // Optimistic update
+      setNotes(prev => [noteWithId, ...prev]);
+      
       await addNote(note);
       toast({
         title: "Success",
@@ -32,6 +53,8 @@ export const useFirebaseNotes = () => {
       });
     } catch (error) {
       console.error('Error creating note:', error);
+      // Revert optimistic update on error
+      setNotes(prev => prev.filter(n => n.id !== noteWithId.id));
       toast({
         title: "Error",
         description: "Failed to create note",

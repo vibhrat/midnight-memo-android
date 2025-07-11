@@ -39,12 +39,8 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
 
   useImperativeHandle(ref, () => ({
     triggerCreate: () => {
-      // Only create if not in loading state
-      if (user && firebaseLoading) {
-        console.log('Still loading Firebase data, skipping create');
-        return;
-      }
-
+      console.log('CasualNotes triggerCreate called, user:', user, 'loading:', loading);
+      
       // Create a new blank note and navigate to it
       const now = new Date();
       const newNote: CasualNote = {
@@ -59,9 +55,11 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
       
       if (user) {
         // Use Firebase
+        console.log('Creating Firebase note');
         createNote(newNote);
       } else {
         // Use localStorage
+        console.log('Creating localStorage note');
         setLocalNotes([newNote, ...localNotes]);
       }
       

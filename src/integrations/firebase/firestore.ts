@@ -59,9 +59,15 @@ export const subscribeToNotes = (callback: (notes: CasualNote[]) => void) => {
       });
       console.log('Processed notes:', notes);
       callback(notes);
+    }, (error) => {
+      console.error('Firebase notes subscription error:', error);
+      // Return empty array on error to stop loading
+      callback([]);
     });
   } catch (error) {
     console.error('Error subscribing to notes:', error);
+    // Return empty array immediately if auth fails
+    callback([]);
     return () => {}; // Return empty unsubscribe function
   }
 };
@@ -73,7 +79,10 @@ export const addNote = async (note: Omit<CasualNote, 'id'>) => {
     
     const notesRef = collection(db, 'casualNotes');
     const docRef = await addDoc(notesRef, {
-      ...note,
+      title: note.title || '',
+      content: note.content || '',
+      tag: note.tag || '',
+      isBlurred: note.isBlurred || false,
       userId,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
@@ -90,10 +99,16 @@ export const updateNote = async (id: string, note: Partial<CasualNote>) => {
   try {
     console.log('Updating note:', id, note);
     const noteRef = doc(db, 'casualNotes', id);
-    await updateDoc(noteRef, {
-      ...note,
+    const updateData: any = {
       updatedAt: Timestamp.now(),
-    });
+    };
+    
+    if (note.title !== undefined) updateData.title = note.title;
+    if (note.content !== undefined) updateData.content = note.content;
+    if (note.tag !== undefined) updateData.tag = note.tag;
+    if (note.isBlurred !== undefined) updateData.isBlurred = note.isBlurred;
+    
+    await updateDoc(noteRef, updateData);
     console.log('Note updated:', id);
   } catch (error) {
     console.error('Error updating note:', error);
@@ -139,9 +154,13 @@ export const subscribeToLists = (callback: (lists: ShoppingList[]) => void) => {
       });
       console.log('Processed lists:', lists);
       callback(lists);
+    }, (error) => {
+      console.error('Firebase lists subscription error:', error);
+      callback([]);
     });
   } catch (error) {
     console.error('Error subscribing to lists:', error);
+    callback([]);
     return () => {};
   }
 };
@@ -153,7 +172,8 @@ export const addList = async (list: Omit<ShoppingList, 'id'>) => {
     
     const listsRef = collection(db, 'shoppingLists');
     const docRef = await addDoc(listsRef, {
-      ...list,
+      title: list.title || '',
+      items: list.items || [],
       userId,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
@@ -170,10 +190,14 @@ export const updateList = async (id: string, list: Partial<ShoppingList>) => {
   try {
     console.log('Updating list:', id, list);
     const listRef = doc(db, 'shoppingLists', id);
-    await updateDoc(listRef, {
-      ...list,
+    const updateData: any = {
       updatedAt: Timestamp.now(),
-    });
+    };
+    
+    if (list.title !== undefined) updateData.title = list.title;
+    if (list.items !== undefined) updateData.items = list.items;
+    
+    await updateDoc(listRef, updateData);
     console.log('List updated:', id);
   } catch (error) {
     console.error('Error updating list:', error);
@@ -219,9 +243,13 @@ export const subscribeToPasswords = (callback: (passwords: Password[]) => void) 
       });
       console.log('Processed passwords:', passwords);
       callback(passwords);
+    }, (error) => {
+      console.error('Firebase passwords subscription error:', error);
+      callback([]);
     });
   } catch (error) {
     console.error('Error subscribing to passwords:', error);
+    callback([]);
     return () => {};
   }
 };
@@ -233,7 +261,9 @@ export const addPassword = async (password: Omit<Password, 'id'>) => {
     
     const passwordsRef = collection(db, 'passwords');
     const docRef = await addDoc(passwordsRef, {
-      ...password,
+      title: password.title || '',
+      password: password.password || '',
+      fields: password.fields || [],
       userId,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
@@ -250,10 +280,15 @@ export const updatePassword = async (id: string, password: Partial<Password>) =>
   try {
     console.log('Updating password:', id, password);
     const passwordRef = doc(db, 'passwords', id);
-    await updateDoc(passwordRef, {
-      ...password,
+    const updateData: any = {
       updatedAt: Timestamp.now(),
-    });
+    };
+    
+    if (password.title !== undefined) updateData.title = password.title;
+    if (password.password !== undefined) updateData.password = password.password;
+    if (password.fields !== undefined) updateData.fields = password.fields;
+    
+    await updateDoc(passwordRef, updateData);
     console.log('Password updated:', id);
   } catch (error) {
     console.error('Error updating password:', error);
