@@ -123,7 +123,6 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
       const qrCodeUrl = await QRCode.toDataURL(qrData, {
         errorCorrectionLevel: 'M',
         type: 'image/png',
-        quality: 0.92,
         margin: 1,
         color: {
           dark: '#000000',
