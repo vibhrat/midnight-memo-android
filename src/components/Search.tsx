@@ -1,6 +1,5 @@
 
 import { useState, useMemo } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote, ShoppingList, Password } from '@/types';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, FileText, ShoppingCart, Lock, Clock } from 'lucide-react';
@@ -9,13 +8,13 @@ interface SearchProps {
   onBack: () => void;
   onNoteSelect?: (noteId: string) => void;
   onListSelect?: (listId: string) => void;
+  notes: CasualNote[];
+  lists: ShoppingList[];
+  passwords: Password[];
 }
 
-const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
+const Search = ({ onBack, onNoteSelect, onListSelect, notes, lists, passwords }: SearchProps) => {
   const [query, setQuery] = useState('');
-  const [notes] = useLocalStorage<CasualNote[]>('casual-notes', []);
-  const [lists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
-  const [passwords] = useLocalStorage<Password[]>('passwords', []);
 
   const getDaysAgo = (date: Date) => {
     const now = new Date();

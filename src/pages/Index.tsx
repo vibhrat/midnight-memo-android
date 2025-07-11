@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useLocalFileSystem } from '@/hooks/useLocalFileSystem';
@@ -130,6 +129,7 @@ const Index = () => {
         onListSelect={handleListSelect}
         notes={data.notes}
         lists={data.lists}
+        passwords={data.passwords}
       />
     );
   }
