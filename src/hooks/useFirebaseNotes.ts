@@ -36,12 +36,13 @@ export const useFirebaseNotes = () => {
   }, []);
 
   const createNote = async (note: Omit<CasualNote, 'id'>) => {
+    const noteWithId = {
+      ...note,
+      id: Date.now().toString(), // Temporary ID for optimistic updates
+    };
+    
     try {
       console.log('Creating Firebase note:', note);
-      const noteWithId = {
-        ...note,
-        id: Date.now().toString(), // Temporary ID for optimistic updates
-      };
       
       // Optimistic update
       setNotes(prev => [noteWithId, ...prev]);
