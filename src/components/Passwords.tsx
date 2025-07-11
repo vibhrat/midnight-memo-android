@@ -1,7 +1,5 @@
 
 import { useState, forwardRef, useImperativeHandle } from 'react';
-import { useFirebasePasswords } from '@/hooks/useFirebasePasswords';
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { Password } from '@/types';
 import { Clock, Search } from 'lucide-react';
 import PinProtection from './PinProtection';
@@ -13,21 +11,15 @@ interface PasswordsRef {
 interface PasswordsProps {
   onSearchClick?: () => void;
   onPasswordSelect?: (passwordId: string) => void;
+  passwords: Password[];
+  saveData: (data: any) => void;
 }
 
-const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onPasswordSelect }, ref) => {
-  const { user } = useFirebaseAuth();
-  const { passwords, loading, createPassword } = useFirebasePasswords();
+const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onPasswordSelect, passwords, saveData }, ref) => {
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   useImperativeHandle(ref, () => ({
     triggerCreate: () => {
-      // Only create if not in loading state
-      if (user && loading) {
-        console.log('Still loading Firebase data, skipping create');
-        return;
-      }
-
       // Create a new blank password and navigate to it
       const now = new Date();
       const newPassword: Password = {
@@ -39,10 +31,15 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onP
         updatedAt: now,
       };
       
-      if (user) {
-        // Use Firebase
-        createPassword(newPassword);
-      }
+      // Update local data
+      const newData = {
+        notes: JSON.parse(localStorage.getItem('casual-notes') || '[]'),
+        lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
+        passwords: [newPassword, ...passwords],
+        lastUpdated: new Date().toISOString()
+      };
+      
+      saveData(newData);
       
       if (onPasswordSelect) {
         onPasswordSelect(newPassword.id);
@@ -77,37 +74,28 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onP
           </button>
         </div>
 
-        {user && loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-[#9B9B9B]">Loading your passwords...</p>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {passwords.map((password) => (
-              <div 
-                key={password.id} 
-                className="p-4 bg-[#181818] rounded-lg cursor-pointer hover:bg-[#2A2A2A] transition-colors" 
-                onClick={() => handleCardClick(password.id)}
-              >
-                <div className="flex justify-between items-center">
-                  <h3 className="text-base font-bold text-[#DBDBDB]">{password.title || 'Untitled Password'}</h3>
-                  <div className="flex items-center gap-1 text-sm font-medium text-[#9B9B9B]">
-                    <Clock className="w-3 h-3" />
-                    <span>{getDaysAgo(password.createdAt)}d</span>
-                  </div>
+        <div className="space-y-4">
+          {passwords.map((password) => (
+            <div 
+              key={password.id} 
+              className="p-4 bg-[#181818] rounded-lg cursor-pointer hover:bg-[#2A2A2A] transition-colors" 
+              onClick={() => handleCardClick(password.id)}
+            >
+              <div className="flex justify-between items-center">
+                <h3 className="text-base font-bold text-[#DBDBDB]">{password.title || 'Untitled Password'}</h3>
+                <div className="flex items-center gap-1 text-sm font-medium text-[#9B9B9B]">
+                  <Clock className="w-3 h-3" />
+                  <span>{getDaysAgo(password.createdAt)}d</span>
                 </div>
               </div>
-            ))}
-            {passwords.length === 0 && !loading && (
-              <div className="text-center py-12 text-[#9B9B9B]">
-                No passwords saved yet. Add your first password!
-              </div>
-            )}
-          </div>
-        )}
+            </div>
+          ))}
+          {passwords.length === 0 && (
+            <div className="text-center py-12 text-[#9B9B9B]">
+              No passwords saved yet. Add your first password!
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

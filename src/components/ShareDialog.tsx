@@ -1,104 +1,86 @@
 
 import { useState } from 'react';
+import { CasualNote, ShoppingList, Password } from '@/types';
+import { X, Copy, FileText, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
-import { useFirebaseNotes } from '@/hooks/useFirebaseNotes';
-import { useFirebaseLists } from '@/hooks/useFirebaseLists';
-import { useFirebasePasswords } from '@/hooks/useFirebasePasswords';
 
 interface ShareDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  data: any;
+  data: CasualNote | ShoppingList | Password | {};
   type: 'note' | 'list' | 'password';
-  mode?: 'share' | 'import';
+  mode: 'share' | 'import';
 }
 
-const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialogProps) => {
+const ShareDialog = ({ isOpen, onClose, data, type, mode }: ShareDialogProps) => {
+  const [importText, setImportText] = useState('');
   const { toast } = useToast();
-  const { user } = useFirebaseAuth();
-  const { createNote } = useFirebaseNotes();
-  const { createList } = useFirebaseLists();
-  const { createPassword } = useFirebasePasswords();
-  const [showTextImport, setShowTextImport] = useState(false);
-  const [textInput, setTextInput] = useState('');
 
   if (!isOpen) return null;
 
-  const handleExportJSON = () => {
-    const jsonData = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${type}-${data.id || Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
+  const handleCopyText = () => {
+    const textToCopy = JSON.stringify(data, null, 2);
+    navigator.clipboard.writeText(textToCopy);
     toast({
-      title: "Success",
-      description: "JSON exported successfully!",
+      title: "Copied!",
+      description: "Content copied to clipboard",
     });
-    onClose();
   };
 
-  const handleShareText = () => {
-    let textData = '';
-    
-    switch (type) {
-      case 'note':
-        textData = `CIPHER_NOTE:${JSON.stringify({
-          title: data.title || '',
-          content: data.content || '',
-          tag: data.tag || '',
-          isBlurred: data.isBlurred || false
-        })}`;
-        break;
-      case 'list':
-        textData = `CIPHER_LIST:${JSON.stringify({
-          title: data.title || '',
-          items: data.items || []
-        })}`;
-        break;
-      case 'password':
-        textData = `CIPHER_PASSWORD:${JSON.stringify({
-          title: data.title || '',
-          password: data.password || '',
-          fields: data.fields || []
-        })}`;
-        break;
-    }
-
-    console.log('Sharing text data:', textData);
-
-    navigator.clipboard.writeText(textData).then(() => {
+  const handleImportFromText = () => {
+    try {
+      const importedData = JSON.parse(importText);
+      
+      // Add the imported data to localStorage based on type
+      if (type === 'note') {
+        const existingNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
+        const newNote = {
+          ...importedData,
+          id: Date.now().toString(),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        existingNotes.unshift(newNote);
+        localStorage.setItem('casual-notes', JSON.stringify(existingNotes));
+      } else if (type === 'list') {
+        const existingLists = JSON.parse(localStorage.getItem('shopping-lists') || '[]');
+        const newList = {
+          ...importedData,
+          id: Date.now().toString(),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        existingLists.unshift(newList);
+        localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
+      } else if (type === 'password') {
+        const existingPasswords = JSON.parse(localStorage.getItem('passwords') || '[]');
+        const newPassword = {
+          ...importedData,
+          id: Date.now().toString(),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        existingPasswords.unshift(newPassword);
+        localStorage.setItem('passwords', JSON.stringify(existingPasswords));
+      }
+      
       toast({
         title: "Success",
-        description: "Text copied to clipboard!",
+        description: "Data imported successfully!",
       });
+      
+      setImportText('');
       onClose();
-    }).catch(() => {
+      
+      // Refresh the page to show the new data
+      window.location.reload();
+    } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to copy to clipboard",
+        description: "Invalid JSON format",
         variant: "destructive",
       });
-    });
-  };
-
-  const handleTextImport = () => {
-    if (!textInput.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter some data to import",
-        variant: "destructive",
-      });
-      return;
     }
-    processImportData(textInput);
   };
 
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,7 +91,7 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
     reader.onload = (e) => {
       try {
         const content = e.target?.result as string;
-        processImportData(content);
+        setImportText(content);
       } catch (error) {
         toast({
           title: "Error",
@@ -121,212 +103,6 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
     reader.readAsText(file);
   };
 
-  const processImportData = async (content: string) => {
-    try {
-      console.log('Processing import data:', content);
-      
-      let parsedData: any = null;
-      let expectedType = '';
-      
-      // Check if it's our cipher format
-      if (content.startsWith('CIPHER_')) {
-        let jsonStr = '';
-        
-        if (content.startsWith('CIPHER_NOTE:')) {
-          jsonStr = content.substring(12);
-          expectedType = 'note';
-        } else if (content.startsWith('CIPHER_LIST:')) {
-          jsonStr = content.substring(12);
-          expectedType = 'list';
-        } else if (content.startsWith('CIPHER_PASSWORD:')) {
-          jsonStr = content.substring(16);
-          expectedType = 'password';
-        }
-        
-        if (expectedType !== type) {
-          toast({
-            title: "Error",
-            description: `This contains ${expectedType} data, but you're trying to import a ${type}`,
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        parsedData = JSON.parse(jsonStr);
-      } else {
-        // Try to parse as regular JSON
-        parsedData = JSON.parse(content);
-      }
-      
-      console.log('Parsed data:', parsedData);
-      
-      // Create the imported data
-      if (type === 'note' && parsedData) {
-        const newNote = {
-          title: parsedData.title || '',
-          content: parsedData.content || '',
-          tag: parsedData.tag || '',
-          isBlurred: parsedData.isBlurred || false,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-        
-        if (user) {
-          console.log('Importing note to Firebase:', newNote);
-          await createNote(newNote);
-        } else {
-          // Fallback to localStorage if not authenticated
-          const existingNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
-          const noteWithId = { ...newNote, id: Date.now().toString() + Math.random() };
-          existingNotes.unshift(noteWithId);
-          localStorage.setItem('casual-notes', JSON.stringify(existingNotes));
-        }
-      } else if (type === 'list' && parsedData) {
-        const newList = {
-          title: parsedData.title || '',
-          items: parsedData.items || [],
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-        
-        if (user) {
-          console.log('Importing list to Firebase:', newList);
-          await createList(newList);
-        } else {
-          // Fallback to localStorage if not authenticated
-          const existingLists = JSON.parse(localStorage.getItem('shopping-lists') || '[]');
-          const listWithId = { ...newList, id: Date.now().toString() + Math.random() };
-          existingLists.unshift(listWithId);
-          localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
-        }
-      } else if (type === 'password' && parsedData) {
-        const newPassword = {
-          title: parsedData.title || '',
-          password: parsedData.password || '',
-          fields: parsedData.fields || [],
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-        
-        if (user) {
-          console.log('Importing password to Firebase:', newPassword);
-          await createPassword(newPassword);
-        } else {
-          // Fallback to localStorage if not authenticated
-          const existingPasswords = JSON.parse(localStorage.getItem('passwords') || '[]');
-          const passwordWithId = { ...newPassword, id: Date.now().toString() + Math.random() };
-          existingPasswords.unshift(passwordWithId);
-          localStorage.setItem('passwords', JSON.stringify(existingPasswords));
-        }
-      }
-
-      toast({
-        title: "Success",
-        description: `${type.charAt(0).toUpperCase() + type.slice(1)} imported successfully!`,
-      });
-      onClose();
-      
-    } catch (error) {
-      console.error('Import error:', error);
-      toast({
-        title: "Error",
-        description: "Invalid format or file",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (showTextImport) {
-    return (
-      <div 
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{
-          background: 'rgba(19, 16, 16, 0.60)',
-          backdropFilter: 'blur(5px)',
-        }}
-      >
-        <div 
-          className="w-full max-w-sm mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
-          style={{
-            background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
-          }}
-        >
-          <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Import from Text</h2>
-          <textarea
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
-            placeholder="Paste your data here..."
-            className="w-full h-32 bg-[#181818] text-[#DBDBDB] p-3 rounded-lg border border-[#2A2A2A] resize-none mb-4"
-          />
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={handleTextImport}
-              className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-              style={{ backgroundColor: '#272727' }}
-            >
-              Import
-            </button>
-            <button
-              onClick={() => setShowTextImport(false)}
-              className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-              style={{ backgroundColor: '#191919' }}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Import mode
-  if (mode === 'import') {
-    return (
-      <div 
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{
-          background: 'rgba(19, 16, 16, 0.60)',
-          backdropFilter: 'blur(5px)',
-        }}
-      >
-        <div 
-          className="w-full max-w-xs mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
-          style={{
-            background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
-          }}
-        >
-          <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Import {type.charAt(0).toUpperCase() + type.slice(1)}</h2>
-          <div className="flex flex-col gap-4">
-            <label className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer text-center" style={{ backgroundColor: '#272727' }}>
-              Import File
-              <input
-                type="file"
-                accept=".json,.txt"
-                onChange={handleFileImport}
-                className="hidden"
-              />
-            </label>
-            <button
-              onClick={() => setShowTextImport(true)}
-              className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-              style={{ backgroundColor: '#272727' }}
-            >
-              Import from Text
-            </button>
-            <button
-              onClick={onClose}
-              className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-              style={{ backgroundColor: '#191919' }}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Share mode
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -336,35 +112,64 @@ const ShareDialog = ({ isOpen, onClose, data, type, mode = 'share' }: ShareDialo
       }}
     >
       <div 
-        className="w-full max-w-xs mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
+        className="w-full max-w-md mx-auto rounded-[24px] overflow-hidden border border-[#2F2F2F] p-6"
         style={{
           background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
         }}
       >
-        <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Share {type}</h2>
-        <div className="flex flex-col gap-4">
-          <button
-            onClick={handleExportJSON}
-            className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-            style={{ backgroundColor: '#272727' }}
-          >
-            Export as JSON
-          </button>
-          <button
-            onClick={handleShareText}
-            className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-            style={{ backgroundColor: '#272727' }}
-          >
-            Share as Text
-          </button>
-          <button
-            onClick={onClose}
-            className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-            style={{ backgroundColor: '#191919' }}
-          >
-            Cancel
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-[#EAEAEA]">
+            {mode === 'share' ? 'Share' : 'Import'} {type.charAt(0).toUpperCase() + type.slice(1)}
+          </h2>
+          <button onClick={onClose} className="text-[#9B9B9B] hover:text-[#DBDBDB]">
+            <X size={24} />
           </button>
         </div>
+
+        {mode === 'share' ? (
+          <div className="space-y-4">
+            <button
+              onClick={handleCopyText}
+              className="w-full bg-[#181818] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
+            >
+              <Copy size={20} className="text-[#9B9B9B]" />
+              <span className="text-[#DBDBDB]">Copy as Text</span>
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <label className="w-full bg-[#181818] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors cursor-pointer">
+              <Upload size={20} className="text-[#9B9B9B]" />
+              <span className="text-[#DBDBDB]">Import from File</span>
+              <input
+                type="file"
+                accept=".json,.txt"
+                onChange={handleFileImport}
+                className="hidden"
+              />
+            </label>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-[#9B9B9B]">
+                Or paste JSON text:
+              </label>
+              <textarea
+                value={importText}
+                onChange={(e) => setImportText(e.target.value)}
+                className="w-full h-32 p-3 bg-[#181818] border border-[#2F2F2F] rounded-lg text-[#DBDBDB] placeholder:text-[#9B9B9B] resize-none"
+                placeholder="Paste your JSON data here..."
+              />
+              {importText && (
+                <button
+                  onClick={handleImportFromText}
+                  className="w-full bg-[#DBDBDB] hover:bg-[#9B9B9B] text-[#000000] py-3 rounded-lg font-medium transition-colors"
+                >
+                  Import Data
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

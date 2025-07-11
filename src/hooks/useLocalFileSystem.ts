@@ -27,13 +27,13 @@ export const useLocalFileSystem = () => {
     try {
       if (Capacitor.isNativePlatform()) {
         // On native platform, we'll use Capacitor Filesystem
-        const { Filesystem, Directory } = await import('@capacitor/filesystem');
+        const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
         
         try {
           const result = await Filesystem.readFile({
             path: 'CipherVault/data.json',
             directory: Directory.Documents,
-            encoding: 'utf8'
+            encoding: Encoding.UTF8
           });
           
           const fileData = JSON.parse(result.data as string) as AppData;
@@ -65,7 +65,7 @@ export const useLocalFileSystem = () => {
       const dataToSave = { ...newData, lastUpdated: new Date().toISOString() };
       
       if (Capacitor.isNativePlatform()) {
-        const { Filesystem, Directory } = await import('@capacitor/filesystem');
+        const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
         
         // Create directory if it doesn't exist
         try {
@@ -82,7 +82,7 @@ export const useLocalFileSystem = () => {
           path: 'CipherVault/data.json',
           data: JSON.stringify(dataToSave, null, 2),
           directory: Directory.Documents,
-          encoding: 'utf8'
+          encoding: Encoding.UTF8
         });
       } else {
         // Fallback to localStorage for web

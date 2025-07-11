@@ -1,8 +1,6 @@
 
 import { useState, forwardRef, useImperativeHandle, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { useFirebaseNotes } from '@/hooks/useFirebaseNotes';
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { CasualNote } from '@/types';
 import NotesHeader from './notes/NotesHeader';
 import TagFilter from './notes/TagFilter';
@@ -17,19 +15,13 @@ interface CasualNotesProps {
   onNoteSelect?: (noteId: string) => void;
   onSearchClick?: () => void;
   onMenuClick?: () => void;
+  notes: CasualNote[];
+  saveData: (data: any) => void;
 }
 
-const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick, onMenuClick }, ref) => {
-  const { user } = useFirebaseAuth();
-  const [localNotes, setLocalNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
-  const { notes: firebaseNotes, loading: firebaseLoading, createNote } = useFirebaseNotes();
+const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick, onMenuClick, notes, saveData }, ref) => {
   const [selectedTag, setSelectedTag] = useState<string>('');
   const [showImportDialog, setShowImportDialog] = useState(false);
-
-  // Use Firebase notes if user is authenticated, otherwise use localStorage
-  const notes = user ? firebaseNotes : localNotes;
-  const setNotes = user ? () => {} : setLocalNotes; // Firebase notes are managed by the hook
-  const loading = user ? firebaseLoading : false;
 
   // Preload settings image when component mounts
   useEffect(() => {
@@ -39,12 +31,13 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
 
   useImperativeHandle(ref, () => ({
     triggerCreate: async () => {
-      console.log('CasualNotes triggerCreate called, user:', user, 'loading:', loading);
+      console.log('CasualNotes triggerCreate called');
       
       try {
         // Create a new blank note and navigate to it
         const now = new Date();
-        const newNote: Omit<CasualNote, 'id'> = {
+        const newNote: CasualNote = {
+          id: Date.now().toString(),
           title: '',
           tag: '',
           content: '',
@@ -53,19 +46,18 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
           isBlurred: false
         };
         
-        if (user) {
-          // Use Firebase
-          console.log('Creating Firebase note');
-          await createNote(newNote);
-        } else {
-          // Use localStorage
-          console.log('Creating localStorage note');
-          const noteWithId = { ...newNote, id: Date.now().toString() };
-          setLocalNotes([noteWithId, ...localNotes]);
-          
-          if (onNoteSelect) {
-            onNoteSelect(noteWithId.id);
-          }
+        // Update local data
+        const newData = {
+          notes: [newNote, ...notes],
+          lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
+          passwords: JSON.parse(localStorage.getItem('passwords') || '[]'),
+          lastUpdated: new Date().toISOString()
+        };
+        
+        saveData(newData);
+        
+        if (onNoteSelect) {
+          onNoteSelect(newNote.id);
         }
       } catch (error) {
         console.error('Error creating note:', error);
@@ -114,7 +106,7 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
           filteredNotes={filteredNotes}
           selectedTag={selectedTag}
           onNoteClick={handleCardClick}
-          loading={loading}
+          loading={false}
         />
       </div>
 

@@ -1,7 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
-import { useFirebaseNotes } from '@/hooks/useFirebaseNotes';
+import { useLocalNotifications } from '@/hooks/useLocalNotifications';
 import { CasualNote } from '@/types';
 import { ArrowLeft, Trash2, Grid3x3, Share, Clock } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
@@ -9,18 +9,18 @@ import TagSelector from '@/components/TagSelector';
 import RichTextEditor from '@/components/RichTextEditor';
 import ShareDialog from '@/components/ShareDialog';
 import ReminderDialog from '@/components/ReminderDialog';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
 interface NoteDetailProps {
   noteId: string;
   onBack: () => void;
+  notes: CasualNote[];
+  saveData: (data: any) => void;
+  scheduleReminder: (title: string, body: string, date: Date) => Promise<void>;
 }
 
-const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
-  const { user } = useFirebaseAuth();
-  const { editNote: updateFirebaseNote } = useFirebaseNotes();
-  const [localNotes, setLocalNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
+const NoteDetail = ({ noteId, onBack, notes, saveData, scheduleReminder }: NoteDetailProps) => {
+  const { scheduleReminder: scheduleLocalReminder } = useLocalNotifications();
   const [editableNote, setEditableNote] = useState<CasualNote | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTagSelector, setShowTagSelector] = useState(false);
@@ -28,8 +28,6 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   const [showReminderDialog, setShowReminderDialog] = useState(false);
   const { toast } = useToast();
 
-  // Use appropriate data source based on authentication
-  const notes = user ? [] : localNotes; // Firebase notes would come from useFirebaseNotes hook
   const note = notes.find(n => n.id === noteId);
 
   useEffect(() => {
@@ -54,23 +52,31 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
     const newNote = { ...editableNote, ...updatedNote, updatedAt: now };
     setEditableNote(newNote);
     
-    if (user) {
-      // Update Firebase
-      await updateFirebaseNote(noteId, updatedNote);
-    } else {
-      // Update localStorage
-      setLocalNotes(localNotes.map(n => 
-        n.id === noteId ? newNote : n
-      ));
-    }
+    // Update local data
+    const updatedNotes = notes.map(n => 
+      n.id === noteId ? newNote : n
+    );
+    
+    const newData = {
+      notes: updatedNotes,
+      lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
+      passwords: JSON.parse(localStorage.getItem('passwords') || '[]'),
+      lastUpdated: new Date().toISOString()
+    };
+    
+    saveData(newData);
   };
 
   const handleDelete = () => {
-    if (user) {
-      // Delete from Firebase (would need deleteNote function)
-    } else {
-      setLocalNotes(localNotes.filter(n => n.id !== noteId));
-    }
+    const updatedNotes = notes.filter(n => n.id !== noteId);
+    const newData = {
+      notes: updatedNotes,
+      lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
+      passwords: JSON.parse(localStorage.getItem('passwords') || '[]'),
+      lastUpdated: new Date().toISOString()
+    };
+    
+    saveData(newData);
     setShowDeleteDialog(false);
     onBack();
   };
@@ -103,22 +109,12 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
 
     autoSave({ reminder: reminderTime.toISOString() });
     
-    // Schedule notification (mock implementation for now)
-    scheduleNotification(reminderTime, editableNote.title || 'Untitled Note');
+    // Schedule local notification
+    scheduleLocalReminder(editableNote.title || 'Untitled Note', editableNote.content || '', reminderTime);
   };
 
   const handleReminderDelete = () => {
     autoSave({ reminder: undefined });
-  };
-
-  const scheduleNotification = (time: Date, title: string) => {
-    // Mock notification scheduling
-    console.log(`Notification scheduled for ${time.toLocaleString()} with title: ${title}`);
-    
-    // In a real implementation, this would use:
-    // - Local notifications via Capacitor for mobile apps
-    // - Service worker for web push notifications
-    // - Firebase Cloud Functions for push notifications
   };
 
   const getExistingReminder = () => {

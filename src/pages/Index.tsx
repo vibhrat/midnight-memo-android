@@ -128,8 +128,6 @@ const Index = () => {
         onBack={() => setShowSearch(false)}
         onNoteSelect={handleNoteSelect}
         onListSelect={handleListSelect}
-        notes={data.notes}
-        lists={data.lists}
       />
     );
   }
@@ -186,8 +184,6 @@ const Index = () => {
           ref={shoppingListsRef}
           onListSelect={handleListSelect}
           onSearchClick={() => setShowSearch(true)}
-          lists={data.lists}
-          saveData={saveData}
         />
       )}
       

@@ -1,8 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
-import { useFirebaseLists } from '@/hooks/useFirebaseLists';
+import { useLocalNotifications } from '@/hooks/useLocalNotifications';
 import { ShoppingList, ShoppingListItem } from '@/types';
 import { ArrowLeft, Trash2, Plus, X, Share, Clock } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
@@ -13,12 +11,12 @@ import { useToast } from '@/hooks/use-toast';
 interface ListDetailProps {
   listId: string;
   onBack: () => void;
+  lists: ShoppingList[];
+  saveData: (data: any) => void;
 }
 
-const ListDetail = ({ listId, onBack }: ListDetailProps) => {
-  const { user } = useFirebaseAuth();
-  const { editList: updateFirebaseList } = useFirebaseLists();
-  const [localLists, setLocalLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
+const ListDetail = ({ listId, onBack, lists, saveData }: ListDetailProps) => {
+  const { scheduleReminder } = useLocalNotifications();
   const [editableList, setEditableList] = useState<ShoppingList | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -27,8 +25,6 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [editingItems, setEditingItems] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
-  // Use appropriate data source based on authentication
-  const lists = user ? [] : localLists; // Firebase lists would come from useFirebaseLists hook
   const list = lists.find(l => l.id === listId);
 
   useEffect(() => {
@@ -53,23 +49,31 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     const newList = { ...editableList, ...updatedList, updatedAt: now };
     setEditableList(newList);
     
-    if (user) {
-      // Update Firebase
-      await updateFirebaseList(listId, updatedList);
-    } else {
-      // Update localStorage
-      setLocalLists(localLists.map(l => 
-        l.id === listId ? newList : l
-      ));
-    }
+    // Update local data
+    const updatedLists = lists.map(l => 
+      l.id === listId ? newList : l
+    );
+    
+    const newData = {
+      notes: JSON.parse(localStorage.getItem('casual-notes') || '[]'),
+      lists: updatedLists,
+      passwords: JSON.parse(localStorage.getItem('passwords') || '[]'),
+      lastUpdated: new Date().toISOString()
+    };
+    
+    saveData(newData);
   };
 
   const handleDelete = () => {
-    if (user) {
-      // Delete from Firebase (would need deleteList function)
-    } else {
-      setLocalLists(localLists.filter(l => l.id !== listId));
-    }
+    const updatedLists = lists.filter(l => l.id !== listId);
+    const newData = {
+      notes: JSON.parse(localStorage.getItem('casual-notes') || '[]'),
+      lists: updatedLists,
+      passwords: JSON.parse(localStorage.getItem('passwords') || '[]'),
+      lastUpdated: new Date().toISOString()
+    };
+    
+    saveData(newData);
     setShowDeleteDialog(false);
     onBack();
   };
@@ -137,22 +141,12 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
 
     autoSave({ reminder: reminderTime.toISOString() });
     
-    // Schedule notification (mock implementation for now)
-    scheduleNotification(reminderTime, editableList.title || 'Untitled List');
+    // Schedule local notification
+    scheduleReminder(editableList.title || 'Untitled List', 'Shopping list reminder', reminderTime);
   };
 
   const handleReminderDelete = () => {
     autoSave({ reminder: undefined });
-  };
-
-  const scheduleNotification = (time: Date, title: string) => {
-    // Mock notification scheduling
-    console.log(`Notification scheduled for ${time.toLocaleString()} with title: ${title}`);
-    
-    // In a real implementation, this would use:
-    // - Local notifications via Capacitor for mobile apps
-    // - Service worker for web push notifications
-    // - Firebase Cloud Functions for push notifications
   };
 
   const getExistingReminder = () => {

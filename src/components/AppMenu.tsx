@@ -1,38 +1,31 @@
 
 import { useState } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
-import { useFirebaseNotes } from '@/hooks/useFirebaseNotes';
-import { useFirebaseLists } from '@/hooks/useFirebaseLists';
-import { useFirebasePasswords } from '@/hooks/useFirebasePasswords';
-import { signOut } from '@/integrations/firebase/auth';
 import { CasualNote, ShoppingList, Password } from '@/types';
-import { ArrowLeft, Upload, LogOut, Award, Download, KeyRound } from 'lucide-react';
+import { ArrowLeft, Upload, Download, Award, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AppMenuProps {
   onBack: () => void;
   onNavigate: (page: string) => void;
+  data: {
+    notes: CasualNote[];
+    lists: ShoppingList[];
+    passwords: Password[];
+    lastUpdated: string;
+  };
+  saveData: (data: any) => void;
 }
 
-const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
-  const { user } = useFirebaseAuth();
-  const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
-  const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
-  const [passwords, setPasswords] = useLocalStorage<Password[]>('passwords', []);
-  const { createNote } = useFirebaseNotes();
-  const { createList } = useFirebaseLists();
-  const { createPassword } = useFirebasePasswords();
+const AppMenu = ({ onBack, onNavigate, data, saveData }: AppMenuProps) => {
   const [showExportConfirm, setShowExportConfirm] = useState(false);
-  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const { toast } = useToast();
 
   const handleExportData = () => {
     const exportData = {
-      notes,
-      lists,
-      passwords,
+      notes: data.notes,
+      lists: data.lists,
+      passwords: data.passwords,
       exportedAt: new Date().toISOString()
     };
 
@@ -65,71 +58,15 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
         const content = e.target?.result as string;
         const importedData = JSON.parse(content);
         
-        // Import notes
-        if (importedData.notes && Array.isArray(importedData.notes)) {
-          for (const noteData of importedData.notes) {
-            const newNote = {
-              title: noteData.title || '',
-              content: noteData.content || '',
-              tag: noteData.tag || '',
-              isBlurred: noteData.isBlurred || false,
-              createdAt: new Date(),
-              updatedAt: new Date()
-            };
-            
-            if (user) {
-              await createNote(newNote);
-            } else {
-              const existingNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
-              const noteWithId = { ...newNote, id: Date.now().toString() + Math.random() };
-              existingNotes.unshift(noteWithId);
-              localStorage.setItem('casual-notes', JSON.stringify(existingNotes));
-            }
-          }
-        }
-
-        // Import lists
-        if (importedData.lists && Array.isArray(importedData.lists)) {
-          for (const listData of importedData.lists) {
-            const newList = {
-              title: listData.title || '',
-              items: listData.items || [],
-              createdAt: new Date(),
-              updatedAt: new Date()
-            };
-            
-            if (user) {
-              await createList(newList);
-            } else {
-              const existingLists = JSON.parse(localStorage.getItem('shopping-lists') || '[]');
-              const listWithId = { ...newList, id: Date.now().toString() + Math.random() };
-              existingLists.unshift(listWithId);
-              localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
-            }
-          }
-        }
-
-        // Import passwords
-        if (importedData.passwords && Array.isArray(importedData.passwords)) {
-          for (const passwordData of importedData.passwords) {
-            const newPassword = {
-              title: passwordData.title || '',
-              password: passwordData.password || '',
-              fields: passwordData.fields || [],
-              createdAt: new Date(),
-              updatedAt: new Date()
-            };
-            
-            if (user) {
-              await createPassword(newPassword);
-            } else {
-              const existingPasswords = JSON.parse(localStorage.getItem('passwords') || '[]');
-              const passwordWithId = { ...newPassword, id: Date.now().toString() + Math.random() };
-              existingPasswords.unshift(passwordWithId);
-              localStorage.setItem('passwords', JSON.stringify(existingPasswords));
-            }
-          }
-        }
+        // Merge imported data with existing data
+        const newData = {
+          notes: [...(importedData.notes || []), ...data.notes],
+          lists: [...(importedData.lists || []), ...data.lists],
+          passwords: [...(importedData.passwords || []), ...data.passwords],
+          lastUpdated: new Date().toISOString()
+        };
+        
+        saveData(newData);
 
         toast({
           title: "Success",
@@ -147,30 +84,6 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
       }
     };
     reader.readAsText(file);
-  };
-
-  const handleSignOut = async () => {
-    if (user) {
-      // Firebase sign out
-      const { error } = await signOut();
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to sign out",
-          variant: "destructive",
-        });
-        return;
-      }
-      toast({
-        title: "Success",
-        description: "Signed out successfully",
-      });
-    } else {
-      // Local storage clear
-      localStorage.clear();
-      window.location.reload();
-    }
-    setShowSignOutConfirm(false);
   };
 
   return (
@@ -202,26 +115,6 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
             <Download size={20} className="text-[#9B9B9B]" />
             <span className="text-[#DBDBDB]">Import Data</span>
           </button>
-
-          {!user && (
-            <button
-              onClick={() => onNavigate('auth')}
-              className="w-full bg-[#181818] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
-            >
-              <LogOut size={20} className="text-[#9B9B9B]" />
-              <span className="text-[#DBDBDB]">Sign In</span>
-            </button>
-          )}
-
-          {user && (
-            <button
-              onClick={() => setShowSignOutConfirm(true)}
-              className="w-full bg-[#181818] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
-            >
-              <LogOut size={20} className="text-[#9B9B9B]" />
-              <span className="text-[#DBDBDB]">Sign Out</span>
-            </button>
-          )}
 
           <button
             onClick={() => onNavigate('badge')}
@@ -304,42 +197,6 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
                 </label>
                 <button
                   onClick={() => setShowImportDialog(false)}
-                  className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-                  style={{ backgroundColor: '#191919' }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Sign Out Confirmation */}
-        {showSignOutConfirm && (
-          <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{
-              background: 'rgba(19, 16, 16, 0.60)',
-              backdropFilter: 'blur(5px)',
-            }}
-          >
-            <div 
-              className="w-full max-w-xs mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
-              style={{
-                background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
-              }}
-            >
-              <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Sign Out?</h2>
-              <div className="flex flex-col gap-4">
-                <button
-                  onClick={handleSignOut}
-                  className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-                  style={{ backgroundColor: '#272727' }}
-                >
-                  Sign Out
-                </button>
-                <button
-                  onClick={() => setShowSignOutConfirm(false)}
                   className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
                   style={{ backgroundColor: '#191919' }}
                 >
