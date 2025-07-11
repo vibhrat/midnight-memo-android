@@ -1,32 +1,25 @@
 
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { useLocalNotifications } from '@/hooks/useLocalNotifications';
 import { CasualNote } from '@/types';
-import { ArrowLeft, Trash2, Grid3x3, Share, Clock } from 'lucide-react';
+import { ArrowLeft, Trash2, Grid3x3, Share } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import TagSelector from '@/components/TagSelector';
 import RichTextEditor from '@/components/RichTextEditor';
 import ShareDialog from '@/components/ShareDialog';
-import ReminderDialog from '@/components/ReminderDialog';
-import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 interface NoteDetailProps {
   noteId: string;
   onBack: () => void;
-  notes: CasualNote[];
-  saveData: (data: any) => void;
-  scheduleReminder: (title: string, body: string, date: Date) => Promise<void>;
 }
 
-const NoteDetail = ({ noteId, onBack, notes, saveData, scheduleReminder }: NoteDetailProps) => {
-  const { scheduleReminder: scheduleLocalReminder } = useLocalNotifications();
+const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
+  const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
   const [editableNote, setEditableNote] = useState<CasualNote | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTagSelector, setShowTagSelector] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [showReminderDialog, setShowReminderDialog] = useState(false);
-  const { toast } = useToast();
 
   const note = notes.find(n => n.id === noteId);
 
@@ -47,36 +40,17 @@ const NoteDetail = ({ noteId, onBack, notes, saveData, scheduleReminder }: NoteD
     );
   }
 
-  const autoSave = async (updatedNote: Partial<CasualNote>) => {
+  const autoSave = (updatedNote: Partial<CasualNote>) => {
     const now = new Date();
     const newNote = { ...editableNote, ...updatedNote, updatedAt: now };
     setEditableNote(newNote);
-    
-    // Update local data
-    const updatedNotes = notes.map(n => 
+    setNotes(notes.map(n => 
       n.id === noteId ? newNote : n
-    );
-    
-    const newData = {
-      notes: updatedNotes,
-      lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
-      passwords: JSON.parse(localStorage.getItem('passwords') || '[]'),
-      lastUpdated: new Date().toISOString()
-    };
-    
-    saveData(newData);
+    ));
   };
 
   const handleDelete = () => {
-    const updatedNotes = notes.filter(n => n.id !== noteId);
-    const newData = {
-      notes: updatedNotes,
-      lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
-      passwords: JSON.parse(localStorage.getItem('passwords') || '[]'),
-      lastUpdated: new Date().toISOString()
-    };
-    
-    saveData(newData);
+    setNotes(notes.filter(n => n.id !== noteId));
     setShowDeleteDialog(false);
     onBack();
   };
@@ -88,47 +62,6 @@ const NoteDetail = ({ noteId, onBack, notes, saveData, scheduleReminder }: NoteD
   const handleTagSelect = (tag: string) => {
     autoSave({ tag });
     setShowTagSelector(false);
-  };
-
-  const handleReminderSave = (reminder: { hour: number; minute: number; ampm: 'AM' | 'PM' }) => {
-    // Convert to 24-hour format for storage
-    let hour24 = reminder.hour;
-    if (reminder.ampm === 'PM' && reminder.hour !== 12) {
-      hour24 += 12;
-    } else if (reminder.ampm === 'AM' && reminder.hour === 12) {
-      hour24 = 0;
-    }
-
-    const reminderTime = new Date();
-    reminderTime.setHours(hour24, reminder.minute, 0, 0);
-    
-    // If the time has passed today, set for tomorrow
-    if (reminderTime < new Date()) {
-      reminderTime.setDate(reminderTime.getDate() + 1);
-    }
-
-    autoSave({ reminder: reminderTime.toISOString() });
-    
-    // Schedule local notification
-    scheduleLocalReminder(editableNote.title || 'Untitled Note', editableNote.content || '', reminderTime);
-  };
-
-  const handleReminderDelete = () => {
-    autoSave({ reminder: undefined });
-  };
-
-  const getExistingReminder = () => {
-    if (!editableNote.reminder) return null;
-    
-    const reminderDate = new Date(editableNote.reminder);
-    let hour = reminderDate.getHours();
-    const minute = reminderDate.getMinutes();
-    const ampm: 'AM' | 'PM' = hour >= 12 ? 'PM' : 'AM';
-    
-    if (hour === 0) hour = 12;
-    else if (hour > 12) hour -= 12;
-    
-    return { hour, minute, ampm };
   };
 
   const getTagColor = (tag: string) => {
@@ -155,12 +88,6 @@ const NoteDetail = ({ noteId, onBack, notes, saveData, scheduleReminder }: NoteD
             <ArrowLeft size={22} className="text-[#9B9B9B]" />
           </button>
           <div className="flex gap-2">
-            <button
-              onClick={() => setShowReminderDialog(true)}
-              className={`p-2 hover:bg-[#181818] rounded-lg ${editableNote.reminder ? 'bg-[#181818]' : ''}`}
-            >
-              <Clock size={22} className={editableNote.reminder ? "text-blue-600" : "text-[#9B9B9B]"} />
-            </button>
             <button
               onClick={toggleBlur}
               className={`p-2 hover:bg-[#181818] rounded-lg ${editableNote.isBlurred ? 'bg-[#181818]' : ''}`}
@@ -268,15 +195,6 @@ const NoteDetail = ({ noteId, onBack, notes, saveData, scheduleReminder }: NoteD
         onClose={() => setShowShareDialog(false)}
         data={editableNote}
         type="note"
-        mode="share"
-      />
-
-      <ReminderDialog
-        isOpen={showReminderDialog}
-        onClose={() => setShowReminderDialog(false)}
-        onSave={handleReminderSave}
-        onDelete={handleReminderDelete}
-        existingReminder={getExistingReminder()}
       />
     </div>
   );

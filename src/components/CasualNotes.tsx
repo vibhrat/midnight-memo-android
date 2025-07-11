@@ -5,7 +5,6 @@ import { CasualNote } from '@/types';
 import NotesHeader from './notes/NotesHeader';
 import TagFilter from './notes/TagFilter';
 import NotesList from './notes/NotesList';
-import ShareDialog from '@/components/ShareDialog';
 
 interface CasualNotesRef {
   triggerCreate: () => void;
@@ -15,13 +14,11 @@ interface CasualNotesProps {
   onNoteSelect?: (noteId: string) => void;
   onSearchClick?: () => void;
   onMenuClick?: () => void;
-  notes: CasualNote[];
-  saveData: (data: any) => void;
 }
 
-const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick, onMenuClick, notes, saveData }, ref) => {
+const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick, onMenuClick }, ref) => {
+  const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
   const [selectedTag, setSelectedTag] = useState<string>('');
-  const [showImportDialog, setShowImportDialog] = useState(false);
 
   // Preload settings image when component mounts
   useEffect(() => {
@@ -30,37 +27,21 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
   }, []);
 
   useImperativeHandle(ref, () => ({
-    triggerCreate: async () => {
-      console.log('CasualNotes triggerCreate called');
-      
-      try {
-        // Create a new blank note and navigate to it
-        const now = new Date();
-        const newNote: CasualNote = {
-          id: Date.now().toString(),
-          title: '',
-          tag: '',
-          content: '',
-          createdAt: now,
-          updatedAt: now,
-          isBlurred: false
-        };
-        
-        // Update local data
-        const newData = {
-          notes: [newNote, ...notes],
-          lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
-          passwords: JSON.parse(localStorage.getItem('passwords') || '[]'),
-          lastUpdated: new Date().toISOString()
-        };
-        
-        saveData(newData);
-        
-        if (onNoteSelect) {
-          onNoteSelect(newNote.id);
-        }
-      } catch (error) {
-        console.error('Error creating note:', error);
+    triggerCreate: () => {
+      // Create a new blank note and navigate to it
+      const now = new Date();
+      const newNote: CasualNote = {
+        id: Date.now().toString(),
+        title: '',
+        tag: '',
+        content: '',
+        createdAt: now,
+        updatedAt: now,
+        isBlurred: false
+      };
+      setNotes([newNote, ...notes]);
+      if (onNoteSelect) {
+        onNoteSelect(newNote.id);
       }
     }
   }));
@@ -69,10 +50,6 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
     if (onNoteSelect) {
       onNoteSelect(noteId);
     }
-  };
-
-  const handleImportClick = () => {
-    setShowImportDialog(true);
   };
 
   // Get unique tags from notes
@@ -92,7 +69,6 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
         <NotesHeader 
           onSearchClick={onSearchClick}
           onMenuClick={onMenuClick}
-          onImportClick={handleImportClick}
         />
 
         <TagFilter 
@@ -106,17 +82,8 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
           filteredNotes={filteredNotes}
           selectedTag={selectedTag}
           onNoteClick={handleCardClick}
-          loading={false}
         />
       </div>
-
-      <ShareDialog
-        isOpen={showImportDialog}
-        onClose={() => setShowImportDialog(false)}
-        data={{}}
-        type="note"
-        mode="import"
-      />
     </div>
   );
 });

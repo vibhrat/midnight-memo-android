@@ -1,212 +1,294 @@
-import { useEffect, useRef, useState } from 'react';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { useLocalFileSystem } from '@/hooks/useLocalFileSystem';
-import { useBiometricAuth } from '@/contexts/BiometricAuthContext';
-import { useLocalNotifications } from '@/hooks/useLocalNotifications';
-import CasualNotes from '@/components/CasualNotes';
-import ShoppingLists from '@/components/ShoppingLists';
-import Passwords from '@/components/Passwords';
-import Search from '@/components/Search';
-import NoteDetail from '@/components/NoteDetail';
-import ListDetail from '@/components/ListDetail';
-import PasswordDetail from '@/components/PasswordDetail';
-import FloatingActionButton from '@/components/FloatingActionButton';
-import AppMenu from '@/components/AppMenu';
-import BiometricLogin from '@/components/BiometricLogin';
+
+import { useState, useRef, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import Auth from '@/components/Auth';
 import Navigation from '@/components/Navigation';
-import PinProtection from '@/components/PinProtection';
-import PinManagement from '@/components/PinManagement';
+import CasualNotes from '@/components/CasualNotes';
+import NoteDetail from '@/components/NoteDetail';
+import ShoppingLists from '@/components/ShoppingLists';
+import ListDetail from '@/components/ListDetail';
+import Passwords from '@/components/Passwords';
+import PasswordDetail from '@/components/PasswordDetail';
+import Search from '@/components/Search';
+import AppMenu from '@/components/AppMenu';
 import BadgePage from '@/components/BadgePage';
+import PinManagement from '@/components/PinManagement';
+import FloatingActionButton from '@/components/FloatingActionButton';
 
 const Index = () => {
-  const { isAuthenticated } = useBiometricAuth();
-  const { data, saveData } = useLocalFileSystem();
-  const { scheduleReminder } = useLocalNotifications();
-  
-  const casualNotesRef = useRef<{ triggerCreate: () => void }>(null);
-  const shoppingListsRef = useRef<{ triggerCreate: () => void }>(null);
-  const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
-  
-  const [currentPage, setCurrentPage] = useLocalStorage('current-page', 'notes');
-  const [selectedNoteId, setSelectedNoteId] = useLocalStorage<string | null>('selected-note-id', null);
-  const [selectedListId, setSelectedListId] = useLocalStorage<string | null>('selected-list-id', null);
-  const [selectedPasswordId, setSelectedPasswordId] = useLocalStorage<string | null>('selected-password-id', null);
+  const { user, loading } = useAuth();
+  const [authComplete, setAuthComplete] = useState(false);
+  const [activeTab, setActiveTab] = useState('notes');
+  const [selectedListId, setSelectedListId] = useState<string | null>(null);
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [selectedPasswordId, setSelectedPasswordId] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [currentMenuPage, setCurrentMenuPage] = useState<string>('');
-  const [isPinProtected, setIsPinProtected] = useLocalStorage('pin-protected', false);
-  const [isPinVerified, setIsPinVerified] = useState(false);
+  const [showBadge, setShowBadge] = useState(false);
+  const [showPinManagement, setShowPinManagement] = useState(false);
+  const [navigationHistory, setNavigationHistory] = useState<string[]>(['main']);
+  const notesRef = useRef<{ triggerCreate: () => void }>(null);
+  const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
+  const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
 
-  // Handler functions
-  const handleNoteSelect = (noteId: string) => {
-    setSelectedNoteId(noteId);
-    setSelectedListId(null);
-    setSelectedPasswordId(null);
+  useEffect(() => {
+    const handleNavigateToTab = (event: CustomEvent) => {
+      const tabId = event.detail;
+      // Reset all detail views when navigating to a tab
+      setSelectedListId(null);
+      setSelectedNoteId(null);
+      setSelectedPasswordId(null);
+      setShowSearch(false);
+      setShowMenu(false);
+      setShowBadge(false);
+      setShowPinManagement(false);
+      setNavigationHistory(['main']);
+    };
+
+    window.addEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
+    return () => window.removeEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
+  }, []);
+
+  // Handle Android back button
+  useEffect(() => {
+    const handleBackButton = () => {
+      if (navigationHistory.length > 1) {
+        const newHistory = [...navigationHistory];
+        newHistory.pop();
+        const previousPage = newHistory[newHistory.length - 1];
+        
+        setNavigationHistory(newHistory);
+        
+        switch (previousPage) {
+          case 'main':
+            setSelectedListId(null);
+            setSelectedNoteId(null);
+            setSelectedPasswordId(null);
+            setShowSearch(false);
+            setShowMenu(false);
+            setShowBadge(false);
+            setShowPinManagement(false);
+            break;
+          case 'menu':
+            setShowMenu(true);
+            setShowBadge(false);
+            setShowPinManagement(false);
+            break;
+          case 'search':
+            setShowSearch(true);
+            setSelectedListId(null);
+            setSelectedNoteId(null);
+            break;
+        }
+        return true;
+      }
+      return false;
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleBackButton();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    
+    // For mobile back gesture
+    const handlePopState = () => {
+      handleBackButton();
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [navigationHistory]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-[#9B9B9B]">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user && !authComplete) {
+    return <Auth onAuthSuccess={() => setAuthComplete(true)} />;
+  }
+
+  const handleFloatingButtonClick = () => {
+    switch (activeTab) {
+      case 'notes':
+        if (!selectedNoteId) {
+          notesRef.current?.triggerCreate();
+        }
+        break;
+      case 'shopping':
+        if (!selectedListId) {
+          shoppingRef.current?.triggerCreate();
+        }
+        break;
+      case 'passwords':
+        if (!selectedPasswordId) {
+          passwordsRef.current?.triggerCreate();
+        }
+        break;
+    }
   };
 
   const handleListSelect = (listId: string) => {
     setSelectedListId(listId);
-    setSelectedNoteId(null);
-    setSelectedPasswordId(null);
+    setNavigationHistory(prev => [...prev, 'list-detail']);
+  };
+
+  const handleNoteSelect = (noteId: string) => {
+    setSelectedNoteId(noteId);
+    setNavigationHistory(prev => [...prev, 'note-detail']);
   };
 
   const handlePasswordSelect = (passwordId: string) => {
     setSelectedPasswordId(passwordId);
-    setSelectedNoteId(null);
-    setSelectedListId(null);
+    setNavigationHistory(prev => [...prev, 'password-detail']);
   };
 
-  const handleBack = () => {
-    setSelectedNoteId(null);
+  const handleBackToLists = () => {
     setSelectedListId(null);
+    setNavigationHistory(prev => prev.slice(0, -1));
+  };
+
+  const handleBackToNotes = () => {
+    setSelectedNoteId(null);
+    setNavigationHistory(prev => prev.slice(0, -1));
+  };
+
+  const handleBackToPasswords = () => {
     setSelectedPasswordId(null);
+    setNavigationHistory(prev => prev.slice(0, -1));
   };
 
-  const handleFloatingActionClick = () => {
-    if (currentPage === 'notes') {
-      casualNotesRef.current?.triggerCreate();
-    } else if (currentPage === 'shopping') {
-      shoppingListsRef.current?.triggerCreate();
-    } else if (currentPage === 'passwords') {
-      passwordsRef.current?.triggerCreate();
+  const handleSearchClick = () => {
+    setShowSearch(true);
+    setNavigationHistory(prev => [...prev, 'search']);
+  };
+
+  const handleBackFromSearch = () => {
+    setShowSearch(false);
+    setNavigationHistory(prev => prev.slice(0, -1));
+  };
+
+  const handleMenuClick = () => {
+    setShowMenu(true);
+    setNavigationHistory(prev => [...prev, 'menu']);
+  };
+
+  const handleBackFromMenu = () => {
+    setShowMenu(false);
+    setNavigationHistory(prev => prev.slice(0, -1));
+  };
+
+  const handleNavigate = (page: string) => {
+    if (page === 'badge') {
+      setShowBadge(true);
+      setShowMenu(false);
+      setNavigationHistory(prev => [...prev, 'badge']);
+    } else if (page === 'pin-management') {
+      setShowPinManagement(true);
+      setShowMenu(false);
+      setNavigationHistory(prev => [...prev, 'pin-management']);
     }
   };
 
-  // Show PIN protection if enabled and not verified
-  if (isPinProtected && !isPinVerified && isAuthenticated) {
-    return <PinProtection onUnlock={() => setIsPinVerified(true)} />;
-  }
+  const handleBackFromBadge = () => {
+    setShowBadge(false);
+    setShowMenu(true);
+    setNavigationHistory(prev => prev.slice(0, -1));
+  };
 
-  // Show biometric login if not authenticated
-  if (!isAuthenticated) {
-    return <BiometricLogin onSuccess={() => {}} />;
-  }
+  const handleBackFromPin = () => {
+    setShowPinManagement(false);
+    setShowMenu(true);
+    setNavigationHistory(prev => prev.slice(0, -1));
+  };
 
-  // Show menu pages
-  if (showMenu) {
-    if (currentMenuPage === 'pin-management') {
+  const handleSearchNoteSelect = (noteId: string) => {
+    setShowSearch(false);
+    setActiveTab('notes');
+    setSelectedNoteId(noteId);
+    setNavigationHistory(prev => [...prev.slice(0, -1), 'note-detail']);
+  };
+
+  const handleSearchListSelect = (listId: string) => {
+    setShowSearch(false);
+    setActiveTab('shopping');
+    setSelectedListId(listId);
+    setNavigationHistory(prev => [...prev.slice(0, -1), 'list-detail']);
+  };
+
+  const renderContent = () => {
+    if (showPinManagement) {
+      return <PinManagement onBack={handleBackFromPin} />;
+    }
+
+    if (showBadge) {
+      return <BadgePage onBack={handleBackFromBadge} />;
+    }
+
+    if (showMenu) {
       return (
-        <PinManagement 
-          onBack={() => {
-            setShowMenu(false);
-            setCurrentMenuPage('');
-          }}
+        <AppMenu 
+          onBack={handleBackFromMenu} 
+          onNavigate={handleNavigate}
         />
       );
     }
-    
-    if (currentMenuPage === 'badge') {
+
+    if (showSearch) {
       return (
-        <BadgePage 
-          onBack={() => {
-            setShowMenu(false);
-            setCurrentMenuPage('');
-          }}
+        <Search 
+          onBack={handleBackFromSearch}
+          onNoteSelect={handleSearchNoteSelect}
+          onListSelect={handleSearchListSelect}
         />
       );
     }
 
-    return (
-      <AppMenu 
-        onBack={() => {
-          setShowMenu(false);
-          setCurrentMenuPage('');
-        }}
-        onNavigate={(page) => {
-          setCurrentMenuPage(page);
-        }}
-        data={data}
-        saveData={saveData}
-      />
-    );
-  }
+    switch (activeTab) {
+      case 'notes':
+        if (selectedNoteId) {
+          return <NoteDetail noteId={selectedNoteId} onBack={handleBackToNotes} />;
+        }
+        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} onMenuClick={handleMenuClick} />;
+      case 'shopping':
+        if (selectedListId) {
+          return <ListDetail listId={selectedListId} onBack={handleBackToLists} />;
+        }
+        return <ShoppingLists ref={shoppingRef} onListSelect={handleListSelect} onSearchClick={handleSearchClick} />;
+      case 'passwords':
+        if (selectedPasswordId) {
+          return <PasswordDetail passwordId={selectedPasswordId} onBack={handleBackToPasswords} />;
+        }
+        return <Passwords ref={passwordsRef} onPasswordSelect={handlePasswordSelect} onSearchClick={handleSearchClick} />;
+      default:
+        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} onMenuClick={handleMenuClick} />;
+    }
+  };
 
-  if (showSearch) {
-    return (
-      <Search 
-        onBack={() => setShowSearch(false)}
-        onNoteSelect={handleNoteSelect}
-        onListSelect={handleListSelect}
-        notes={data.notes}
-        lists={data.lists}
-        passwords={data.passwords}
-      />
-    );
-  }
-
-  if (selectedNoteId) {
-    return (
-      <NoteDetail 
-        noteId={selectedNoteId} 
-        onBack={handleBack}
-        notes={data.notes}
-        saveData={saveData}
-        scheduleReminder={scheduleReminder}
-      />
-    );
-  }
-
-  if (selectedListId) {
-    return (
-      <ListDetail 
-        listId={selectedListId} 
-        onBack={handleBack}
-        lists={data.lists}
-        saveData={saveData}
-      />
-    );
-  }
-
-  if (selectedPasswordId) {
-    return (
-      <PasswordDetail 
-        passwordId={selectedPasswordId} 
-        onBack={handleBack}
-        passwords={data.passwords}
-        saveData={saveData}
-      />
-    );
-  }
+  // Don't show FAB when viewing details, search, menu, badge, or pin management
+  const showFAB = !showSearch && !showMenu && !showBadge && !showPinManagement &&
+    !(activeTab === 'shopping' && selectedListId) && 
+    !(activeTab === 'notes' && selectedNoteId) &&
+    !(activeTab === 'passwords' && selectedPasswordId);
 
   return (
-    <div className="min-h-screen bg-[#000000] relative">
-      {currentPage === 'notes' && (
-        <CasualNotes 
-          ref={casualNotesRef}
-          onNoteSelect={handleNoteSelect}
-          onSearchClick={() => setShowSearch(true)}
-          onMenuClick={() => setShowMenu(true)}
-          notes={data.notes}
-          saveData={saveData}
-        />
-      )}
-      
-      {currentPage === 'shopping' && (
-        <ShoppingLists 
-          ref={shoppingListsRef}
-          onListSelect={handleListSelect}
-          onSearchClick={() => setShowSearch(true)}
-          lists={data.lists}
-          saveData={saveData}
-        />
-      )}
-      
-      {currentPage === 'passwords' && (
-        <Passwords 
-          ref={passwordsRef}
-          onPasswordSelect={handlePasswordSelect}
-          onSearchClick={() => setShowSearch(true)}
-          passwords={data.passwords}
-          saveData={saveData}
-        />
-      )}
-
-      <FloatingActionButton onClick={handleFloatingActionClick} />
-      
-      <Navigation 
-        activeTab={currentPage} 
-        onTabChange={setCurrentPage}
-      />
+    <div className="min-h-screen bg-[#000000]">
+      {renderContent()}
+      {showFAB && <FloatingActionButton onClick={handleFloatingButtonClick} />}
+      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };

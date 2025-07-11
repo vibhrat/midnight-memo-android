@@ -6,15 +6,14 @@ export interface CasualNote {
   content: string;
   createdAt: Date;
   updatedAt: Date;
-  isBlurred: boolean;
-  reminder?: string; // ISO string for reminder time
+  isBlurred?: boolean;
 }
 
 export interface ShoppingListItem {
   id: string;
   name: string;
   quantity: string;
-  checked: boolean;
+  checked?: boolean;
 }
 
 export interface ShoppingList {
@@ -23,20 +22,21 @@ export interface ShoppingList {
   items: ShoppingListItem[];
   createdAt: Date;
   updatedAt: Date;
-  reminder?: string; // ISO string for reminder time
 }
 
 export interface PasswordField {
   id: string;
   title: string;
   password: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Password {
   id: string;
   title: string;
   password: string;
-  fields: PasswordField[];
+  fields?: PasswordField[];
   createdAt: Date;
   updatedAt: Date;
 }

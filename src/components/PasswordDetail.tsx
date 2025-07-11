@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Password, PasswordField } from '@/types';
 import { ArrowLeft, Trash2, Eye, EyeOff, Copy, Plus, X } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
@@ -8,11 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 interface PasswordDetailProps {
   passwordId: string;
   onBack: () => void;
-  passwords: Password[];
-  saveData: (data: any) => Promise<void>;
 }
 
-const PasswordDetail = ({ passwordId, onBack, passwords, saveData }: PasswordDetailProps) => {
+const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
+  const [passwords, setPasswords] = useLocalStorage<Password[]>('passwords', []);
   const [editablePassword, setEditablePassword] = useState<Password | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -38,35 +38,17 @@ const PasswordDetail = ({ passwordId, onBack, passwords, saveData }: PasswordDet
     );
   }
 
-  const autoSave = async (updatedPassword: Partial<Password>) => {
+  const autoSave = (updatedPassword: Partial<Password>) => {
     const now = new Date();
     const newPassword = { ...editablePassword, ...updatedPassword, updatedAt: now };
     setEditablePassword(newPassword);
-    
-    const updatedPasswords = passwords.map(p => 
+    setPasswords(passwords.map(p => 
       p.id === passwordId ? newPassword : p
-    );
-    
-    const newData = {
-      notes: JSON.parse(localStorage.getItem('casual-notes') || '[]'),
-      lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
-      passwords: updatedPasswords,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    await saveData(newData);
+    ));
   };
 
-  const handleDelete = async () => {
-    const updatedPasswords = passwords.filter(p => p.id !== passwordId);
-    const newData = {
-      notes: JSON.parse(localStorage.getItem('casual-notes') || '[]'),
-      lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
-      passwords: updatedPasswords,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    await saveData(newData);
+  const handleDelete = () => {
+    setPasswords(passwords.filter(p => p.id !== passwordId));
     setShowDeleteDialog(false);
     onBack();
   };
@@ -94,17 +76,20 @@ const PasswordDetail = ({ passwordId, onBack, passwords, saveData }: PasswordDet
   };
 
   const addNewField = () => {
+    const now = new Date();
     const newField: PasswordField = {
       id: Date.now().toString(),
       title: '',
-      password: ''
+      password: '',
+      createdAt: now,
+      updatedAt: now
     };
     autoSave({ fields: [...(editablePassword.fields || []), newField] });
   };
 
   const updateField = (fieldId: string, updates: Partial<PasswordField>) => {
     const updatedFields = (editablePassword.fields || []).map(field =>
-      field.id === fieldId ? { ...field, ...updates } : field
+      field.id === fieldId ? { ...field, ...updates, updatedAt: new Date() } : field
     );
     autoSave({ fields: updatedFields });
   };

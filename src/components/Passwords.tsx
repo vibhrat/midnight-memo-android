@@ -1,6 +1,8 @@
 
 import { useState, forwardRef, useImperativeHandle } from 'react';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Password } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 import { Clock, Search } from 'lucide-react';
 import PinProtection from './PinProtection';
 
@@ -11,11 +13,10 @@ interface PasswordsRef {
 interface PasswordsProps {
   onSearchClick?: () => void;
   onPasswordSelect?: (passwordId: string) => void;
-  passwords: Password[];
-  saveData: (data: any) => void;
 }
 
-const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onPasswordSelect, passwords, saveData }, ref) => {
+const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onPasswordSelect }, ref) => {
+  const [passwords, setPasswords] = useLocalStorage<Password[]>('passwords', []);
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   useImperativeHandle(ref, () => ({
@@ -26,21 +27,10 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onP
         id: Date.now().toString(),
         title: '',
         password: '',
-        fields: [],
         createdAt: now,
         updatedAt: now,
       };
-      
-      // Update local data
-      const newData = {
-        notes: JSON.parse(localStorage.getItem('casual-notes') || '[]'),
-        lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
-        passwords: [newPassword, ...passwords],
-        lastUpdated: new Date().toISOString()
-      };
-      
-      saveData(newData);
-      
+      setPasswords([newPassword, ...passwords]);
       if (onPasswordSelect) {
         onPasswordSelect(newPassword.id);
       }
