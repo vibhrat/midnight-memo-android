@@ -7,52 +7,25 @@ import {
   updateNote, 
   deleteNote 
 } from '@/integrations/firebase/firestore';
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 export const useFirebaseNotes = () => {
   const [notes, setNotes] = useState<CasualNote[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useFirebaseAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!user) {
-      console.log('No user authenticated, loading from localStorage');
-      // Load from localStorage when not authenticated
-      const localNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
-      setNotes(localNotes);
-      setLoading(false);
-      return;
-    }
-
-    console.log('User authenticated, subscribing to Firebase notes for:', user.email);
     const unsubscribe = subscribeToNotes((newNotes) => {
-      console.log('Firebase notes updated:', newNotes.length);
       setNotes(newNotes);
       setLoading(false);
     });
 
     return unsubscribe;
-  }, [user]);
+  }, []);
 
   const createNote = async (note: Omit<CasualNote, 'id'>) => {
     try {
-      if (user) {
-        console.log('Creating note in Firebase for user:', user.email);
-        await addNote(note);
-      } else {
-        console.log('Creating note in localStorage');
-        const localNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
-        const newNote = {
-          ...note,
-          id: Date.now().toString(),
-        };
-        localNotes.unshift(newNote);
-        localStorage.setItem('casual-notes', JSON.stringify(localNotes));
-        setNotes(localNotes);
-      }
-      
+      await addNote(note);
       toast({
         title: "Success",
         description: "Note created successfully!",
@@ -69,17 +42,7 @@ export const useFirebaseNotes = () => {
 
   const editNote = async (id: string, note: Partial<CasualNote>) => {
     try {
-      if (user) {
-        await updateNote(id, note);
-      } else {
-        const localNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
-        const updatedNotes = localNotes.map((n: CasualNote) => 
-          n.id === id ? { ...n, ...note, updatedAt: new Date() } : n
-        );
-        localStorage.setItem('casual-notes', JSON.stringify(updatedNotes));
-        setNotes(updatedNotes);
-      }
-      
+      await updateNote(id, note);
       toast({
         title: "Success",
         description: "Note updated successfully!",
@@ -96,15 +59,7 @@ export const useFirebaseNotes = () => {
 
   const removeNote = async (id: string) => {
     try {
-      if (user) {
-        await deleteNote(id);
-      } else {
-        const localNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
-        const filteredNotes = localNotes.filter((n: CasualNote) => n.id !== id);
-        localStorage.setItem('casual-notes', JSON.stringify(filteredNotes));
-        setNotes(filteredNotes);
-      }
-      
+      await deleteNote(id);
       toast({
         title: "Success",
         description: "Note deleted successfully!",
