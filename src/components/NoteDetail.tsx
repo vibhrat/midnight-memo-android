@@ -187,7 +187,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         )}
         
         {/* Rich Text Editor for Description */}
-        <div className="mb-8">
+        <div className={`mb-8 ${editableNote.isBlurred ? 'blur-sm' : ''}`}>
           <RichTextEditor
             content={editableNote.content}
             onChange={(content) => autoSave({ content })}

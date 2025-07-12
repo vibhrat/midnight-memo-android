@@ -8,10 +8,10 @@ const FloatingActionButton = ({ onClick, className = '' }: FloatingActionButtonP
   return (
     <button
       onClick={onClick}
-      className={`fixed bottom-24 right-6 w-16 h-16 rounded-full shadow-lg z-50 ${className}`}
+      className={`fixed bottom-24 right-4 w-[70px] h-[70px] rounded-full shadow-lg z-50 ${className}`}
       style={{ background: 'none', border: 'none' }}
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" fill="none">
+      <svg xmlns="http://www.w3.org/2000/svg" width="62" height="62" viewBox="0 0 56 56" fill="none">
         <foreignObject x="-5" y="-5" width="66" height="66">
           <div style={{backdropFilter:'blur(2.5px)', clipPath:'url(#bgblur_0_14367_58_clip_path)', height:'100%', width:'100%'}}></div>
         </foreignObject>

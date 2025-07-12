@@ -39,12 +39,12 @@ const NoteCard = ({ note, onClick }: NoteCardProps) => {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               {note.tag && (
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#1A1A1A]">
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#1A1A1A]">
                   <div 
-                    className="w-1.5 h-1.5 rounded-full" 
+                    className="w-2 h-2 rounded-full" 
                     style={{ backgroundColor: tagColors[note.tag as keyof typeof tagColors] || '#9B9B9B' }}
                   ></div>
-                  <span className="text-xs font-medium text-[#9B9B9B]">{note.tag}</span>
+                  <span className="text-sm font-medium text-[#9B9B9B]">{note.tag}</span>
                 </div>
               )}
             </div>
