@@ -9,9 +9,10 @@ import Passwords from '@/components/Passwords';
 import PasswordDetail from '@/components/PasswordDetail';
 import Search from '@/components/Search';
 import AppMenu from '@/components/AppMenu';
-
+import PinProtection from '@/components/PinProtection';
 import PinManagement from '@/components/PinManagement';
 import FloatingActionButton from '@/components/FloatingActionButton';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('notes');
@@ -20,12 +21,28 @@ const Index = () => {
   const [selectedPasswordId, setSelectedPasswordId] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  
   const [showPinManagement, setShowPinManagement] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [savedPin] = useLocalStorage('app-pin', '');
   const [navigationHistory, setNavigationHistory] = useState<string[]>(['main']);
   const notesRef = useRef<{ triggerCreate: () => void }>(null);
   const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
   const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
+
+  // Check if PIN protection should be shown
+  useEffect(() => {
+    if (savedPin && !isUnlocked) {
+      // PIN is set but user hasn't unlocked yet
+      setIsUnlocked(false);
+    } else if (!savedPin) {
+      // No PIN set, allow access
+      setIsUnlocked(true);
+    }
+  }, [savedPin, isUnlocked]);
+
+  const handleUnlock = () => {
+    setIsUnlocked(true);
+  };
 
   useEffect(() => {
     const handleNavigateToTab = (event: CustomEvent) => {
@@ -98,7 +115,6 @@ const Index = () => {
       window.removeEventListener('popstate', handlePopState);
     };
   }, [navigationHistory]);
-
 
   const handleFloatingButtonClick = () => {
     switch (activeTab) {
@@ -178,7 +194,6 @@ const Index = () => {
     }
   };
 
-
   const handleBackFromPin = () => {
     setShowPinManagement(false);
     setShowMenu(true);
@@ -199,11 +214,15 @@ const Index = () => {
     setNavigationHistory(prev => [...prev.slice(0, -1), 'list-detail']);
   };
 
+  // Show PIN protection if PIN is set and user hasn't unlocked
+  if (savedPin && !isUnlocked) {
+    return <PinProtection onUnlock={handleUnlock} />;
+  }
+
   const renderContent = () => {
     if (showPinManagement) {
       return <PinManagement onBack={handleBackFromPin} />;
     }
-
 
     if (showMenu) {
       return (
