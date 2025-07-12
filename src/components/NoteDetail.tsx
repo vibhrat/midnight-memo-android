@@ -135,59 +135,63 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         </div>
 
         {/* Title */}
-        <textarea
-          value={editableNote.title}
-          onChange={(e) => autoSave({ title: e.target.value })}
-          className="text-2xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none text-[#DBDBDB]"
-          placeholder="Untitled"
-          rows={1}
-          style={{ 
-            fontSize: '24px',
-            minHeight: '32px',
-            fontWeight: 'bold'
-          }}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = 'auto';
-            target.style.height = target.scrollHeight + 'px';
-          }}
-        />
+        <div className={editableNote.isBlurred ? 'filter blur-md' : ''}>
+          <textarea
+            value={editableNote.title}
+            onChange={(e) => autoSave({ title: e.target.value })}
+            className="text-2xl font-bold mb-4 w-full border-none outline-none bg-transparent resize-none text-[#DBDBDB]"
+            placeholder="Untitled"
+            rows={1}
+            style={{ 
+              fontSize: '24px',
+              minHeight: '32px',
+              fontWeight: 'bold'
+            }}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = 'auto';
+              target.style.height = target.scrollHeight + 'px';
+            }}
+          />
+        </div>
         
         {/* Tag section */}
-        {editableNote.tag && (
-          <button
-            onClick={() => setShowTagSelector(true)}
-            className="mb-6"
-          >
-            <div 
-              className="inline-flex items-center px-3 py-1.5 rounded-full gap-2" 
-              style={{ 
-                fontSize: '12px',
-                backgroundColor: '#2A2A2A',
-                color: '#DBDBDB',
-                fontWeight: '600'
-              }}
+        <div className={editableNote.isBlurred ? 'filter blur-md' : ''}>
+          {editableNote.tag && (
+            <button
+              onClick={() => setShowTagSelector(true)}
+              className="mb-6"
             >
               <div 
-                className="w-2 h-2 rounded-full" 
-                style={{ backgroundColor: getTagColor(editableNote.tag) }}
-              />
-              {editableNote.tag}
-            </div>
-          </button>
-        )}
+                className="inline-flex items-center px-3 py-1.5 rounded-full gap-2" 
+                style={{ 
+                  fontSize: '12px',
+                  backgroundColor: '#2A2A2A',
+                  color: '#DBDBDB',
+                  fontWeight: '600'
+                }}
+              >
+                <div 
+                  className="w-2 h-2 rounded-full" 
+                  style={{ backgroundColor: getTagColor(editableNote.tag) }}
+                />
+                {editableNote.tag}
+              </div>
+            </button>
+          )}
 
-        {!editableNote.tag && (
-          <button
-            onClick={() => setShowTagSelector(true)}
-            className="inline-block px-3 py-1 text-sm bg-[#181818] text-[#9B9B9B] rounded-full mb-6 hover:bg-[#2A2A2A]"
-          >
-            + Add tag
-          </button>
-        )}
+          {!editableNote.tag && (
+            <button
+              onClick={() => setShowTagSelector(true)}
+              className="inline-block px-3 py-1 text-sm bg-[#181818] text-[#9B9B9B] rounded-full mb-6 hover:bg-[#2A2A2A]"
+            >
+              + Add tag
+            </button>
+          )}
+        </div>
         
         {/* Rich Text Editor for Description */}
-        <div className={`mb-8 ${editableNote.isBlurred ? 'blur-sm' : ''}`}>
+        <div className={`mb-8 ${editableNote.isBlurred ? 'filter blur-md' : ''}`}>
           <RichTextEditor
             content={editableNote.content}
             onChange={(content) => autoSave({ content })}

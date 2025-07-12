@@ -31,7 +31,8 @@ const NoteCard = ({ note, onClick }: NoteCardProps) => {
 
   return (
     <Card 
-      className="cursor-pointer hover:bg-[#2A2A2A] transition-colors bg-[#181818] border-0 rounded-lg"
+      className={`cursor-pointer hover:bg-[#2A2A2A] transition-colors border-0 rounded-lg ${note.isBlurred ? 'filter blur-md' : ''}`}
+      style={{ backgroundColor: '#181818' }}
       onClick={handleClick}
     >
       <CardContent className="p-4 py-3">
@@ -39,7 +40,10 @@ const NoteCard = ({ note, onClick }: NoteCardProps) => {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               {note.tag && (
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#1A1A1A]">
+                <div 
+                  className="flex items-center gap-2 px-3 py-1 rounded-full"
+                  style={{ backgroundColor: '#2A2A2A' }}
+                >
                   <div 
                     className="w-2 h-2 rounded-full" 
                     style={{ backgroundColor: tagColors[note.tag as keyof typeof tagColors] || '#9B9B9B' }}

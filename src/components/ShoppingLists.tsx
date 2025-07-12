@@ -73,7 +73,8 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
           {lists.map((list) => (
             <Card 
               key={list.id} 
-              className="cursor-pointer hover:bg-[#2A2A2A] transition-colors bg-[#181818] border-0 rounded-lg"
+              className="cursor-pointer hover:bg-[#2A2A2A] transition-colors border-0 rounded-lg"
+              style={{ backgroundColor: '#181818' }}
               onClick={() => handleCardClick(list.id)}
             >
               <CardContent className="p-4 py-3">
