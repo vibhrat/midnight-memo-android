@@ -24,9 +24,16 @@ const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
     return diffDays;
   };
 
+  const stripHtmlTags = (html: string) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  };
+
   const truncateContent = (content: string, maxLength: number = 80) => {
-    if (content.length <= maxLength) return content;
-    return content.substring(0, maxLength) + '...';
+    const cleanContent = stripHtmlTags(content);
+    if (cleanContent.length <= maxLength) return cleanContent;
+    return cleanContent.substring(0, maxLength) + '...';
   };
 
   const searchResults = useMemo(() => {
@@ -45,7 +52,7 @@ const Search = ({ onBack, onNoteSelect, onListSelect }: SearchProps) => {
     notes.forEach(note => {
       if (
         note.title.toLowerCase().includes(query.toLowerCase()) ||
-        note.content.toLowerCase().includes(query.toLowerCase()) ||
+        stripHtmlTags(note.content).toLowerCase().includes(query.toLowerCase()) ||
         note.tag.toLowerCase().includes(query.toLowerCase())
       ) {
         results.push({

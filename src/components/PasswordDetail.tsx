@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Password, PasswordField } from '@/types';
@@ -15,6 +16,7 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
   const [passwords, setPasswords] = useLocalStorage<Password[]>('passwords', []);
   const [editablePassword, setEditablePassword] = useState<Password | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showFieldDeleteDialog, setShowFieldDeleteDialog] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [visibleFields, setVisibleFields] = useState<Set<string>>(new Set());
   const { toast } = useToast();
@@ -51,6 +53,12 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
     setPasswords(passwords.filter(p => p.id !== passwordId));
     setShowDeleteDialog(false);
     onBack();
+  };
+
+  const handleFieldDelete = (fieldId: string) => {
+    const updatedFields = (editablePassword.fields || []).filter(field => field.id !== fieldId);
+    autoSave({ fields: updatedFields });
+    setShowFieldDeleteDialog(null);
   };
 
   const copyToClipboard = async (text: string, fieldName: string = 'Password') => {
@@ -91,11 +99,6 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
     const updatedFields = (editablePassword.fields || []).map(field =>
       field.id === fieldId ? { ...field, ...updates, updatedAt: new Date() } : field
     );
-    autoSave({ fields: updatedFields });
-  };
-
-  const deleteField = (fieldId: string) => {
-    const updatedFields = (editablePassword.fields || []).filter(field => field.id !== fieldId);
     autoSave({ fields: updatedFields });
   };
 
@@ -202,7 +205,7 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
                       <Copy size={16} className="text-[#9B9B9B]" />
                     </button>
                     <button
-                      onClick={() => deleteField(field.id)}
+                      onClick={() => setShowFieldDeleteDialog(field.id)}
                       className="p-1 hover:bg-[#2A2A2A] rounded text-red-500"
                     >
                       <X size={16} />
@@ -237,10 +240,18 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
         </div>
       </div>
 
+      {/* Main Password Delete Dialog */}
       <DeleteConfirmDialog
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
         onConfirm={handleDelete}
+      />
+
+      {/* Field Delete Dialog */}
+      <DeleteConfirmDialog
+        isOpen={!!showFieldDeleteDialog}
+        onClose={() => setShowFieldDeleteDialog(null)}
+        onConfirm={() => showFieldDeleteDialog && handleFieldDelete(showFieldDeleteDialog)}
       />
     </div>
   );

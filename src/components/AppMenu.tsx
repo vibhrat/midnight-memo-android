@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote, ShoppingList, Password } from '@/types';
-import { ArrowLeft, Upload, LogOut, Download, KeyRound } from 'lucide-react';
+import { ArrowLeft, Upload, Download, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AppMenuProps {
@@ -15,7 +15,6 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
   const [lists, setLists] = useLocalStorage<ShoppingList[]>('shopping-lists', []);
   const [passwords, setPasswords] = useLocalStorage<Password[]>('passwords', []);
   const [showExportConfirm, setShowExportConfirm] = useState(false);
-  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const { toast } = useToast();
 
   const handleExportData = () => {
@@ -43,11 +42,6 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
       description: "Data exported successfully!",
     });
     setShowExportConfirm(false);
-  };
-
-  const handleSignOut = () => {
-    localStorage.clear();
-    window.location.reload();
   };
 
   const handleImportData = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,14 +126,6 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
             <span className="text-[#DBDBDB]">Export Data</span>
           </button>
 
-          <button
-            onClick={() => setShowSignOutConfirm(true)}
-            className="w-full bg-[#181818] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
-          >
-            <LogOut size={20} className="text-[#9B9B9B]" />
-            <span className="text-[#DBDBDB]">Sign Out</span>
-          </button>
-
           <label className="w-full bg-[#181818] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors cursor-pointer">
             <Download size={20} className="text-[#9B9B9B]" />
             <span className="text-[#DBDBDB]">Import Data</span>
@@ -186,42 +172,6 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
                 </button>
                 <button
                   onClick={() => setShowExportConfirm(false)}
-                  className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-                  style={{ backgroundColor: '#191919' }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Sign Out Confirmation */}
-        {showSignOutConfirm && (
-          <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{
-              background: 'rgba(19, 16, 16, 0.60)',
-              backdropFilter: 'blur(5px)',
-            }}
-          >
-            <div 
-              className="w-full max-w-xs mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
-              style={{
-                background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
-              }}
-            >
-              <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">Sign Out?</h2>
-              <div className="flex flex-col gap-4">
-                <button
-                  onClick={handleSignOut}
-                  className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-                  style={{ backgroundColor: '#272727' }}
-                >
-                  Sign Out
-                </button>
-                <button
-                  onClick={() => setShowSignOutConfirm(false)}
                   className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
                   style={{ backgroundColor: '#191919' }}
                 >
