@@ -74,7 +74,7 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({
   });
   return <div className="min-h-screen bg-[#000000] relative">
       <BackgroundGrid />
-      <div className="max-w-2xl mx-auto p-4 pb-20 relative z-10">
+      <div className="max-w-2xl mx-auto p-4 pb-20 relative z-10 py-[64px]">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-extrabold text-[#DBDBDB]" style={{
           fontFamily: 'IBM Plex Mono'
