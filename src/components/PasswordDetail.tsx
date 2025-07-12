@@ -101,7 +101,7 @@ const PasswordDetail = ({
       <div className="max-w-2xl mx-auto p-4 pb-20 py-[9px]">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <button onClick={onBack} className="p-2 border border-[#9B9B9B] rounded-lg hover:bg-[#181818] py-[63px]">
+          <button onClick={onBack} className="p-2 border border-[#9B9B9B] rounded-lg hover:bg-[#181818] py-[8px] my-[64px]">
             <ArrowLeft size={22} className="text-[#9B9B9B]" />
           </button>
           <div className="flex gap-2">
