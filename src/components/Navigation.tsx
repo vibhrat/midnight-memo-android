@@ -1,16 +1,39 @@
 
-import { FileText, List, Lock } from 'lucide-react';
-
 interface NavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
 
+// Custom SVG Components
+const NotesIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M0 2C0 0.895431 0.89543 0 2 0H7.46667V16H2C0.895432 16 0 15.1046 0 14V2Z" fill="currentColor"/>
+    <rect x="8.5332" width="4.26667" height="16" fill="currentColor"/>
+    <rect x="13.8667" width="2.13333" height="16" fill="currentColor"/>
+  </svg>
+);
+
+const ListsIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M0 1C0 0.447715 0.447715 0 1 0H15C15.5523 0 16 0.447715 16 1V2H0V1Z" fill="currentColor"/>
+    <rect y="7" width="16" height="2" fill="currentColor"/>
+    <path d="M0 14H16V15C16 15.5523 15.5523 16 15 16H1C0.447715 16 0 15.5523 0 15V14Z" fill="currentColor"/>
+  </svg>
+);
+
+const VaultIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M0 1C0 0.447715 0.447715 0 1 0H15C15.5523 0 16 0.447715 16 1V2H0V1Z" fill="currentColor"/>
+    <rect y="7" width="16" height="2" fill="currentColor"/>
+    <path d="M0 14H16V15C16 15.5523 15.5523 16 15 16H1C0.447715 16 0 15.5523 0 15V14Z" fill="currentColor"/>
+  </svg>
+);
+
 const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   const tabs = [
-    { id: 'notes', icon: FileText },
-    { id: 'shopping', icon: List },
-    { id: 'passwords', icon: Lock },
+    { id: 'notes', icon: NotesIcon },
+    { id: 'shopping', icon: ListsIcon },
+    { id: 'passwords', icon: VaultIcon },
   ];
 
   const handleTabClick = (tabId: string) => {
@@ -20,22 +43,29 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#181818] px-4 py-2">
+    <nav 
+      className="fixed bottom-0 left-0 right-0 px-4 py-2"
+      style={{ background: 'linear-gradient(180deg, #171717 0%, #292929 100%)' }}
+    >
       <div className="flex justify-around">
         {tabs.map((tab) => {
           const IconComponent = tab.icon;
           return (
-            <button
-              key={tab.id}
-              onClick={() => handleTabClick(tab.id)}
-              className={`px-4 py-3 transition-colors ${
-                activeTab === tab.id
-                  ? 'text-[#DBDBDB] border-b-2 border-[#DBDBDB]'
-                  : 'text-[#9B9B9B] hover:text-[#DBDBDB]'
-              }`}
-            >
-              <IconComponent size={24} />
-            </button>
+            <div key={tab.id} className="flex flex-col items-center">
+              <button
+                onClick={() => handleTabClick(tab.id)}
+                className={`px-4 py-3 transition-colors ${
+                  activeTab === tab.id
+                    ? 'text-[#DBDBDB]'
+                    : 'text-[#9B9B9B] hover:text-[#DBDBDB]'
+                }`}
+              >
+                <IconComponent />
+              </button>
+              {activeTab === tab.id && (
+                <div className="w-1 h-1 rounded-full bg-[#DBDBDB] -mt-1"></div>
+              )}
+            </div>
           );
         })}
       </div>

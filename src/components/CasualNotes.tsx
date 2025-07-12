@@ -5,6 +5,7 @@ import { CasualNote } from '@/types';
 import NotesHeader from './notes/NotesHeader';
 import TagFilter from './notes/TagFilter';
 import NotesList from './notes/NotesList';
+import ImportDialog from './ImportDialog';
 
 interface CasualNotesRef {
   triggerCreate: () => void;
@@ -19,6 +20,7 @@ interface CasualNotesProps {
 const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect, onSearchClick, onMenuClick }, ref) => {
   const [notes, setNotes] = useLocalStorage<CasualNote[]>('casual-notes', []);
   const [selectedTag, setSelectedTag] = useState<string>('');
+  const [showImportDialog, setShowImportDialog] = useState(false);
 
   // Preload settings image when component mounts
   useEffect(() => {
@@ -69,6 +71,7 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
         <NotesHeader 
           onSearchClick={onSearchClick}
           onMenuClick={onMenuClick}
+          onImportClick={() => setShowImportDialog(true)}
         />
 
         <TagFilter 
@@ -82,6 +85,12 @@ const CasualNotes = forwardRef<CasualNotesRef, CasualNotesProps>(({ onNoteSelect
           filteredNotes={filteredNotes}
           selectedTag={selectedTag}
           onNoteClick={handleCardClick}
+        />
+
+        <ImportDialog
+          isOpen={showImportDialog}
+          onClose={() => setShowImportDialog(false)}
+          type="note"
         />
       </div>
     </div>
