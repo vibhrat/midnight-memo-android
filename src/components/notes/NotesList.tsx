@@ -12,7 +12,7 @@ interface NotesListProps {
 
 const NotesList = ({ notes, filteredNotes, selectedTag, onNoteClick }: NotesListProps) => {
   return (
-    <div className="space-y-3 pt-12">
+    <div className="space-y-3">
       {filteredNotes.map((note) => (
         <NoteCard 
           key={note.id}

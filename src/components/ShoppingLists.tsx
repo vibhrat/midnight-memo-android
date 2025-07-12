@@ -1,4 +1,3 @@
-
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList } from '@/types';
@@ -55,7 +54,7 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] relative pt-12">
+    <div className="min-h-screen bg-[#000000] relative">
       <BackgroundGrid />
       <div className="max-w-2xl mx-auto p-4 pb-20 relative z-10">
         <div className="flex justify-between items-center mb-6">
