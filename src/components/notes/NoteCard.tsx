@@ -1,11 +1,21 @@
 
-import { Clock } from 'lucide-react';
 import { CasualNote } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { Clock } from 'lucide-react';
 
 interface NoteCardProps {
   note: CasualNote;
   onClick: (noteId: string) => void;
 }
+
+const tagColors = {
+  'Note': '#F2CB2F',
+  'Medicine': '#FF6B6B',
+  'Travel': '#4ECDC4',
+  'Tech': '#45B7D1',
+  'Links': '#96CEB4',
+  'Contact': '#FECA57'
+};
 
 const NoteCard = ({ note, onClick }: NoteCardProps) => {
   const getDaysAgo = (date: Date) => {
@@ -15,75 +25,45 @@ const NoteCard = ({ note, onClick }: NoteCardProps) => {
     return diffDays;
   };
 
-  const truncateContent = (content: string, maxLength: number = 100) => {
-    const textContent = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    if (textContent.length <= maxLength) return textContent;
-    return textContent.substring(0, maxLength) + '...';
-  };
-
-  const getTagColor = (tag: string) => {
-    const colors = {
-      'Note': '#3B82F6',
-      'Medicine': '#EF4444', 
-      'Travel': '#10B981',
-      'Tech': '#8B5CF6',
-      'Links': '#F59E0B',
-      'Contact': '#06B6D4'
-    };
-    return colors[tag as keyof typeof colors] || '#6B7280';
+  const handleClick = () => {
+    onClick(note.id);
   };
 
   return (
-    <div 
-      className={`p-3 bg-[#181818] rounded-lg cursor-pointer hover:bg-[#2A2A2A] transition-colors ${
-        note.isBlurred 
-          ? 'backdrop-blur-sm' 
-          : ''
-      }`}
-      style={{ 
-        filter: note.isBlurred 
-          ? 'blur(4px) saturate(180%) hue-rotate(90deg) contrast(120%)' 
-          : 'none'
-      }}
-      onClick={() => onClick(note.id)}
+    <Card 
+      className="cursor-pointer hover:bg-[#2A2A2A] transition-colors bg-[#181818] border-0 rounded-lg"
+      onClick={handleClick}
     >
-      <div className="mb-2">
-        <h3 className="font-semibold text-[#DBDBDB]" style={{ fontSize: '16px' }}>
-          {note.title || 'Untitled'}
-        </h3>
-      </div>
-      {note.tag && (
-        <div 
-          className="inline-flex items-center px-3 py-1.5 rounded-full mb-2 gap-2" 
-          style={{ 
-            fontSize: '12px',
-            backgroundColor: '#2A2A2A',
-            color: '#DBDBDB',
-            fontWeight: '600'
-          }}
-        >
-          <div 
-            className="w-2 h-2 rounded-full" 
-            style={{ backgroundColor: getTagColor(note.tag) }}
-          />
-          {note.tag}
+      <CardContent className="p-4 py-3">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              {note.tag && (
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#1A1A1A]">
+                  <div 
+                    className="w-1.5 h-1.5 rounded-full" 
+                    style={{ backgroundColor: tagColors[note.tag as keyof typeof tagColors] || '#9B9B9B' }}
+                  ></div>
+                  <span className="text-xs font-medium text-[#9B9B9B]">{note.tag}</span>
+                </div>
+              )}
+            </div>
+            <h3 className="text-base font-bold text-[#DBDBDB] mb-1 line-clamp-1">
+              {note.title || 'Untitled Note'}
+            </h3>
+            {note.content && (
+              <p className="text-sm text-[#9B9B9B] line-clamp-2 mb-2">
+                {note.content.replace(/<[^>]*>/g, '').substring(0, 100)}
+              </p>
+            )}
+            <div className="flex items-center gap-1 text-xs font-medium text-[#9B9B9B]">
+              <Clock className="w-3 h-3" />
+              <span>{getDaysAgo(note.createdAt)}d</span>
+            </div>
+          </div>
         </div>
-      )}
-      <p 
-        className="text-[#9B9B9B] mb-2 break-words overflow-wrap-anywhere" 
-        style={{ 
-          fontSize: '14px',
-          wordBreak: 'break-word',
-          overflowWrap: 'anywhere'
-        }}
-      >
-        {truncateContent(note.content)}
-      </p>
-      <div className="flex items-center gap-1 text-sm font-medium text-[#9B9B9B]">
-        <Clock className="w-3 h-3" />
-        <span>{getDaysAgo(note.updatedAt)}d</span>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

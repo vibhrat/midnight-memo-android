@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Clock } from 'lucide-react';
@@ -6,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { useToast } from '@/hooks/use-toast';
 
 interface ReminderDialogProps {
@@ -34,8 +34,11 @@ const ReminderDialog = ({ isOpen, onClose, title, type, reminderId, onClearRemin
     }
 
     try {
-      // Request permission for notifications
-      try {
+      // Check if we're in a Capacitor environment
+      if (window.Capacitor) {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        
+        // Request permission for notifications
         const permission = await LocalNotifications.requestPermissions();
         
         if (permission.display !== 'granted') {
@@ -46,63 +49,68 @@ const ReminderDialog = ({ isOpen, onClose, title, type, reminderId, onClearRemin
           });
           return;
         }
-      } catch (permissionError) {
-        console.log('Permission request failed, continuing...', permissionError);
-      }
 
-      // Combine date and time
-      const [hours, minutes] = selectedTime.split(':').map(Number);
-      const reminderDate = new Date(selectedDate);
-      reminderDate.setHours(hours, minutes, 0, 0);
+        // Combine date and time
+        const [hours, minutes] = selectedTime.split(':').map(Number);
+        const reminderDate = new Date(selectedDate);
+        reminderDate.setHours(hours, minutes, 0, 0);
 
-      // Check if the date is in the future
-      if (reminderDate <= new Date()) {
+        // Check if the date is in the future
+        if (reminderDate <= new Date()) {
+          toast({
+            title: "Error",
+            description: "Please select a future date and time",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Schedule the notification
+        const notificationId = reminderId ? parseInt(reminderId) : Date.now();
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title: title,
+              body: title,
+              id: notificationId,
+              schedule: { at: reminderDate },
+              smallIcon: 'ic_stat_icon_config_sample',
+              iconColor: '#488AFF',
+              sound: undefined,
+            }
+          ]
+        });
+
+        // Store reminder in localStorage
+        const reminders = JSON.parse(localStorage.getItem('reminders') || '{}');
+        reminders[`${type}_${reminderId || 'new'}`] = {
+          id: notificationId,
+          title,
+          type,
+          date: reminderDate.toISOString(),
+          itemId: reminderId
+        };
+        localStorage.setItem('reminders', JSON.stringify(reminders));
+
         toast({
-          title: "Error",
-          description: "Please select a future date and time",
+          title: "Reminder Set",
+          description: `Reminder set for ${format(reminderDate, 'PPP')} at ${selectedTime}`,
+        });
+      } else {
+        // Browser environment - show message about mobile app
+        toast({
+          title: "Mobile App Required",
+          description: "Reminders work only in the mobile app. Install the app to use this feature.",
           variant: "destructive"
         });
-        return;
       }
-
-      // Schedule the notification
-      const notificationId = reminderId ? parseInt(reminderId) : Date.now();
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            title: title,
-            body: title,
-            id: notificationId,
-            schedule: { at: reminderDate },
-            smallIcon: 'ic_stat_icon_config_sample',
-            iconColor: '#488AFF',
-            sound: undefined,
-          }
-        ]
-      });
-
-      // Store reminder in localStorage
-      const reminders = JSON.parse(localStorage.getItem('reminders') || '{}');
-      reminders[`${type}_${reminderId || 'new'}`] = {
-        id: notificationId,
-        title,
-        type,
-        date: reminderDate.toISOString(),
-        itemId: reminderId
-      };
-      localStorage.setItem('reminders', JSON.stringify(reminders));
-
-      toast({
-        title: "Reminder Set",
-        description: `Reminder set for ${format(reminderDate, 'PPP')} at ${selectedTime}`,
-      });
 
       onClose();
     } catch (error) {
       console.error('Error setting reminder:', error);
       toast({
         title: "Error",
-        description: "Failed to set reminder. Please try again.",
+        description: "Failed to set reminder. Make sure you're using the mobile app.",
         variant: "destructive"
       });
     }

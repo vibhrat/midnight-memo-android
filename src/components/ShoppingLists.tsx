@@ -1,13 +1,13 @@
-
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { ShoppingList, ShoppingListItem } from '@/types';
+import { ShoppingList } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Search, Download } from 'lucide-react';
 import ImportDialog from './ImportDialog';
 import EmptyStateIllustration from './EmptyStateIllustration';
+import BackgroundGrid from './BackgroundGrid';
 
 interface ShoppingListsRef {
   triggerCreate: () => void;
@@ -54,8 +54,9 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
   };
 
   return (
-    <div className="min-h-screen bg-[#000000]">
-      <div className="max-w-2xl mx-auto p-4 pb-20">
+    <div className="min-h-screen bg-[#000000] relative">
+      <BackgroundGrid />
+      <div className="max-w-2xl mx-auto p-4 pb-20 relative z-10">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-extrabold text-[#DBDBDB]" style={{ fontFamily: 'IBM Plex Mono' }}>Lists</h1>
           <div className="flex gap-2">
