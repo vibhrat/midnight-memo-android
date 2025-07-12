@@ -8,6 +8,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Capacitor } from '@capacitor/core';
 
 interface ReminderDialogProps {
   isOpen: boolean;
@@ -35,7 +36,7 @@ const ReminderDialog = ({ isOpen, onClose, title, type, reminderId, onClearRemin
 
     try {
       // Check if we're in a Capacitor environment
-      if (window.Capacitor) {
+      if (Capacitor.isNativePlatform()) {
         const { LocalNotifications } = await import('@capacitor/local-notifications');
         
         // Request permission for notifications
