@@ -1,10 +1,10 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Password, PasswordField } from '@/types';
 import { ArrowLeft, Trash2, Eye, EyeOff, Copy, Plus, X } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import { useToast } from '@/hooks/use-toast';
+import { formatDateTime } from '@/lib/utils';
 
 interface PasswordDetailProps {
   passwordId: string;
@@ -232,8 +232,8 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
 
         {/* Footer with dates */}
         <div className="flex justify-between items-center px-2 text-xs text-[#9B9B9B]">
-          <p>Created: {new Date(editablePassword.createdAt).toLocaleDateString()}</p>
-          <p>Updated: {new Date(editablePassword.updatedAt).toLocaleDateString()}</p>
+          <p>Created: {formatDateTime(editablePassword.createdAt)}</p>
+          <p>Updated: {formatDateTime(editablePassword.updatedAt)}</p>
         </div>
       </div>
 

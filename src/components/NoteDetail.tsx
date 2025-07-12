@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote } from '@/types';
@@ -9,6 +8,7 @@ import RichTextEditor from '@/components/RichTextEditor';
 import ShareDialog from '@/components/ShareDialog';
 import ReminderDialog from '@/components/ReminderDialog';
 import { Badge } from '@/components/ui/badge';
+import { formatDateTime } from '@/lib/utils';
 
 interface NoteDetailProps {
   noteId: string;
@@ -135,7 +135,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         </div>
 
         {/* Title */}
-        <div className={editableNote.isBlurred ? 'filter blur-md' : ''}>
+        <div className={editableNote.isBlurred ? 'filter blur-sm' : ''}>
           <textarea
             value={editableNote.title}
             onChange={(e) => autoSave({ title: e.target.value })}
@@ -156,7 +156,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         </div>
         
         {/* Tag section */}
-        <div className={editableNote.isBlurred ? 'filter blur-md' : ''}>
+        <div className={editableNote.isBlurred ? 'filter blur-sm' : ''}>
           {editableNote.tag && (
             <button
               onClick={() => setShowTagSelector(true)}
@@ -191,7 +191,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         </div>
         
         {/* Rich Text Editor for Description */}
-        <div className={`mb-8 ${editableNote.isBlurred ? 'filter blur-md' : ''}`}>
+        <div className={`mb-8 ${editableNote.isBlurred ? 'filter blur-sm' : ''}`}>
           <RichTextEditor
             content={editableNote.content}
             onChange={(content) => autoSave({ content })}
@@ -201,8 +201,8 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
 
         {/* Footer with dates */}
         <div className="flex justify-between items-center mt-8 px-2 text-xs text-[#9B9B9B]">
-          <p>Created: {new Date(editableNote.createdAt).toLocaleDateString()}</p>
-          <p>Updated: {new Date(editableNote.updatedAt).toLocaleDateString()}</p>
+          <p>Created: {formatDateTime(editableNote.createdAt)}</p>
+          <p>Updated: {formatDateTime(editableNote.updatedAt)}</p>
         </div>
       </div>
 
