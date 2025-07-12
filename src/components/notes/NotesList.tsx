@@ -17,7 +17,7 @@ const NotesList = ({ notes, filteredNotes, selectedTag, onNoteClick }: NotesList
         <NoteCard 
           key={note.id}
           note={note}
-          onClick={onNoteClick}
+          onClick={() => onNoteClick(note.id)}
         />
       ))}
       {filteredNotes.length === 0 && selectedTag && (
