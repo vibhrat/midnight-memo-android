@@ -30,7 +30,16 @@ const config: CapacitorConfig = {
       iconColor: "#488AFF",
       sound: "beep.wav",
     },
+    Filesystem: {
+      ioTimeout: 30000,
+      dbPathSuffix: "databases"
+    },
   },
+  android: {
+    allowMixedContent: true,
+    backgroundColor: "#000000",
+    webContentsDebuggingEnabled: true,
+  }
 };
 
 export default config;

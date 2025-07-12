@@ -25,6 +25,7 @@ const Index = () => {
   const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
   const [savedPin] = useLocalStorage('app-pin', '');
   const [navigationHistory, setNavigationHistory] = useState<string[]>(['main']);
+  const [isLoading, setIsLoading] = useState(false);
   const notesRef = useRef<{ triggerCreate: () => void }>(null);
   const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
   const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
@@ -133,18 +134,27 @@ const Index = () => {
   };
 
   const handleListSelect = (listId: string) => {
+    setIsLoading(true);
     setSelectedListId(listId);
     setNavigationHistory(prev => [...prev, 'list-detail']);
+    // Small delay to prevent flash
+    setTimeout(() => setIsLoading(false), 50);
   };
 
   const handleNoteSelect = (noteId: string) => {
+    setIsLoading(true);
     setSelectedNoteId(noteId);
     setNavigationHistory(prev => [...prev, 'note-detail']);
+    // Small delay to prevent flash
+    setTimeout(() => setIsLoading(false), 50);
   };
 
   const handlePasswordSelect = (passwordId: string) => {
+    setIsLoading(true);
     setSelectedPasswordId(passwordId);
     setNavigationHistory(prev => [...prev, 'password-detail']);
+    // Small delay to prevent flash
+    setTimeout(() => setIsLoading(false), 50);
   };
 
   const handleBackToLists = () => {
@@ -211,6 +221,15 @@ const Index = () => {
   };
 
   const renderContent = () => {
+    // Add loading state to prevent flash
+    if (isLoading) {
+      return (
+        <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+          <div className="text-[#9B9B9B]">Loading...</div>
+        </div>
+      );
+    }
+
     if (showPinManagement) {
       return <PinManagement onBack={handleBackFromPin} />;
     }
@@ -259,8 +278,8 @@ const Index = () => {
     }
   };
 
-  // Don't show FAB when viewing details, search, menu, or pin management
-  const showFAB = !showSearch && !showMenu && !showPinManagement &&
+  // Don't show FAB when viewing details, search, menu, pin management, or when loading
+  const showFAB = !isLoading && !showSearch && !showMenu && !showPinManagement &&
     !(activeTab === 'shopping' && selectedListId) && 
     !(activeTab === 'notes' && selectedNoteId) &&
     !(activeTab === 'passwords' && selectedPasswordId) &&
