@@ -22,27 +22,23 @@ const Index = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showPinManagement, setShowPinManagement] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
   const [savedPin] = useLocalStorage('app-pin', '');
   const [navigationHistory, setNavigationHistory] = useState<string[]>(['main']);
   const notesRef = useRef<{ triggerCreate: () => void }>(null);
   const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
   const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
 
-  // Check if PIN protection should be shown
-  useEffect(() => {
-    if (savedPin && !isUnlocked) {
-      // PIN is set but user hasn't unlocked yet
-      setIsUnlocked(false);
-    } else if (!savedPin) {
-      // No PIN set, allow access
-      setIsUnlocked(true);
-    }
-  }, [savedPin, isUnlocked]);
-
-  const handleUnlock = () => {
-    setIsUnlocked(true);
+  const handleVaultUnlock = () => {
+    setIsVaultUnlocked(true);
   };
+
+  // Reset vault unlock when switching away from passwords tab
+  useEffect(() => {
+    if (activeTab !== 'passwords') {
+      setIsVaultUnlocked(false);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const handleNavigateToTab = (event: CustomEvent) => {
@@ -129,7 +125,7 @@ const Index = () => {
         }
         break;
       case 'passwords':
-        if (!selectedPasswordId) {
+        if (!selectedPasswordId && (isVaultUnlocked || !savedPin)) {
           passwordsRef.current?.triggerCreate();
         }
         break;
@@ -214,11 +210,6 @@ const Index = () => {
     setNavigationHistory(prev => [...prev.slice(0, -1), 'list-detail']);
   };
 
-  // Show PIN protection if PIN is set and user hasn't unlocked
-  if (savedPin && !isUnlocked) {
-    return <PinProtection onUnlock={handleUnlock} />;
-  }
-
   const renderContent = () => {
     if (showPinManagement) {
       return <PinManagement onBack={handleBackFromPin} />;
@@ -255,6 +246,10 @@ const Index = () => {
         }
         return <ShoppingLists ref={shoppingRef} onListSelect={handleListSelect} onSearchClick={handleSearchClick} />;
       case 'passwords':
+        // Show PIN protection only for passwords/vault section
+        if (savedPin && !isVaultUnlocked) {
+          return <PinProtection onUnlock={handleVaultUnlock} />;
+        }
         if (selectedPasswordId) {
           return <PasswordDetail passwordId={selectedPasswordId} onBack={handleBackToPasswords} />;
         }
@@ -268,7 +263,8 @@ const Index = () => {
   const showFAB = !showSearch && !showMenu && !showPinManagement &&
     !(activeTab === 'shopping' && selectedListId) && 
     !(activeTab === 'notes' && selectedNoteId) &&
-    !(activeTab === 'passwords' && selectedPasswordId);
+    !(activeTab === 'passwords' && selectedPasswordId) &&
+    !(activeTab === 'passwords' && savedPin && !isVaultUnlocked);
 
   return (
     <div className="min-h-screen bg-[#000000]">
