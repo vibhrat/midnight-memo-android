@@ -2,10 +2,9 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
-import { ArrowLeft, Trash2, Plus, X, Share, Clock } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, X, Share } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import ShareDialog from '@/components/ShareDialog';
-import ReminderDialog from '@/components/ReminderDialog';
 
 interface ListDetailProps {
   listId: string;
@@ -17,22 +16,6 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [editableList, setEditableList] = useState<ShoppingList | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [showReminderDialog, setShowReminderDialog] = useState(false);
-
-  const clearReminder = async () => {
-    try {
-      const reminders = JSON.parse(localStorage.getItem('reminders') || '{}');
-      const reminderKey = `list_${listId}`;
-      if (reminders[reminderKey]) {
-        const { LocalNotifications } = await import('@capacitor/local-notifications');
-        await LocalNotifications.cancel({ notifications: [{ id: reminders[reminderKey].id }] });
-        delete reminders[reminderKey];
-        localStorage.setItem('reminders', JSON.stringify(reminders));
-      }
-    } catch (error) {
-      console.error('Failed to clear reminder:', error);
-    }
-  };
   const [swipedItems, setSwipedItems] = useState<Set<string>>(new Set());
   const [editingItems, setEditingItems] = useState<Set<string>>(new Set());
 
@@ -46,7 +29,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
 
   if (!list || !editableList) {
     return (
-      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center pt-12">
         <div className="text-center">
           <p className="text-[#9B9B9B]">List not found</p>
           <button onClick={onBack} className="mt-4 px-4 py-2 bg-[#DBDBDB] text-[#000000] rounded">Go Back</button>
@@ -117,7 +100,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000]">
+    <div className="min-h-screen bg-[#000000] pt-12">
       <div className="max-w-2xl mx-auto p-4 pb-20">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
@@ -133,12 +116,6 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
               className="p-2 hover:bg-[#181818] rounded-lg"
             >
               <Share size={22} className="text-[#9B9B9B]" />
-            </button>
-            <button
-              onClick={() => setShowReminderDialog(true)}
-              className="p-2 hover:bg-[#181818] rounded-lg"
-            >
-              <Clock size={22} className="text-[#9B9B9B]" />
             </button>
             <button
               onClick={() => setShowDeleteDialog(true)}
@@ -262,15 +239,6 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         onClose={() => setShowShareDialog(false)}
         data={editableList}
         type="list"
-      />
-
-      <ReminderDialog
-        isOpen={showReminderDialog}
-        onClose={() => setShowReminderDialog(false)}
-        title={editableList.title || 'Untitled List'}
-        type="list"
-        reminderId={listId}
-        onClearReminder={clearReminder}
       />
     </div>
   );

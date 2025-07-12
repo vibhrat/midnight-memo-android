@@ -1,12 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote } from '@/types';
-import { ArrowLeft, Trash2, Grid3x3, Share, Clock } from 'lucide-react';
+import { ArrowLeft, Trash2, Grid3x3, Share } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import TagSelector from '@/components/TagSelector';
 import RichTextEditor from '@/components/RichTextEditor';
 import ShareDialog from '@/components/ShareDialog';
-import ReminderDialog from '@/components/ReminderDialog';
 import { Badge } from '@/components/ui/badge';
 import { formatDateTime } from '@/lib/utils';
 
@@ -21,22 +21,6 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTagSelector, setShowTagSelector] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [showReminderDialog, setShowReminderDialog] = useState(false);
-
-  const clearReminder = async () => {
-    try {
-      const reminders = JSON.parse(localStorage.getItem('reminders') || '{}');
-      const reminderKey = `note_${noteId}`;
-      if (reminders[reminderKey]) {
-        const { LocalNotifications } = await import('@capacitor/local-notifications');
-        await LocalNotifications.cancel({ notifications: [{ id: reminders[reminderKey].id }] });
-        delete reminders[reminderKey];
-        localStorage.setItem('reminders', JSON.stringify(reminders));
-      }
-    } catch (error) {
-      console.error('Failed to clear reminder:', error);
-    }
-  };
 
   const note = notes.find(n => n.id === noteId);
 
@@ -48,7 +32,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
 
   if (!note || !editableNote) {
     return (
-      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center pt-12">
         <div className="text-center">
           <p className="text-[#9B9B9B]">Note not found</p>
           <button onClick={onBack} className="mt-4 px-4 py-2 bg-[#DBDBDB] text-[#000000] rounded">Go Back</button>
@@ -96,7 +80,7 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] overflow-y-auto">
+    <div className="min-h-screen bg-[#000000] overflow-y-auto pt-12">
       <div className="max-w-2xl mx-auto p-4">
         {/* Header with back button and action buttons */}
         <div className="flex justify-between items-center mb-6">
@@ -115,15 +99,9 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
             </button>
             <button
               onClick={() => setShowShareDialog(true)}
-              className="p-2 hover:bg-[#181818] rounded-lg"
+              className="p-2 hover:bg-[#181818] rounded-lg"    
             >
               <Share size={22} className="text-[#9B9B9B]" />
-            </button>
-            <button
-              onClick={() => setShowReminderDialog(true)}
-              className="p-2 hover:bg-[#181818] rounded-lg"
-            >
-              <Clock size={22} className="text-[#9B9B9B]" />
             </button>
             <button
               onClick={() => setShowDeleteDialog(true)}
@@ -224,15 +202,6 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         onClose={() => setShowShareDialog(false)}
         data={editableNote}
         type="note"
-      />
-
-      <ReminderDialog
-        isOpen={showReminderDialog}
-        onClose={() => setShowReminderDialog(false)}
-        title={editableNote.title || 'Untitled'}
-        type="note"
-        reminderId={noteId}
-        onClearReminder={clearReminder}
       />
     </div>
   );

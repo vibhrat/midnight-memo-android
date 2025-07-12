@@ -31,7 +31,28 @@ export const useAppDataBackup = () => {
 
       const jsonData = JSON.stringify(appData, null, 2);
 
-      // Create vertex-data folder and save data
+      // Delete existing backup files first
+      try {
+        const { files } = await Filesystem.readdir({
+          path: 'vertex-data',
+          directory: Directory.ExternalStorage
+        });
+        
+        // Delete all existing vertex-backup files
+        for (const file of files) {
+          if (file.name.startsWith('vertex-backup-') && file.name.endsWith('.json')) {
+            await Filesystem.deleteFile({
+              path: `vertex-data/${file.name}`,
+              directory: Directory.ExternalStorage
+            });
+          }
+        }
+      } catch (error) {
+        // Directory might not exist yet, which is fine
+        console.log('No existing backup files to delete');
+      }
+
+      // Create vertex-data folder and save new backup
       await Filesystem.writeFile({
         path: `vertex-data/${fileName}`,
         data: jsonData,
@@ -65,6 +86,27 @@ export const useAppDataBackup = () => {
         };
 
         const jsonData = JSON.stringify(appData, null, 2);
+
+        // Delete existing backup files in Documents first
+        try {
+          const { files } = await Filesystem.readdir({
+            path: 'vertex-data',
+            directory: Directory.Documents
+          });
+          
+          // Delete all existing vertex-backup files
+          for (const file of files) {
+            if (file.name.startsWith('vertex-backup-') && file.name.endsWith('.json')) {
+              await Filesystem.deleteFile({
+                path: `vertex-data/${file.name}`,
+                directory: Directory.Documents
+              });
+            }
+          }
+        } catch (error) {
+          // Directory might not exist yet, which is fine
+          console.log('No existing backup files to delete in Documents');
+        }
 
         await Filesystem.writeFile({
           path: `vertex-data/${fileName}`,
