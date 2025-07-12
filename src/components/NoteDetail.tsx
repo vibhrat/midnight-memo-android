@@ -23,6 +23,21 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showReminderDialog, setShowReminderDialog] = useState(false);
 
+  const clearReminder = async () => {
+    try {
+      const reminders = JSON.parse(localStorage.getItem('reminders') || '{}');
+      const reminderKey = `note_${noteId}`;
+      if (reminders[reminderKey]) {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        await LocalNotifications.cancel({ notifications: [{ id: reminders[reminderKey].id }] });
+        delete reminders[reminderKey];
+        localStorage.setItem('reminders', JSON.stringify(reminders));
+      }
+    } catch (error) {
+      console.error('Failed to clear reminder:', error);
+    }
+  };
+
   const note = notes.find(n => n.id === noteId);
 
   useEffect(() => {
@@ -49,6 +64,8 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
     setNotes(notes.map(n => 
       n.id === noteId ? newNote : n
     ));
+    // Trigger data backup
+    window.dispatchEvent(new CustomEvent('app-data-changed'));
   };
 
   const handleDelete = () => {
@@ -210,6 +227,8 @@ const NoteDetail = ({ noteId, onBack }: NoteDetailProps) => {
         onClose={() => setShowReminderDialog(false)}
         title={editableNote.title || 'Untitled'}
         type="note"
+        reminderId={noteId}
+        onClearReminder={clearReminder}
       />
     </div>
   );

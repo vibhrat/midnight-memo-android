@@ -5,6 +5,7 @@ import { Password } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Clock, Search } from 'lucide-react';
 import PinProtection from './PinProtection';
+import EmptyStateIllustration from './EmptyStateIllustration';
 
 interface PasswordsRef {
   triggerCreate: () => void;
@@ -81,9 +82,7 @@ const Passwords = forwardRef<PasswordsRef, PasswordsProps>(({ onSearchClick, onP
             </div>
           ))}
           {passwords.length === 0 && (
-            <div className="text-center py-12 text-[#9B9B9B]">
-              No passwords saved yet. Add your first password!
-            </div>
+            <EmptyStateIllustration />
           )}
         </div>
       </div>

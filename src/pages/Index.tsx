@@ -9,7 +9,7 @@ import Passwords from '@/components/Passwords';
 import PasswordDetail from '@/components/PasswordDetail';
 import Search from '@/components/Search';
 import AppMenu from '@/components/AppMenu';
-import BadgePage from '@/components/BadgePage';
+
 import PinManagement from '@/components/PinManagement';
 import FloatingActionButton from '@/components/FloatingActionButton';
 
@@ -20,7 +20,7 @@ const Index = () => {
   const [selectedPasswordId, setSelectedPasswordId] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [showBadge, setShowBadge] = useState(false);
+  
   const [showPinManagement, setShowPinManagement] = useState(false);
   const [navigationHistory, setNavigationHistory] = useState<string[]>(['main']);
   const notesRef = useRef<{ triggerCreate: () => void }>(null);
@@ -36,7 +36,6 @@ const Index = () => {
       setSelectedPasswordId(null);
       setShowSearch(false);
       setShowMenu(false);
-      setShowBadge(false);
       setShowPinManagement(false);
       setNavigationHistory(['main']);
     };
@@ -62,12 +61,10 @@ const Index = () => {
             setSelectedPasswordId(null);
             setShowSearch(false);
             setShowMenu(false);
-            setShowBadge(false);
             setShowPinManagement(false);
             break;
           case 'menu':
             setShowMenu(true);
-            setShowBadge(false);
             setShowPinManagement(false);
             break;
           case 'search':
@@ -174,22 +171,13 @@ const Index = () => {
   };
 
   const handleNavigate = (page: string) => {
-    if (page === 'badge') {
-      setShowBadge(true);
-      setShowMenu(false);
-      setNavigationHistory(prev => [...prev, 'badge']);
-    } else if (page === 'pin-management') {
+    if (page === 'pin-management') {
       setShowPinManagement(true);
       setShowMenu(false);
       setNavigationHistory(prev => [...prev, 'pin-management']);
     }
   };
 
-  const handleBackFromBadge = () => {
-    setShowBadge(false);
-    setShowMenu(true);
-    setNavigationHistory(prev => prev.slice(0, -1));
-  };
 
   const handleBackFromPin = () => {
     setShowPinManagement(false);
@@ -216,9 +204,6 @@ const Index = () => {
       return <PinManagement onBack={handleBackFromPin} />;
     }
 
-    if (showBadge) {
-      return <BadgePage onBack={handleBackFromBadge} />;
-    }
 
     if (showMenu) {
       return (
@@ -260,8 +245,8 @@ const Index = () => {
     }
   };
 
-  // Don't show FAB when viewing details, search, menu, badge, or pin management
-  const showFAB = !showSearch && !showMenu && !showBadge && !showPinManagement &&
+  // Don't show FAB when viewing details, search, menu, or pin management
+  const showFAB = !showSearch && !showMenu && !showPinManagement &&
     !(activeTab === 'shopping' && selectedListId) && 
     !(activeTab === 'notes' && selectedNoteId) &&
     !(activeTab === 'passwords' && selectedPasswordId);

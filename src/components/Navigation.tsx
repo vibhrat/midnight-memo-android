@@ -45,7 +45,7 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   return (
     <nav 
       className="fixed bottom-0 left-0 right-0 px-4 py-2"
-      style={{ background: 'linear-gradient(180deg, #171717 0%, #292929 100%)' }}
+      style={{ background: 'linear-gradient(180deg, #000 0%, #222 100%)' }}
     >
       <div className="flex justify-around">
         {tabs.map((tab) => {

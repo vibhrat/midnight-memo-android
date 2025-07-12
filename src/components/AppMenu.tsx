@@ -242,13 +242,6 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
             <span className="text-[#DBDBDB]">Sign Out</span>
           </button>
 
-          <button
-            onClick={() => onNavigate('badge')}
-            className="w-full bg-[#181818] p-4 rounded-lg flex items-center gap-3 hover:bg-[#2A2A2A] transition-colors"
-          >
-            <Award size={20} className="text-[#9B9B9B]" />
-            <span className="text-[#DBDBDB]">Badge</span>
-          </button>
 
           <button
             onClick={() => setShowImportDialog(true)}

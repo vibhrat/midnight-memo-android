@@ -14,9 +14,11 @@ interface ReminderDialogProps {
   onClose: () => void;
   title: string;
   type: 'note' | 'list';
+  reminderId?: string;
+  onClearReminder?: () => void;
 }
 
-const ReminderDialog = ({ isOpen, onClose, title, type }: ReminderDialogProps) => {
+const ReminderDialog = ({ isOpen, onClose, title, type, reminderId, onClearReminder }: ReminderDialogProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState('12:00');
   const { toast } = useToast();
@@ -33,15 +35,19 @@ const ReminderDialog = ({ isOpen, onClose, title, type }: ReminderDialogProps) =
 
     try {
       // Request permission for notifications
-      const permission = await LocalNotifications.requestPermissions();
-      
-      if (permission.display !== 'granted') {
-        toast({
-          title: "Permission Required",
-          description: "Please enable notifications to set reminders",
-          variant: "destructive"
-        });
-        return;
+      try {
+        const permission = await LocalNotifications.requestPermissions();
+        
+        if (permission.display !== 'granted') {
+          toast({
+            title: "Permission Required", 
+            description: "Please enable notifications to set reminders",
+            variant: "destructive"
+          });
+          return;
+        }
+      } catch (permissionError) {
+        console.log('Permission request failed, continuing...', permissionError);
       }
 
       // Combine date and time
@@ -60,12 +66,13 @@ const ReminderDialog = ({ isOpen, onClose, title, type }: ReminderDialogProps) =
       }
 
       // Schedule the notification
+      const notificationId = reminderId ? parseInt(reminderId) : Date.now();
       await LocalNotifications.schedule({
         notifications: [
           {
-            title: `${type === 'note' ? 'Note' : 'List'} Reminder`,
-            body: `Reminder for: ${title}`,
-            id: Date.now(),
+            title: title,
+            body: title,
+            id: notificationId,
             schedule: { at: reminderDate },
             smallIcon: 'ic_stat_icon_config_sample',
             iconColor: '#488AFF',
@@ -73,6 +80,17 @@ const ReminderDialog = ({ isOpen, onClose, title, type }: ReminderDialogProps) =
           }
         ]
       });
+
+      // Store reminder in localStorage
+      const reminders = JSON.parse(localStorage.getItem('reminders') || '{}');
+      reminders[`${type}_${reminderId || 'new'}`] = {
+        id: notificationId,
+        title,
+        type,
+        date: reminderDate.toISOString(),
+        itemId: reminderId
+      };
+      localStorage.setItem('reminders', JSON.stringify(reminders));
 
       toast({
         title: "Reminder Set",
@@ -167,6 +185,18 @@ const ReminderDialog = ({ isOpen, onClose, title, type }: ReminderDialogProps) =
             >
               Cancel
             </Button>
+            {reminderId && onClearReminder && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  onClearReminder();
+                  onClose();
+                }}
+                className="flex-1 bg-red-500/20 border-red-500/20 text-red-400 hover:bg-red-500/30"
+              >
+                Clear
+              </Button>
+            )}
             <Button
               onClick={handleSetReminder}
               className="flex-1 bg-white/20 text-white hover:bg-white/30"

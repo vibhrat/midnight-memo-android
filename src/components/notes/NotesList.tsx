@@ -1,6 +1,7 @@
 
 import { CasualNote } from '@/types';
 import NoteCard from './NoteCard';
+import EmptyStateIllustration from '../EmptyStateIllustration';
 
 interface NotesListProps {
   notes: CasualNote[];
@@ -25,9 +26,7 @@ const NotesList = ({ notes, filteredNotes, selectedTag, onNoteClick }: NotesList
         </div>
       )}
       {notes.length === 0 && (
-        <div className="text-center py-12 text-[#9B9B9B]">
-          No notes yet. Create your first note!
-        </div>
+        <EmptyStateIllustration />
       )}
     </div>
   );

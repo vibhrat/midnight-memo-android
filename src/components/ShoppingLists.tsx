@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Search, Download } from 'lucide-react';
 import ImportDialog from './ImportDialog';
+import EmptyStateIllustration from './EmptyStateIllustration';
 
 interface ShoppingListsRef {
   triggerCreate: () => void;
@@ -94,9 +95,7 @@ const ShoppingLists = forwardRef<ShoppingListsRef, ShoppingListsProps>(({ onList
             </Card>
           ))}
           {lists.length === 0 && (
-            <div className="text-center py-12 text-[#9B9B9B]">
-              No shopping lists yet. Create your first list!
-            </div>
+            <EmptyStateIllustration />
           )}
         </div>
 

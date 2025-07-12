@@ -18,6 +18,21 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showReminderDialog, setShowReminderDialog] = useState(false);
+
+  const clearReminder = async () => {
+    try {
+      const reminders = JSON.parse(localStorage.getItem('reminders') || '{}');
+      const reminderKey = `list_${listId}`;
+      if (reminders[reminderKey]) {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        await LocalNotifications.cancel({ notifications: [{ id: reminders[reminderKey].id }] });
+        delete reminders[reminderKey];
+        localStorage.setItem('reminders', JSON.stringify(reminders));
+      }
+    } catch (error) {
+      console.error('Failed to clear reminder:', error);
+    }
+  };
   const [swipedItems, setSwipedItems] = useState<Set<string>>(new Set());
   const [editingItems, setEditingItems] = useState<Set<string>>(new Set());
 
@@ -47,6 +62,8 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
     setLists(lists.map(l => 
       l.id === listId ? newList : l
     ));
+    // Trigger data backup
+    window.dispatchEvent(new CustomEvent('app-data-changed'));
   };
 
   const handleDelete = () => {
@@ -252,6 +269,8 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         onClose={() => setShowReminderDialog(false)}
         title={editableList.title || 'Untitled List'}
         type="list"
+        reminderId={listId}
+        onClearReminder={clearReminder}
       />
     </div>
   );
