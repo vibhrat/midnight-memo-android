@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { ShoppingList, ShoppingListItem } from '@/types';
-import { ArrowLeft, Trash2, Plus, X, Share } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, X, Share, Clock } from 'lucide-react';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import ShareDialog from '@/components/ShareDialog';
+import ReminderDialog from '@/components/ReminderDialog';
 
 interface ListDetailProps {
   listId: string;
@@ -16,6 +17,7 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
   const [editableList, setEditableList] = useState<ShoppingList | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showReminderDialog, setShowReminderDialog] = useState(false);
   const [swipedItems, setSwipedItems] = useState<Set<string>>(new Set());
   const [editingItems, setEditingItems] = useState<Set<string>>(new Set());
 
@@ -114,6 +116,12 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
               className="p-2 hover:bg-[#181818] rounded-lg"
             >
               <Share size={22} className="text-[#9B9B9B]" />
+            </button>
+            <button
+              onClick={() => setShowReminderDialog(true)}
+              className="p-2 hover:bg-[#181818] rounded-lg"
+            >
+              <Clock size={22} className="text-[#9B9B9B]" />
             </button>
             <button
               onClick={() => setShowDeleteDialog(true)}
@@ -236,6 +244,13 @@ const ListDetail = ({ listId, onBack }: ListDetailProps) => {
         isOpen={showShareDialog}
         onClose={() => setShowShareDialog(false)}
         data={editableList}
+        type="list"
+      />
+
+      <ReminderDialog
+        isOpen={showReminderDialog}
+        onClose={() => setShowReminderDialog(false)}
+        title={editableList.title || 'Untitled List'}
         type="list"
       />
     </div>
