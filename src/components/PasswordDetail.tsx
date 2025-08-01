@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Password, PasswordField } from '@/types';
@@ -50,11 +49,17 @@ const PasswordDetail = ({ passwordId, onBack }: PasswordDetailProps) => {
     const newPassword = { ...editablePassword, ...updatedPassword, updatedAt: now };
     setEditablePassword(newPassword);
     setPasswords(passwords.map(p => p.id === passwordId ? newPassword : p));
+    
+    // Trigger automatic backup
+    window.dispatchEvent(new CustomEvent('app-data-changed'));
   };
 
   const handleDelete = () => {
     setPasswords(passwords.filter(p => p.id !== passwordId));
     setShowDeleteDialog(false);
+    
+    // Trigger automatic backup
+    window.dispatchEvent(new CustomEvent('app-data-changed'));
     onBack();
   };
 

@@ -1,307 +1,245 @@
 
 import { useState, useRef, useEffect } from 'react';
-import Navigation from '@/components/Navigation';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import CasualNotes from '@/components/CasualNotes';
-import NoteDetail from '@/components/NoteDetail';
 import ShoppingLists from '@/components/ShoppingLists';
-import ListDetail from '@/components/ListDetail';
 import Passwords from '@/components/Passwords';
+import NoteDetail from '@/components/NoteDetail';
+import ListDetail from '@/components/ListDetail';
 import PasswordDetail from '@/components/PasswordDetail';
 import Search from '@/components/Search';
 import AppMenu from '@/components/AppMenu';
-import PinProtection from '@/components/PinProtection';
 import PinManagement from '@/components/PinManagement';
+import Navigation from '@/components/Navigation';
 import FloatingActionButton from '@/components/FloatingActionButton';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useAppDataBackup } from '@/hooks/useAppDataBackup';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
+
+interface CasualNotesRef {
+  triggerCreate: () => void;
+}
+
+interface ShoppingListsRef {
+  triggerCreate: () => void;
+}
+
+interface PasswordsRef {
+  triggerCreate: () => void;
+}
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState('notes');
-  const [selectedListId, setSelectedListId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState('casual-notes');
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [selectedPasswordId, setSelectedPasswordId] = useState<string | null>(null);
-  const [showSearch, setShowSearch] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
-  const [showPinManagement, setShowPinManagement] = useState(false);
-  const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
-  const [savedPin] = useLocalStorage('app-pin', '');
-  const [navigationHistory, setNavigationHistory] = useState<string[]>(['main']);
-  const [isLoading, setIsLoading] = useState(false);
-  const notesRef = useRef<{ triggerCreate: () => void }>(null);
-  const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
-  const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [pageHistory, setPageHistory] = useState<string[]>(['casual-notes']);
 
-  const handleVaultUnlock = () => {
-    setIsVaultUnlocked(true);
-  };
+  const casualNotesRef = useRef<CasualNotesRef>(null);
+  const shoppingListsRef = useRef<ShoppingListsRef>(null);
+  const passwordsRef = useRef<PasswordsRef>(null);
 
-  // Reset vault unlock when switching away from passwords tab
+  // Initialize automatic backup
+  useAppDataBackup();
+
+  // Handle Android back button
   useEffect(() => {
-    if (activeTab !== 'passwords') {
-      setIsVaultUnlocked(false);
-    }
-  }, [activeTab]);
-
-  useEffect(() => {
-    const handleNavigateToTab = (event: CustomEvent) => {
-      const tabId = event.detail;
-      // Reset all detail views when navigating to a tab
-      setSelectedListId(null);
-      setSelectedNoteId(null);
-      setSelectedPasswordId(null);
-      setShowSearch(false);
-      setShowMenu(false);
-      setShowPinManagement(false);
-      setNavigationHistory(['main']);
-    };
-
-    window.addEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
-    return () => window.removeEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
-  }, []);
-
-  // Handle Android back button and browser history
-  useEffect(() => {
-    const handleBackButton = () => {
-      if (navigationHistory.length > 1) {
-        const newHistory = [...navigationHistory];
-        newHistory.pop();
-        const previousPage = newHistory[newHistory.length - 1];
-        
-        setNavigationHistory(newHistory);
-        
-        switch (previousPage) {
-          case 'main':
-            setSelectedListId(null);
+    if (Capacitor.isNativePlatform()) {
+      const setupBackButton = async () => {
+        App.addListener('backButton', ({ canGoBack }) => {
+          if (pageHistory.length > 1) {
+            // Go back in app navigation
+            const newHistory = [...pageHistory];
+            newHistory.pop(); // Remove current page
+            const previousPage = newHistory[newHistory.length - 1];
+            
+            setPageHistory(newHistory);
+            setCurrentPage(previousPage);
+            
+            // Clear any selected items when going back
             setSelectedNoteId(null);
+            setSelectedListId(null);
             setSelectedPasswordId(null);
-            setShowSearch(false);
-            setShowMenu(false);
-            setShowPinManagement(false);
-            break;
-          case 'menu':
-            setShowMenu(true);
-            setShowPinManagement(false);
-            break;
-          case 'search':
-            setShowSearch(true);
-            setSelectedListId(null);
-            setSelectedNoteId(null);
-            break;
-        }
-        return true;
-      }
-      return false;
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handleBackButton();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    
-    // For mobile back gesture and browser back button
-    const handlePopState = (event: PopStateEvent) => {
-      event.preventDefault();
-      const handled = handleBackButton();
-      if (!handled) {
-        // If we can't go back in our history, prevent the default browser back
-        window.history.pushState(null, '', window.location.href);
-      }
-    };
-    
-    // Push initial state to prevent immediate app exit on back gesture
-    window.history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', handlePopState);
-    
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [navigationHistory]);
-
-  // Update browser history when navigation changes
-  useEffect(() => {
-    window.history.pushState(null, '', window.location.href);
-  }, [navigationHistory]);
-
-  const handleFloatingButtonClick = () => {
-    switch (activeTab) {
-      case 'notes':
-        if (!selectedNoteId) {
-          notesRef.current?.triggerCreate();
-        }
-        break;
-      case 'shopping':
-        if (!selectedListId) {
-          shoppingRef.current?.triggerCreate();
-        }
-        break;
-      case 'passwords':
-        if (!selectedPasswordId && (isVaultUnlocked || !savedPin)) {
-          passwordsRef.current?.triggerCreate();
-        }
-        break;
+            setSearchQuery('');
+          } else {
+            // Exit app if no more history
+            App.exitApp();
+          }
+        });
+      };
+      
+      setupBackButton();
     }
+  }, [pageHistory]);
+
+  const navigateToPage = (page: string, addToHistory = true) => {
+    if (addToHistory) {
+      setPageHistory(prev => [...prev, page]);
+    }
+    setCurrentPage(page);
   };
 
-  const handleListSelect = (listId: string) => {
-    setIsLoading(true);
-    setSelectedListId(listId);
-    setNavigationHistory(prev => [...prev, 'list-detail']);
-    // Small delay to prevent flash
-    setTimeout(() => setIsLoading(false), 50);
+  const handleBack = () => {
+    if (pageHistory.length > 1) {
+      const newHistory = [...pageHistory];
+      newHistory.pop(); // Remove current page
+      const previousPage = newHistory[newHistory.length - 1];
+      
+      setPageHistory(newHistory);
+      setCurrentPage(previousPage);
+      
+      // Clear any selected items when going back
+      setSelectedNoteId(null);
+      setSelectedListId(null);
+      setSelectedPasswordId(null);
+      setSearchQuery('');
+    }
   };
 
   const handleNoteSelect = (noteId: string) => {
-    setIsLoading(true);
     setSelectedNoteId(noteId);
-    setNavigationHistory(prev => [...prev, 'note-detail']);
-    // Small delay to prevent flash
-    setTimeout(() => setIsLoading(false), 50);
+    navigateToPage('note-detail');
+  };
+
+  const handleListSelect = (listId: string) => {
+    setSelectedListId(listId);
+    navigateToPage('list-detail');
   };
 
   const handlePasswordSelect = (passwordId: string) => {
-    setIsLoading(true);
     setSelectedPasswordId(passwordId);
-    setNavigationHistory(prev => [...prev, 'password-detail']);
-    // Small delay to prevent flash
-    setTimeout(() => setIsLoading(false), 50);
-  };
-
-  const handleBackToLists = () => {
-    setSelectedListId(null);
-    setNavigationHistory(prev => prev.slice(0, -1));
-  };
-
-  const handleBackToNotes = () => {
-    setSelectedNoteId(null);
-    setNavigationHistory(prev => prev.slice(0, -1));
-  };
-
-  const handleBackToPasswords = () => {
-    setSelectedPasswordId(null);
-    setNavigationHistory(prev => prev.slice(0, -1));
+    navigateToPage('password-detail');
   };
 
   const handleSearchClick = () => {
-    setShowSearch(true);
-    setNavigationHistory(prev => [...prev, 'search']);
-  };
-
-  const handleBackFromSearch = () => {
-    setShowSearch(false);
-    setNavigationHistory(prev => prev.slice(0, -1));
+    navigateToPage('search');
   };
 
   const handleMenuClick = () => {
-    setShowMenu(true);
-    setNavigationHistory(prev => [...prev, 'menu']);
+    navigateToPage('menu');
   };
 
-  const handleBackFromMenu = () => {
-    setShowMenu(false);
-    setNavigationHistory(prev => prev.slice(0, -1));
-  };
+  const handleFloatingActionButtonClick = () => {
+    // Trigger data backup when creating new items
+    window.dispatchEvent(new CustomEvent('app-data-changed'));
 
-  const handleNavigate = (page: string) => {
-    if (page === 'pin-management') {
-      setShowPinManagement(true);
-      setShowMenu(false);
-      setNavigationHistory(prev => [...prev, 'pin-management']);
-    }
-  };
-
-  const handleBackFromPin = () => {
-    setShowPinManagement(false);
-    setShowMenu(true);
-    setNavigationHistory(prev => prev.slice(0, -1));
-  };
-
-  const handleSearchNoteSelect = (noteId: string) => {
-    setShowSearch(false);
-    setActiveTab('notes');
-    setSelectedNoteId(noteId);
-    setNavigationHistory(prev => [...prev.slice(0, -1), 'note-detail']);
-  };
-
-  const handleSearchListSelect = (listId: string) => {
-    setShowSearch(false);
-    setActiveTab('shopping');
-    setSelectedListId(listId);
-    setNavigationHistory(prev => [...prev.slice(0, -1), 'list-detail']);
-  };
-
-  const renderContent = () => {
-    // Add loading state to prevent flash
-    if (isLoading) {
-      return (
-        <div className="min-h-screen bg-[#000000] flex items-center justify-center">
-          <div className="text-[#9B9B9B]">Loading...</div>
-        </div>
-      );
-    }
-
-    if (showPinManagement) {
-      return <PinManagement onBack={handleBackFromPin} />;
-    }
-
-    if (showMenu) {
-      return (
-        <AppMenu 
-          onBack={handleBackFromMenu} 
-          onNavigate={handleNavigate}
-        />
-      );
-    }
-
-    if (showSearch) {
-      return (
-        <Search 
-          onBack={handleBackFromSearch}
-          onNoteSelect={handleSearchNoteSelect}
-          onListSelect={handleSearchListSelect}
-        />
-      );
-    }
-
-    switch (activeTab) {
-      case 'notes':
-        if (selectedNoteId) {
-          return <NoteDetail noteId={selectedNoteId} onBack={handleBackToNotes} />;
-        }
-        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} onMenuClick={handleMenuClick} />;
-      case 'shopping':
-        if (selectedListId) {
-          return <ListDetail listId={selectedListId} onBack={handleBackToLists} />;
-        }
-        return <ShoppingLists ref={shoppingRef} onListSelect={handleListSelect} onSearchClick={handleSearchClick} />;
+    switch (currentPage) {
+      case 'casual-notes':
+        casualNotesRef.current?.triggerCreate();
+        break;
+      case 'shopping-lists':
+        shoppingListsRef.current?.triggerCreate();
+        break;
       case 'passwords':
-        // Show PIN protection only for passwords/vault section
-        if (savedPin && !isVaultUnlocked) {
-          return <PinProtection onUnlock={handleVaultUnlock} />;
-        }
-        if (selectedPasswordId) {
-          return <PasswordDetail passwordId={selectedPasswordId} onBack={handleBackToPasswords} />;
-        }
-        return <Passwords ref={passwordsRef} onPasswordSelect={handlePasswordSelect} onSearchClick={handleSearchClick} />;
-      default:
-        return <CasualNotes ref={notesRef} onNoteSelect={handleNoteSelect} onSearchClick={handleSearchClick} onMenuClick={handleMenuClick} />;
+        passwordsRef.current?.triggerCreate();
+        break;
     }
   };
 
-  // Don't show FAB when viewing details, search, menu, pin management, or when loading
-  const showFAB = !isLoading && !showSearch && !showMenu && !showPinManagement &&
-    !(activeTab === 'shopping' && selectedListId) && 
-    !(activeTab === 'notes' && selectedNoteId) &&
-    !(activeTab === 'passwords' && selectedPasswordId) &&
-    !(activeTab === 'passwords' && savedPin && !isVaultUnlocked);
+  const renderCurrentPage = () => {
+    switch (currentPage) {
+      case 'casual-notes':
+        return (
+          <CasualNotes 
+            ref={casualNotesRef} 
+            onNoteSelect={handleNoteSelect}
+            onSearchClick={handleSearchClick}
+          />
+        );
+      case 'shopping-lists':
+        return (
+          <ShoppingLists 
+            ref={shoppingListsRef}
+            onListSelect={handleListSelect}
+            onSearchClick={handleSearchClick}
+          />
+        );
+      case 'passwords':
+        return (
+          <Passwords 
+            ref={passwordsRef}
+            onPasswordSelect={handlePasswordSelect}
+            onSearchClick={handleSearchClick}
+          />
+        );
+      case 'note-detail':
+        return selectedNoteId ? (
+          <NoteDetail 
+            noteId={selectedNoteId} 
+            onBack={handleBack}
+          />
+        ) : null;
+      case 'list-detail':
+        return selectedListId ? (
+          <ListDetail 
+            listId={selectedListId} 
+            onBack={handleBack}
+          />
+        ) : null;
+      case 'password-detail':
+        return selectedPasswordId ? (
+          <PasswordDetail 
+            passwordId={selectedPasswordId} 
+            onBack={handleBack}
+          />
+        ) : null;
+      case 'search':
+        return (
+          <Search 
+            onBack={handleBack}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onNoteSelect={handleNoteSelect}
+            onListSelect={handleListSelect}
+            onPasswordSelect={handlePasswordSelect}
+          />
+        );
+      case 'menu':
+        return (
+          <AppMenu 
+            onBack={handleBack}
+            onNavigate={(page) => navigateToPage(page)}
+          />
+        );
+      case 'pin-management':
+        return (
+          <PinManagement 
+            onBack={handleBack}
+          />
+        );
+      default:
+        return (
+          <CasualNotes 
+            ref={casualNotesRef}
+            onNoteSelect={handleNoteSelect}
+            onSearchClick={handleSearchClick}
+          />
+        );
+    }
+  };
+
+  const shouldShowNavigation = !['note-detail', 'list-detail', 'password-detail', 'search', 'menu', 'pin-management'].includes(currentPage);
+  const shouldShowFAB = ['casual-notes', 'shopping-lists', 'passwords'].includes(currentPage);
 
   return (
-    <div className="min-h-screen bg-[#000000]">
-      {renderContent()}
-      {showFAB && <FloatingActionButton onClick={handleFloatingButtonClick} />}
-      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+    <div className="relative">
+      {renderCurrentPage()}
+      
+      {shouldShowNavigation && (
+        <Navigation 
+          currentPage={currentPage} 
+          onPageChange={(page) => {
+            setCurrentPage(page);
+            setPageHistory([page]); // Reset history when using navigation
+          }}
+          onMenuClick={handleMenuClick}
+        />
+      )}
+      
+      {shouldShowFAB && (
+        <FloatingActionButton onClick={handleFloatingActionButtonClick} />
+      )}
     </div>
   );
 };

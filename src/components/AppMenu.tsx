@@ -4,6 +4,8 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { CasualNote, ShoppingList, Password } from '@/types';
 import { ArrowLeft, Upload, Download, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 interface AppMenuProps {
   onBack: () => void;
@@ -17,7 +19,7 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
   const [showExportConfirm, setShowExportConfirm] = useState(false);
   const { toast } = useToast();
 
-  const handleExportData = () => {
+  const handleExportData = async () => {
     const exportData = {
       notes,
       lists,
@@ -26,46 +28,35 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
     };
     
     const jsonData = JSON.stringify(exportData, null, 2);
-    
-    // Try to use the File System Access API for better file handling
-    if ('showSaveFilePicker' in window) {
+    const fileName = 'export-vertex-data.json';
+
+    if (Capacitor.isNativePlatform()) {
       try {
-        (window as any).showSaveFilePicker({
-          suggestedName: `cipher-vault-export-${Date.now()}.json`,
-          types: [{
-            description: 'JSON files',
-            accept: { 'application/json': ['.json'] }
-          }]
-        }).then((fileHandle: any) => {
-          return fileHandle.createWritable();
-        }).then((writable: any) => {
-          writable.write(jsonData);
-          return writable.close();
-        }).then(() => {
-          toast({
-            title: "Success",
-            description: "Data exported successfully!"
-          });
-        }).catch((error: any) => {
-          if (error.name !== 'AbortError') {
-            console.error('Export error:', error);
-            fallbackExport();
-          }
+        await Filesystem.writeFile({
+          path: fileName,
+          data: jsonData,
+          directory: Directory.Documents,
+        });
+
+        toast({
+          title: "Success",
+          description: "Data exported to Downloads folder successfully!"
         });
       } catch (error) {
-        console.error('File picker error:', error);
-        fallbackExport();
+        console.error('Export error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to export data",
+          variant: "destructive"
+        });
       }
     } else {
-      fallbackExport();
-    }
-    
-    function fallbackExport() {
+      // Web fallback
       const blob = new Blob([jsonData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `cipher-vault-export-${Date.now()}.json`;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -127,7 +118,7 @@ const AppMenu = ({ onBack, onNavigate }: AppMenuProps) => {
           description: "Data imported successfully!"
         });
 
-        // Trigger data backup
+        // Trigger automatic backup after import
         window.dispatchEvent(new CustomEvent('app-data-changed'));
       } catch (error) {
         console.error('Import error:', error);

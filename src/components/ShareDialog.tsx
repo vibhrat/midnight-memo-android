@@ -1,6 +1,7 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -15,23 +16,49 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
 
   if (!isOpen) return null;
 
-  const handleExportJSON = () => {
-    const jsonData = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+  const handleExportJSON = async () => {
+    const exportData = { ...data };
+    const jsonData = JSON.stringify(exportData, null, 2);
+    const fileName = `export-vertex-${type}.json`;
     
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${type}-${data.id || Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await Filesystem.writeFile({
+          path: fileName,
+          data: jsonData,
+          directory: Directory.Documents,
+        });
 
-    toast({
-      title: "Success",
-      description: "JSON exported successfully!",
-    });
+        toast({
+          title: "Success",
+          description: "JSON exported successfully to Downloads folder!",
+        });
+      } catch (error) {
+        console.error('Export error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to export file",
+          variant: "destructive",
+        });
+      }
+    } else {
+      // Web fallback
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: "JSON exported successfully!",
+      });
+    }
     onClose();
   };
 
@@ -76,7 +103,6 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
       });
     });
   };
-
 
   const handleImport = () => {
     setShowImport(true);
@@ -178,7 +204,6 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
       });
     }
   };
-
 
   if (showImport) {
     return (
