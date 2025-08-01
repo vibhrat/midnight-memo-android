@@ -8,7 +8,18 @@ export const useAppDataBackup = () => {
     if (!Capacitor.isNativePlatform()) return;
 
     try {
-      // Create app data object
+      // Get current date and time in ddmmyyhhmm format
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = String(now.getFullYear()).slice(-2);
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      
+      const datetime = `${day}${month}${year}${hours}${minutes}`;
+      const fileName = `vertex-backup-${datetime}.json`;
+
+      // Get all app data
       const appData = {
         notes: JSON.parse(localStorage.getItem('casual-notes') || '[]'),
         lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
@@ -20,52 +31,74 @@ export const useAppDataBackup = () => {
 
       const jsonData = JSON.stringify(appData, null, 2);
 
-      // Save to app's data directory with a fixed filename
+      // Create vertex-data folder and save data
       await Filesystem.writeFile({
-        path: 'vertex-app-data.json',
+        path: `vertex-data/${fileName}`,
         data: jsonData,
-        directory: Directory.Data,
+        directory: Directory.ExternalStorage,
         recursive: true
       });
 
-      console.log('App data backed up successfully to app data directory');
+      console.log(`App data backed up successfully to: /storage/emulated/0/vertex-data/${fileName}`);
     } catch (error) {
       console.error('Failed to backup app data:', error);
-    }
-  };
+      
+      // Fallback to Documents directory if ExternalStorage fails
+      try {
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = String(now.getFullYear()).slice(-2);
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        const datetime = `${day}${month}${year}${hours}${minutes}`;
+        const fileName = `vertex-backup-${datetime}.json`;
 
-  // Function to trigger backup manually
-  const triggerBackup = () => {
-    createBackup();
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('app-data-changed'));
+        const appData = {
+          notes: JSON.parse(localStorage.getItem('casual-notes') || '[]'),
+          lists: JSON.parse(localStorage.getItem('shopping-lists') || '[]'),
+          passwords: JSON.parse(localStorage.getItem('passwords') || '[]'),
+          reminders: JSON.parse(localStorage.getItem('reminders') || '{}'),
+          pin: localStorage.getItem('app-pin') || '',
+          lastBackup: new Date().toISOString()
+        };
+
+        const jsonData = JSON.stringify(appData, null, 2);
+
+        await Filesystem.writeFile({
+          path: `vertex-data/${fileName}`,
+          data: jsonData,
+          directory: Directory.Documents,
+          recursive: true
+        });
+
+        console.log(`App data backed up to Documents directory: ${fileName}`);
+      } catch (fallbackError) {
+        console.error('Fallback backup also failed:', fallbackError);
+      }
+    }
   };
 
   useEffect(() => {
     // Create initial backup
     createBackup();
 
-    // Listen for custom backup events
-    const handleBackupTrigger = () => {
+    // Listen for storage changes and backup data
+    const handleStorageChange = () => {
       createBackup();
     };
 
-    window.addEventListener('app-data-changed', handleBackupTrigger);
+    window.addEventListener('storage', handleStorageChange);
     
-    // Backup every time localStorage changes
-    const originalSetItem = localStorage.setItem;
-    localStorage.setItem = function(key, value) {
-      originalSetItem.apply(this, [key, value]);
-      if (['casual-notes', 'shopping-lists', 'passwords', 'reminders', 'app-pin'].includes(key)) {
-        setTimeout(() => createBackup(), 100); // Small delay to ensure data is saved
-      }
-    };
+    // Custom event for manual backup triggers
+    window.addEventListener('app-data-changed', handleStorageChange);
 
     return () => {
-      window.removeEventListener('app-data-changed', handleBackupTrigger);
-      localStorage.setItem = originalSetItem;
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('app-data-changed', handleStorageChange);
     };
   }, []);
 
-  return { createBackup, triggerBackup };
+  return { createBackup };
 };

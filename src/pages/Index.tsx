@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import CasualNotes from '@/components/CasualNotes';
@@ -12,9 +13,6 @@ import PinProtection from '@/components/PinProtection';
 import PinManagement from '@/components/PinManagement';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { useShakeDetection } from '@/hooks/useShakeDetection';
-import { useAppDataBackup } from '@/hooks/useAppDataBackup';
-import { Capacitor } from '@capacitor/core';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('notes');
@@ -27,39 +25,10 @@ const Index = () => {
   const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
   const [savedPin] = useLocalStorage('app-pin', '');
   const [navigationHistory, setNavigationHistory] = useState<string[]>(['main']);
+  const [isLoading, setIsLoading] = useState(false);
   const notesRef = useRef<{ triggerCreate: () => void }>(null);
   const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
   const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
-
-  // Initialize backup system
-  const { triggerBackup } = useAppDataBackup();
-
-  // Improved shake to search functionality
-  const handleShake = () => {
-    console.log('Shake detected! Current tab:', activeTab, 'showSearch:', showSearch);
-    
-    // Only trigger shake to search when on notes tab and no other overlays are open
-    if (activeTab === 'notes' && !selectedNoteId && !showMenu && !showPinManagement) {
-      if (showSearch) {
-        // If search is open, close it and go back to notes
-        console.log('Closing search');
-        setShowSearch(false);
-        setNavigationHistory(prev => prev.slice(0, -1));
-      } else {
-        // If on notes page, open search
-        console.log('Opening search');
-        setShowSearch(true);
-        setNavigationHistory(prev => [...prev, 'search']);
-      }
-    }
-  };
-
-  // Initialize shake detection with lower threshold for better sensitivity
-  useShakeDetection({ 
-    onShake: handleShake, 
-    threshold: 12, // Lower threshold for better sensitivity
-    debounceTime: 800 // Shorter debounce time
-  });
 
   const handleVaultUnlock = () => {
     setIsVaultUnlocked(true);
@@ -89,7 +58,7 @@ const Index = () => {
     return () => window.removeEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
   }, []);
 
-  // Enhanced Android back button handling
+  // Handle Android back button and browser history
   useEffect(() => {
     const handleBackButton = () => {
       if (navigationHistory.length > 1) {
@@ -131,32 +100,29 @@ const Index = () => {
 
     document.addEventListener('keydown', handleKeyDown);
     
-    // Enhanced Android back button handling with App plugin
-    if (Capacitor.isNativePlatform()) {
-      const setupAndroidBackButton = async () => {
-        try {
-          const { App } = await import('@capacitor/app');
-          
-          App.addListener('backButton', ({ canGoBack }) => {
-            console.log('Android back button pressed, navigation history:', navigationHistory);
-            
-            const handled = handleBackButton();
-            if (!handled) {
-              console.log('No more history, allowing app exit');
-              App.exitApp();
-            }
-          });
-        } catch (error) {
-          console.error('Failed to setup Android back button:', error);
-        }
-      };
-      
-      setupAndroidBackButton();
-    }
+    // For mobile back gesture and browser back button
+    const handlePopState = (event: PopStateEvent) => {
+      event.preventDefault();
+      const handled = handleBackButton();
+      if (!handled) {
+        // If we can't go back in our history, prevent the default browser back
+        window.history.pushState(null, '', window.location.href);
+      }
+    };
+    
+    // Push initial state to prevent immediate app exit on back gesture
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', handlePopState);
     
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('popstate', handlePopState);
     };
+  }, [navigationHistory]);
+
+  // Update browser history when navigation changes
+  useEffect(() => {
+    window.history.pushState(null, '', window.location.href);
   }, [navigationHistory]);
 
   const handleFloatingButtonClick = () => {
@@ -180,18 +146,27 @@ const Index = () => {
   };
 
   const handleListSelect = (listId: string) => {
+    setIsLoading(true);
     setSelectedListId(listId);
     setNavigationHistory(prev => [...prev, 'list-detail']);
+    // Small delay to prevent flash
+    setTimeout(() => setIsLoading(false), 50);
   };
 
   const handleNoteSelect = (noteId: string) => {
+    setIsLoading(true);
     setSelectedNoteId(noteId);
     setNavigationHistory(prev => [...prev, 'note-detail']);
+    // Small delay to prevent flash
+    setTimeout(() => setIsLoading(false), 50);
   };
 
   const handlePasswordSelect = (passwordId: string) => {
+    setIsLoading(true);
     setSelectedPasswordId(passwordId);
     setNavigationHistory(prev => [...prev, 'password-detail']);
+    // Small delay to prevent flash
+    setTimeout(() => setIsLoading(false), 50);
   };
 
   const handleBackToLists = () => {
@@ -258,6 +233,15 @@ const Index = () => {
   };
 
   const renderContent = () => {
+    // Add loading state to prevent flash
+    if (isLoading) {
+      return (
+        <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+          <div className="text-[#9B9B9B]">Loading...</div>
+        </div>
+      );
+    }
+
     if (showPinManagement) {
       return <PinManagement onBack={handleBackFromPin} />;
     }
@@ -306,8 +290,8 @@ const Index = () => {
     }
   };
 
-  // Don't show FAB when viewing details, search, menu, pin management
-  const showFAB = !showSearch && !showMenu && !showPinManagement &&
+  // Don't show FAB when viewing details, search, menu, pin management, or when loading
+  const showFAB = !isLoading && !showSearch && !showMenu && !showPinManagement &&
     !(activeTab === 'shopping' && selectedListId) && 
     !(activeTab === 'notes' && selectedNoteId) &&
     !(activeTab === 'passwords' && selectedPasswordId) &&

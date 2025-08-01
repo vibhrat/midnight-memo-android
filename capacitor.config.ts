@@ -2,7 +2,7 @@
 import { CapacitorConfig } from '@capacitor/core';
 
 const config: CapacitorConfig = {
-  appId: 'com.vertex.app',
+  appId: 'app.lovable.72c6dea7dbb84d3eafee2d39b47e068e',
   appName: 'Vertex',
   webDir: 'dist',
   server: {
@@ -34,21 +34,11 @@ const config: CapacitorConfig = {
       ioTimeout: 30000,
       dbPathSuffix: "databases"
     },
-    App: {
-      allowMixedContent: true
-    },
-    Motion: {
-      interval: 100
-    }
   },
   android: {
     allowMixedContent: true,
     backgroundColor: "#000000",
     webContentsDebuggingEnabled: true,
-    permissions: [
-      'android.permission.WRITE_EXTERNAL_STORAGE',
-      'android.permission.READ_EXTERNAL_STORAGE'
-    ]
   }
 };
 
