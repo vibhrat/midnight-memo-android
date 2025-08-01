@@ -34,6 +34,9 @@ const config: CapacitorConfig = {
       ioTimeout: 30000,
       dbPathSuffix: "databases"
     },
+    App: {
+      allowMixedContent: true
+    }
   },
   android: {
     allowMixedContent: true,

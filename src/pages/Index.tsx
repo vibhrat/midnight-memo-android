@@ -13,6 +13,7 @@ import PinManagement from '@/components/PinManagement';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useShakeDetection } from '@/hooks/useShakeDetection';
+import { Capacitor } from '@capacitor/core';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('notes');
@@ -118,19 +119,52 @@ const Index = () => {
 
     document.addEventListener('keydown', handleKeyDown);
     
-    // For mobile back gesture and browser back button
+    // Enhanced Android back button handling
     const handlePopState = (event: PopStateEvent) => {
       event.preventDefault();
       const handled = handleBackButton();
       if (!handled) {
-        // If we can't go back in our history, prevent the default browser back
-        window.history.pushState(null, '', window.location.href);
+        // If we can't go back in our history, allow app to close
+        if (Capacitor.isNativePlatform()) {
+          // Let the system handle app closure
+          return;
+        } else {
+          // For web, prevent default browser back
+          window.history.pushState(null, '', window.location.href);
+        }
       }
     };
     
-    // Push initial state to prevent immediate app exit on back gesture
-    window.history.pushState(null, '', window.location.href);
+    // Initialize history state
+    if (typeof window !== 'undefined') {
+      window.history.replaceState({ canGoBack: navigationHistory.length > 1 }, '', window.location.href);
+    }
+    
     window.addEventListener('popstate', handlePopState);
+    
+    // Handle native Android back button
+    if (Capacitor.isNativePlatform()) {
+      const setupAndroidBackButton = async () => {
+        try {
+          const { App } = await import('@capacitor/app');
+          
+          App.addListener('backButton', ({ canGoBack }) => {
+            console.log('Android back button pressed, canGoBack:', canGoBack);
+            console.log('Navigation history:', navigationHistory);
+            
+            const handled = handleBackButton();
+            if (!handled) {
+              console.log('No more history, allowing app exit');
+              App.exitApp();
+            }
+          });
+        } catch (error) {
+          console.error('Failed to setup Android back button:', error);
+        }
+      };
+      
+      setupAndroidBackButton();
+    }
     
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
@@ -140,7 +174,9 @@ const Index = () => {
 
   // Update browser history when navigation changes
   useEffect(() => {
-    window.history.pushState(null, '', window.location.href);
+    if (typeof window !== 'undefined') {
+      window.history.replaceState({ canGoBack: navigationHistory.length > 1 }, '', window.location.href);
+    }
   }, [navigationHistory]);
 
   const handleFloatingButtonClick = () => {

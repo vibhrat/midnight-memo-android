@@ -24,6 +24,10 @@ export const useShakeDetection = ({ onShake, threshold = 15, debounceTime = 1000
       try {
         const { Motion } = await import('@capacitor/motion');
         
+        // Request permissions first
+        console.log('Requesting motion permissions...');
+        
+        // Add listener for acceleration data
         motionListener = await Motion.addListener('accel', (event) => {
           const { x, y, z } = event.acceleration;
           const prevAccel = accelerationRef.current;
@@ -42,9 +46,12 @@ export const useShakeDetection = ({ onShake, threshold = 15, debounceTime = 1000
           const now = Date.now();
           if (totalDelta > threshold && now - lastShakeTime.current > debounceTime) {
             lastShakeTime.current = now;
+            console.log('Shake detected!', totalDelta);
             onShake();
           }
         });
+        
+        console.log('Motion detection initialized successfully');
         
       } catch (error) {
         console.error('Failed to initialize motion detection:', error);
@@ -56,6 +63,7 @@ export const useShakeDetection = ({ onShake, threshold = 15, debounceTime = 1000
     return () => {
       const cleanup = async () => {
         if (motionListener) {
+          console.log('Removing motion listener');
           motionListener.remove();
         }
       };

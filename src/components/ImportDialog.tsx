@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { X } from 'lucide-react';
 
@@ -12,6 +13,27 @@ const ImportDialog = ({ isOpen, onClose, type }: ImportDialogProps) => {
   const { toast } = useToast();
   const [showTextImport, setShowTextImport] = useState(false);
   const [importText, setImportText] = useState('');
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside to close
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dialogRef.current && !dialogRef.current.contains(event.target as Node)) {
+        if (showTextImport) {
+          setShowTextImport(false);
+        } else {
+          onClose();
+        }
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen, showTextImport, onClose]);
 
   if (!isOpen) return null;
 
@@ -163,7 +185,8 @@ const ImportDialog = ({ isOpen, onClose, type }: ImportDialogProps) => {
         }}
       >
         <div 
-          className="w-full max-w-lg mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
+          ref={dialogRef}
+          className="w-full max-w-2xl mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
           style={{
             background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
           }}
@@ -183,20 +206,13 @@ const ImportDialog = ({ isOpen, onClose, type }: ImportDialogProps) => {
             placeholder={`Paste your ${type} data here...`}
             className="w-full h-64 p-4 bg-[#1A1A1A] border border-[#333] rounded-lg text-white placeholder-[#9B9B9B] resize-none focus:outline-none focus:border-[#555]"
           />
-          <div className="flex gap-4 mt-6">
+          <div className="mt-6">
             <button
               onClick={handleTextImport}
-              className="flex-1 px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
+              className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
               style={{ backgroundColor: '#272727' }}
             >
               Import
-            </button>
-            <button
-              onClick={() => setShowTextImport(false)}
-              className="flex-1 px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-              style={{ backgroundColor: '#191919' }}
-            >
-              Cancel
             </button>
           </div>
         </div>
@@ -213,16 +229,17 @@ const ImportDialog = ({ isOpen, onClose, type }: ImportDialogProps) => {
       }}
     >
       <div 
-        className="w-full max-w-sm mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
+        ref={dialogRef}
+        className="w-full max-w-md mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
         style={{
           background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
         }}
       >
-        <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-6">
+        <h2 className="text-center text-2xl font-semibold text-[#EAEAEA] mb-8">
           Import {type.charAt(0).toUpperCase() + type.slice(1)}
         </h2>
-        <div className="flex flex-col gap-4">
-          <label className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer text-center" 
+        <div className="flex flex-col gap-6">
+          <label className="w-full px-6 py-4 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer text-center" 
                  style={{ backgroundColor: '#272727' }}>
             Import JSON
             <input
@@ -234,17 +251,10 @@ const ImportDialog = ({ isOpen, onClose, type }: ImportDialogProps) => {
           </label>
           <button
             onClick={() => setShowTextImport(true)}
-            className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
+            className="w-full px-6 py-4 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
             style={{ backgroundColor: '#272727' }}
           >
             Import as Text
-          </button>
-          <button
-            onClick={onClose}
-            className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-            style={{ backgroundColor: '#191919' }}
-          >
-            Cancel
           </button>
         </div>
       </div>
