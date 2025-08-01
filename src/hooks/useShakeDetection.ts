@@ -24,8 +24,8 @@ export const useShakeDetection = ({ onShake, threshold = 15, debounceTime = 1000
       try {
         const { Motion } = await import('@capacitor/motion');
         
-        motionListener = await Motion.addListener('accelerationData', (event) => {
-          const { x, y, z } = event;
+        motionListener = await Motion.addListener('accel', (event) => {
+          const { x, y, z } = event.acceleration;
           const prevAccel = accelerationRef.current;
           
           // Calculate the change in acceleration
@@ -47,7 +47,7 @@ export const useShakeDetection = ({ onShake, threshold = 15, debounceTime = 1000
         });
 
         // Start listening for acceleration data
-        await Motion.startAcceleration();
+        await Motion.startAccel();
         
       } catch (error) {
         console.error('Failed to initialize motion detection:', error);
@@ -64,7 +64,7 @@ export const useShakeDetection = ({ onShake, threshold = 15, debounceTime = 1000
         if (Capacitor.isNativePlatform()) {
           try {
             const { Motion } = await import('@capacitor/motion');
-            await Motion.stopAcceleration();
+            await Motion.stopAccel();
           } catch (error) {
             console.error('Failed to stop motion detection:', error);
           }
