@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ShareDialogProps {
@@ -12,6 +12,27 @@ interface ShareDialogProps {
 const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
   const { toast } = useToast();
   const [showImport, setShowImport] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Handle outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dialogRef.current && !dialogRef.current.contains(event.target as Node)) {
+        if (showImport) {
+          setShowImport(false);
+        } else {
+          onClose();
+        }
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen, showImport, onClose]);
 
   if (!isOpen) return null;
 
@@ -65,7 +86,7 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
     navigator.clipboard.writeText(textData).then(() => {
       toast({
         title: "Success",
-        description: "Text copied to clipboard!",
+        description: "JSON copied to clipboard!",
       });
       onClose();
     }).catch(() => {
@@ -190,6 +211,7 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
         }}
       >
         <div 
+          ref={dialogRef}
           className="w-full max-w-sm mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
           style={{
             background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
@@ -228,7 +250,8 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
       }}
     >
       <div 
-        className="w-full max-w-xs mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
+        ref={dialogRef}
+        className="w-full max-w-sm mx-auto rounded-[32px] overflow-hidden border border-[#2F2F2F] p-8"
         style={{
           background: 'linear-gradient(180deg, rgba(47, 42, 42, 0.53) 0%, rgba(25, 25, 25, 0.48) 49.04%, #000 100%)',
         }}
@@ -240,21 +263,14 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
             className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
             style={{ backgroundColor: '#272727' }}
           >
-            Export as JSON
+            Export File
           </button>
           <button
             onClick={handleShareText}
             className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
             style={{ backgroundColor: '#272727' }}
           >
-            Share as Text
-          </button>
-          <button
-            onClick={onClose}
-            className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-            style={{ backgroundColor: '#191919' }}
-          >
-            Cancel
+            Copy JSON
           </button>
         </div>
       </div>

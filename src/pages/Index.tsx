@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import CasualNotes from '@/components/CasualNotes';
@@ -13,6 +12,7 @@ import PinProtection from '@/components/PinProtection';
 import PinManagement from '@/components/PinManagement';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useShakeDetection } from '@/hooks/useShakeDetection';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('notes');
@@ -29,6 +29,24 @@ const Index = () => {
   const notesRef = useRef<{ triggerCreate: () => void }>(null);
   const shoppingRef = useRef<{ triggerCreate: () => void }>(null);
   const passwordsRef = useRef<{ triggerCreate: () => void }>(null);
+
+  // Shake to search functionality
+  const handleShake = () => {
+    // Only trigger shake to search when on notes tab and no detail views are open
+    if (activeTab === 'notes' && !selectedNoteId && !showMenu && !showPinManagement) {
+      if (showSearch) {
+        // If search is open, close it
+        setShowSearch(false);
+        setNavigationHistory(prev => prev.slice(0, -1));
+      } else {
+        // If on notes page, open search
+        setShowSearch(true);
+        setNavigationHistory(prev => [...prev, 'search']);
+      }
+    }
+  };
+
+  useShakeDetection({ onShake: handleShake });
 
   const handleVaultUnlock = () => {
     setIsVaultUnlocked(true);
