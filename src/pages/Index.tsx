@@ -58,7 +58,7 @@ const Index = () => {
     return () => window.removeEventListener('navigate-to-tab', handleNavigateToTab as EventListener);
   }, []);
 
-  // Handle Android back button
+  // Handle Android back button and browser history
   useEffect(() => {
     const handleBackButton = () => {
       if (navigationHistory.length > 1) {
@@ -100,17 +100,29 @@ const Index = () => {
 
     document.addEventListener('keydown', handleKeyDown);
     
-    // For mobile back gesture
-    const handlePopState = () => {
-      handleBackButton();
+    // For mobile back gesture and browser back button
+    const handlePopState = (event: PopStateEvent) => {
+      event.preventDefault();
+      const handled = handleBackButton();
+      if (!handled) {
+        // If we can't go back in our history, prevent the default browser back
+        window.history.pushState(null, '', window.location.href);
+      }
     };
     
+    // Push initial state to prevent immediate app exit on back gesture
+    window.history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', handlePopState);
     
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('popstate', handlePopState);
     };
+  }, [navigationHistory]);
+
+  // Update browser history when navigation changes
+  useEffect(() => {
+    window.history.pushState(null, '', window.location.href);
   }, [navigationHistory]);
 
   const handleFloatingButtonClick = () => {

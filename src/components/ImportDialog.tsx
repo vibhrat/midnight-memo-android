@@ -49,11 +49,13 @@ const ImportDialog = ({ isOpen, onClose, type }: ImportDialogProps) => {
 
   const processImportData = (content: string) => {
     try {
+      let parsedData;
+      
       // Try to parse as cipher format first
       if (content.startsWith('CIPHER_NOTE:') || content.startsWith('CIPHER_LIST:')) {
         const prefix = content.startsWith('CIPHER_NOTE:') ? 'CIPHER_NOTE:' : 'CIPHER_LIST:';
         const jsonStr = content.substring(prefix.length);
-        const parsedData = JSON.parse(jsonStr);
+        parsedData = JSON.parse(jsonStr);
         
         // Add to localStorage based on current type
         if (type === 'note' && prefix === 'CIPHER_NOTE:') {
@@ -79,9 +81,31 @@ const ImportDialog = ({ isOpen, onClose, type }: ImportDialogProps) => {
         }
       } else {
         // Try to parse as regular JSON
-        const parsedData = JSON.parse(content);
+        parsedData = JSON.parse(content);
         
-        if (type === 'note' && (parsedData.title !== undefined || parsedData.content !== undefined)) {
+        // Check if it's from the app's export format
+        if (parsedData.notes && Array.isArray(parsedData.notes) && type === 'note') {
+          const existingNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
+          const newNotes = parsedData.notes.map((note: any) => ({
+            ...note,
+            id: Date.now().toString() + Math.random().toString(),
+            createdAt: new Date(note.createdAt || Date.now()),
+            updatedAt: new Date(note.updatedAt || Date.now())
+          }));
+          existingNotes.unshift(...newNotes);
+          localStorage.setItem('casual-notes', JSON.stringify(existingNotes));
+        } else if (parsedData.lists && Array.isArray(parsedData.lists) && type === 'list') {
+          const existingLists = JSON.parse(localStorage.getItem('shopping-lists') || '[]');
+          const newLists = parsedData.lists.map((list: any) => ({
+            ...list,
+            id: Date.now().toString() + Math.random().toString(),
+            createdAt: new Date(list.createdAt || Date.now()),
+            updatedAt: new Date(list.updatedAt || Date.now())
+          }));
+          existingLists.unshift(...newLists);
+          localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
+        } else if (type === 'note' && (parsedData.title !== undefined || parsedData.content !== undefined)) {
+          // Single note import
           const existingNotes = JSON.parse(localStorage.getItem('casual-notes') || '[]');
           const newNote = {
             id: Date.now().toString(),
@@ -89,22 +113,25 @@ const ImportDialog = ({ isOpen, onClose, type }: ImportDialogProps) => {
             content: parsedData.content || '',
             tag: parsedData.tag || '',
             isBlurred: parsedData.isBlurred || false,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: new Date(parsedData.createdAt || Date.now()),
+            updatedAt: new Date(parsedData.updatedAt || Date.now())
           };
           existingNotes.unshift(newNote);
           localStorage.setItem('casual-notes', JSON.stringify(existingNotes));
         } else if (type === 'list' && (parsedData.title !== undefined || parsedData.items !== undefined)) {
+          // Single list import
           const existingLists = JSON.parse(localStorage.getItem('shopping-lists') || '[]');
           const newList = {
             id: Date.now().toString(),
             title: parsedData.title || '',
             items: parsedData.items || [],
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: new Date(parsedData.createdAt || Date.now()),
+            updatedAt: new Date(parsedData.updatedAt || Date.now())
           };
           existingLists.unshift(newList);
           localStorage.setItem('shopping-lists', JSON.stringify(existingLists));
+        } else {
+          throw new Error('Invalid format for this import type');
         }
       }
 
@@ -117,9 +144,10 @@ const ImportDialog = ({ isOpen, onClose, type }: ImportDialogProps) => {
       onClose();
       window.location.reload();
     } catch (error) {
+      console.error('Import error:', error);
       toast({
         title: "Error",
-        description: "Invalid format",
+        description: "Invalid format or incompatible data",
         variant: "destructive",
       });
     }

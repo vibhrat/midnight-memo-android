@@ -23,9 +23,7 @@ const ListsIcon = () => (
 
 const VaultIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <path d="M0 1C0 0.447715 0.447715 0 1 0H15C15.5523 0 16 0.447715 16 1V2H0V1Z" fill="currentColor"/>
-    <rect y="7" width="16" height="2" fill="currentColor"/>
-    <path d="M0 14H16V15C16 15.5523 15.5523 16 15 16H1C0.447715 16 0 15.5523 0 15V14Z" fill="currentColor"/>
+    <path d="M11 0C13.7614 0 16 2.23858 16 5V11C16 13.7614 13.7614 16 11 16H9V7H7V16H5C2.23858 16 0 13.7614 0 11V5C0 2.23858 2.23858 0 5 0H11Z" fill="currentColor"/>
   </svg>
 );
 
