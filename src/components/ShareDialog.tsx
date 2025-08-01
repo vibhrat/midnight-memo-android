@@ -1,6 +1,6 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { Capacitor } from '@capacitor/core';
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -36,23 +36,60 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
 
   if (!isOpen) return null;
 
-  const handleExportJSON = () => {
+  const handleExportJSON = async () => {
     const jsonData = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
     
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${type}-${data.id || Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { Filesystem, Directory } = await import('@capacitor/filesystem');
+        
+        // Get current date and time for filename
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = String(now.getFullYear()).slice(-2);
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        const datetime = `${day}${month}${year}${hours}${minutes}`;
+        const fileName = `${type}-export-${datetime}.json`;
 
-    toast({
-      title: "Success",
-      description: "JSON exported successfully!",
-    });
+        // Save to Downloads directory
+        await Filesystem.writeFile({
+          path: fileName,
+          data: jsonData,
+          directory: Directory.Documents,
+          recursive: true
+        });
+
+        toast({
+          title: "Success",
+          description: `${type.charAt(0).toUpperCase() + type.slice(1)} exported to Documents/${fileName}`,
+        });
+      } catch (error) {
+        console.error('Export failed:', error);
+        // Fallback to copy to clipboard
+        handleShareText();
+        return;
+      }
+    } else {
+      // Web fallback
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${type}-${data.id || Date.now()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: "JSON exported successfully!",
+      });
+    }
     onClose();
   };
 
@@ -97,7 +134,6 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
       });
     });
   };
-
 
   const handleImport = () => {
     setShowImport(true);
@@ -200,7 +236,6 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
     }
   };
 
-
   if (showImport) {
     return (
       <div 
@@ -263,7 +298,7 @@ const ShareDialog = ({ isOpen, onClose, data, type }: ShareDialogProps) => {
             className="w-full px-4 py-3 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
             style={{ backgroundColor: '#272727' }}
           >
-            Export File
+            Export to Documents
           </button>
           <button
             onClick={handleShareText}
